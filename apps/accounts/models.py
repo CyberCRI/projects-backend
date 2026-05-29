@@ -985,6 +985,8 @@ class InvitationUser(AnonymousUser):
 
 
 class InternalAdmin(AnonymousUser):
+    """internal admim user (he have access to all models)"""
+
     def get_project_queryset(self):
         return Project.objects.all()
 

@@ -44,10 +44,10 @@ project_router_register(
     router, r"history", HistoricalProjectViewSet, basename="Project-versions"
 )
 project_router_register(
-    router, r"member", ProjectMembersViewSet, basename="Project-members"
+    router, r"member", ProjectMembersViewSet, basename="Project-member"
 )
 project_router_register(
-    router, r"group", ProjectGroupsViewSet, basename="Project-groups"
+    router, r"group", ProjectGroupsViewSet, basename="Project-group"
 )
 project_router_register(router, r"blog-entry", BlogEntryViewSet, basename="BlogEntry")
 project_router_register(

@@ -84,7 +84,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {"members": [self.member_to_add.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(self.project.id,)), payload
+            reverse("Project-member-add-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         mocked_update.assert_has_calls([call(self.project, "index")])
@@ -97,7 +97,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {"users": [self.member_to_remove.id]}
         response = self.client.post(
-            reverse("Project-remove-member", args=(self.project.id,)), payload
+            reverse("Project-member-remove-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         mocked_update.assert_has_calls([call(self.project, "index")])

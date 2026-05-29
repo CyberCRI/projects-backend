@@ -104,7 +104,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"members": []}
         response = self.client.post(
-            reverse("Project-add-member", args=(self.project.id,)), data=payload
+            reverse("Project-member-add-member", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -126,7 +126,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"users": []}
         response = self.client.post(
-            reverse("Project-remove-member", args=(self.project.id,)),
+            reverse("Project-member-remove-member", args=(self.project.id,)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)

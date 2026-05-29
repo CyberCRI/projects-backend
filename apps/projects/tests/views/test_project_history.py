@@ -73,7 +73,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
         )
         payload = {GroupData.Role.MEMBERS: [self.user.id]}
         self.client.post(
-            reverse("Project-add-member", args=(project.id,)), data=payload
+            reverse("Project-member-add-member", args=(project.id,)), data=payload
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -103,7 +103,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
         project.members.add(self.user)
         payload = {"users": [self.user.id]}
         self.client.post(
-            reverse("Project-remove-member", args=(project.id,)), data=payload
+            reverse("Project-member-remove-member", args=(project.id,)), data=payload
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()

@@ -22,7 +22,6 @@ class ModulesSerializers(serializers.ModelSerializer):
             # if modules is not set, get "default" values from Meta serializer
             if modules_keys is None:
                 modules_keys = getattr(self.Meta, "modules_keys", None)
-            print(modules_keys, type(self))
             self.context["modules_keys"] = (
                 tuple(modules_keys) if modules_keys is not None else None
             )
@@ -31,5 +30,4 @@ class ModulesSerializers(serializers.ModelSerializer):
     def get_modules(self, instance):
         request = self.context.get("request")
 
-        modules_manager = instance.get_related_module()
-        return modules_manager(instance, user=request.user).count(self.__modules_keys)
+        return instance.modules_by_user(request.user).count(self.__modules_keys)

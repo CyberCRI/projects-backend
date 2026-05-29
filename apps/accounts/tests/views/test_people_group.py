@@ -749,7 +749,7 @@ class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
         people_group.leaders.add(self.user_3)
         payload = {project_role: [people_group.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(self.project.id,)), payload
+            reverse("Project-member-add-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.project.refresh_from_db()
@@ -757,7 +757,7 @@ class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
             self.assertIn(user, getattr(self.project, f"{project_role}_users").all())
         payload = {"people_groups": [people_group.id]}
         response = self.client.post(
-            reverse("Project-remove-member", args=(self.project.id,)), payload
+            reverse("Project-member-remove-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.project.refresh_from_db()
