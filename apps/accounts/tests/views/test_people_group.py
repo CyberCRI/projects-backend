@@ -327,7 +327,7 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
             "managers": [r.id for r in managers],
             "leaders": [r.id for r in leaders],
         }
-        featured_projects = [p.pk for p in projects]
+        featured_projects = {"featured_projects": [p.pk for p in projects]}
 
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
@@ -340,18 +340,20 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
 
             rsp2 = self.client.post(
                 reverse(
-                    "PeopleGroup-member", args=(organization.code, response.data["id"])
+                    "PeopleGroup-add-member",
+                    args=(organization.code, response.data["id"]),
                 ),
-                payload=team,
+                team,
             )
-            self.assertEqual(rsp2.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(rsp2.status_code, status.HTTP_204_NO_CONTENT)
             rsp3 = self.client.post(
                 reverse(
-                    "PeopleGroup-project", args=(organization.code, response.data["id"])
+                    "PeopleGroup-add-featured-project",
+                    args=(organization.code, response.data["id"]),
                 ),
                 featured_projects,
             )
-            self.assertEqual(rsp3.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(rsp3.status_code, status.HTTP_204_NO_CONTENT)
 
             people_group = PeopleGroup.objects.get(id=response.json()["id"])
             for member in members:
