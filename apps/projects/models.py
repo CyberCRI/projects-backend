@@ -49,22 +49,22 @@ def uuid_generator() -> str:
     return shortuuid.ShortUUID().random(length=8)
 
 
-class SoftDeleteManager(MultipleIdsQuerySet):
+class SoftDeleteManager(models.manager.BaseManager.from_queryset(MultipleIdsQuerySet)):
     """Exclude by default soft-deleted Projects."""
 
     def get_queryset(self):
         """Exclude by default soft-deleted Projects."""
-        return self.filter(deleted_at=None)
+        return super().get_queryset().filter(deleted_at=None)
 
     def all_with_delete(self, pk=None):
         """Retrieve all projects, or the one corresponding to `pk` if given."""
         if pk is None:
-            return self.get_queryset()
-        return self.get_queryset().get(pk=pk)
+            return super().get_queryset()
+        return super().get_queryset().get(pk=pk)
 
     def deleted_projects(self):
         """Retrieve all soft-deleted projects."""
-        return self.get_queryset().exclude(deleted_at=None)
+        return super().get_queryset().exclude(deleted_at=None)
 
 
 class Project(
@@ -222,7 +222,7 @@ class Project(
         max_length=8, null=True, blank=True, default=None
     )
     permissions_up_to_date = models.BooleanField(default=False)
-    objects = SoftDeleteManager.as_manager()
+    objects = SoftDeleteManager()
 
     class Meta:
         write_only_subscopes = (

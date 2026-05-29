@@ -296,10 +296,11 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             raise OrganizationsParameterMissing
 
         project = self.get_object()
-        modules_manager = project.get_related_module()
-        modules = modules_manager(project, request.user)
-        queryset = modules.similars().filter(
-            organizations__code__in=get_below_hierarchy_codes(organizations)
+
+        queryset = (
+            project.mobules_by_user(request.user)
+            .similars()
+            .filter(organizations__code__in=get_below_hierarchy_codes(organizations))
         )
 
         page = self.paginate_queryset(queryset)
@@ -400,9 +401,7 @@ class ProjectMembersViewSet(
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet[ProjectUser]:
-        modules_manager = self.project.get_related_module()
-        modules = modules_manager(self.project, self.request.user)
-        return modules.members()
+        return self.project.modules_by_user(self.request.user).members()
 
     @extend_schema(request=ProjectAddTeamMembersSerializer, responses=ProjectSerializer)
     @action(
@@ -519,9 +518,11 @@ class ProjectGroupsViewSet(
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
-        modules_manager = self.project.get_related_module()
-        modules = modules_manager(self.project, self.request.user)
-        return modules.groups().select_related("organization")
+        return (
+            self.project.modules_by_user(self.request.user)
+            .groups()
+            .select_related("organization")
+        )
 
 
 class BlogEntryViewSet(
@@ -543,10 +544,11 @@ class BlogEntryViewSet(
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
-        modules_manager = self.project.get_related_module()
-        modules = modules_manager(self.project, self.request.user)
-
-        return modules.blogs().prefetch_related("images")
+        return (
+            self.project.modules_by_user(self.request.user)
+            .blogs()
+            .prefetch_related("images")
+        )
 
     def perform_create(self, serializer):
         instance = serializer.save()
@@ -568,10 +570,9 @@ class BlogEntryImagesView(
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        modules_manager = self.project.get_related_module()
-        modules = modules_manager(self.project, self.request.user)
+        blogs_qs = self.project.modules_by_user(self.request.user).blogs()
 
-        qs = Image.objects.filter(pk__in=modules.blog())
+        qs = Image.objects.filter(pk__in=blogs_qs)
         # Retrieve images before blog entry is posted
         if self.request.user.is_authenticated:
             qs = qs | Image.objects.filter(owner=self.request.user)
@@ -618,10 +619,7 @@ class GoalViewSet(
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
-        modules_manager = self.project.get_related_module()
-        modules = modules_manager(self.project, self.request.user)
-
-        return modules.goals()
+        return self.project.modules_by_user(self.request.user).goals()
 
 
 class LocationViewSet(
@@ -642,10 +640,7 @@ class LocationViewSet(
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        modules_manager = self.project.get_related_module()
-        modules = modules_manager(self.project, self.request.user)
-
-        return modules.locations()
+        return self.project.modules_by_user(self.request.user).locations()
 
     @method_decorator(
         redis_cache_view("locations_list_cache", settings.CACHE_LOCATIONS_LIST_TTL)
@@ -697,10 +692,7 @@ class LinkedProjectViewSet(
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        modules_manager = self.project.get_related_module()
-        modules = modules_manager(self.project, self.request.user)
-
-        return modules.linked_projects()
+        return self.project.modules_by_user(self.request.user).linked_projects()
 
     def check_linked_project_permission(self, project):
         if not self.request.user.can_see_project(project):
@@ -811,9 +803,7 @@ class ProjectMessageViewSet(
     def get_queryset(self):
         # get_project_related_queryset is not needed because the publication_status is not checked here
 
-        modules_manager = self.project.get_related_module()
-        modules = modules_manager(self.project, self.request.user)
-        queryset = modules.messages()
+        queryset = self.project.modules_by_user(self.request.user).messages()
 
         if self.action in ["retrieve", "list"]:
             queryset = queryset.exclude(reply_on__isnull=False)
@@ -848,9 +838,7 @@ class ProjectMessageImagesView(
         return super().get_permissions()
 
     def get_queryset(self):
-        modules_manager = self.project.get_related_module()
-        modules = modules_manager(self.project, self.request.user)
-        queryset = modules.messages()
+        queryset = self.project.modules_by_user(self.request.user).messages()
 
         if "project_id" in self.kwargs:
             qs = Image.objects.filter(project_messages__in=queryset)
