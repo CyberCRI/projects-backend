@@ -400,7 +400,7 @@ STORAGES = {
         },
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "projects.storage.RelaxedManifestStaticFilesStorage",
     },
 }
 
@@ -702,7 +702,7 @@ JAZZMIN_SETTINGS = {
     "site_logo": "LPI-sm.png",
     "site_title": "Projects",
     "welcome_sign": "",
-    "show_ui_builder": DEBUG,
+    "show_ui_builder": False,
     "theme": "flatly",
     "custom_css": "styles/admin.css",
 }
