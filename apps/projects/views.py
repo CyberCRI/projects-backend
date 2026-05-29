@@ -298,7 +298,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         project = self.get_object()
 
         queryset = (
-            project.mobules_by_user(request.user)
+            project.modules_by_user(request.user)
             .similars()
             .filter(organizations__code__in=get_below_hierarchy_codes(organizations))
         )
