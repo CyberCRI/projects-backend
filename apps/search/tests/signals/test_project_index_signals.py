@@ -55,7 +55,6 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
             "is_shareable": faker.boolean(),
             "purpose": faker.sentence(),
             "organizations_codes": [self.organization.code],
-            "images_ids": [],
         }
         response = self.client.post(reverse("Project-list"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

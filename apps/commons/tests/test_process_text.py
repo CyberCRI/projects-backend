@@ -651,18 +651,18 @@ class TextProcessingTestCase(JwtAPITestCase):
             "is_shareable": faker.boolean(),
             "purpose": faker.sentence(),
             "organizations_codes": [self.organization.code],
-            "images_ids": [],
         }
         response = self.client.post(reverse("Project-list"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        content = response.json()
-        self.assertEqual(len(content["images"]), 2)
-        project_id = content["id"]
-        for image in content["images"]:
-            image_id = image["id"]
+
+        project = Project.objects.get(id=response.json()["id"])
+        images = project.images.all()
+
+        self.assertEqual(len(images), 2)
+        for image in images:
             self.assertIn(
-                reverse("Project-images-detail", args=(project_id, image_id)),
-                content["description"],
+                reverse("Project-images-detail", args=(project.id, image.id)),
+                project.description,
             )
 
     def test_update_project(self):
@@ -677,13 +677,15 @@ class TextProcessingTestCase(JwtAPITestCase):
             reverse("Project-detail", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(len(content["images"]), 3)
-        for image in content["images"]:
-            image_id = image["id"]
+
+        project = Project.objects.get(id=response.json()["id"])
+        images = project.images.all()
+
+        self.assertEqual(len(images), 3)
+        for image in images:
             self.assertIn(
-                reverse("Project-images-detail", args=(self.project.id, image_id)),
-                content["description"],
+                reverse("Project-images-detail", args=(project.id, image.id)),
+                project.description,
             )
 
     def test_create_blog_entry(self):
@@ -936,7 +938,6 @@ class TextProcessingTestCase(JwtAPITestCase):
             "is_shareable": faker.boolean(),
             "purpose": purpose,
             "organizations_codes": [self.organization.code],
-            "images_ids": [],
         }
         response = self.client.post(reverse("Project-list"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

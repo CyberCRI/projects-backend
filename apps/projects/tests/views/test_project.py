@@ -91,7 +91,6 @@ class CreateProjectTestCase(JwtAPITestCase):
             "project_categories_ids": [self.category.id],
             "template_id": self.template.id,
             "tags": [t.id for t in self.tags],
-            "images_ids": [],
         }
         response = self.client.post(reverse("Project-list"), data=payload)
         self.assertEqual(response.status_code, expected_code)
