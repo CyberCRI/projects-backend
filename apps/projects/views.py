@@ -379,7 +379,7 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return None
 
 
-class ProjectMembersViewSet(
+class ProjectMemberViewSet(
     NestedProjectViewMixins,
     MultipleIDViewsetMixin,
     viewsets.ModelViewSet,
@@ -410,6 +410,7 @@ class ProjectMembersViewSet(
         url_path="add",
         permission_classes=[
             IsAuthenticated,
+            ProjectIsNotLocked,
             HasBasePermission("change_project", "projects")
             | HasOrganizationPermission("change_project")
             | HasProjectPermission("change_project"),
@@ -496,7 +497,7 @@ class ProjectMembersViewSet(
             )
 
 
-class ProjectGroupsViewSet(
+class ProjectGroupViewSet(
     NestedProjectViewMixins,
     MultipleIDViewsetMixin,
     viewsets.ModelViewSet,

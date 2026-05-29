@@ -332,15 +332,13 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {
-            "projects": [
-                {
-                    "project_id": to_link.id,
-                    "reason": faker.sentence(),
-                    "target_id": project.id,
-                }
-            ]
-        }
+        payload = [
+            {
+                "project_id": to_link.id,
+                "reason": faker.sentence(),
+                "target_id": project.id,
+            }
+        ]
         self.client.post(
             reverse("LinkedProjects-add-many", args=(project.id,)), data=payload
         )
