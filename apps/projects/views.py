@@ -572,7 +572,7 @@ class BlogEntryImagesView(
     def get_queryset(self):
         blogs_qs = self.project.modules_by_user(self.request.user).blogs()
 
-        qs = Image.objects.filter(pk__in=blogs_qs)
+        qs = Image.objects.filter(blog_entries__in=blogs_qs)
         # Retrieve images before blog entry is posted
         if self.request.user.is_authenticated:
             qs = qs | Image.objects.filter(owner=self.request.user)
@@ -838,10 +838,10 @@ class ProjectMessageImagesView(
         return super().get_permissions()
 
     def get_queryset(self):
-        queryset = self.project.modules_by_user(self.request.user).messages()
+        messages_qs = self.project.modules_by_user(self.request.user).messages()
 
         if "project_id" in self.kwargs:
-            qs = Image.objects.filter(project_messages__in=queryset)
+            qs = Image.objects.filter(project_messages__in=messages_qs)
             # Retrieve images before message is posted
             if self.request.user.is_authenticated:
                 qs = qs | Image.objects.filter(owner=self.request.user)

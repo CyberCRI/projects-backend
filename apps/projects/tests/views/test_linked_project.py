@@ -66,18 +66,16 @@ class CreateLinkedProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(organizations=[self.organization])
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
-        payload = {
-            "projects": [
-                {
-                    "project_id": self.linked_project_1.id,
-                    "target_id": project.id,
-                },
-                {
-                    "project_id": self.linked_project_2.id,
-                    "target_id": project.id,
-                },
-            ]
-        }
+        payload = [
+            {
+                "project_id": self.linked_project_1.id,
+                "target_id": project.id,
+            },
+            {
+                "project_id": self.linked_project_2.id,
+                "target_id": project.id,
+            },
+        ]
         response = self.client.post(
             reverse("LinkedProjects-add-many", args=(project.id,)), data=payload
         )
@@ -85,7 +83,7 @@ class CreateLinkedProjectTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_200_OK:
             content = response.json()
             self.assertSetEqual(
-                {p["project"]["id"] for p in content["linked_projects"]},
+                {p["project"]["id"] for p in content},
                 {self.linked_project_1.id, self.linked_project_2.id},
             )
 
@@ -182,21 +180,22 @@ class ValidateLinkedProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(organizations=[self.organization])
         project_2 = ProjectFactory(organizations=[self.organization])
         self.client.force_authenticate(user)
-        payload = {
-            "projects": [
-                {"project_id": project_2.id, "target_id": project.id},
-                {"project_id": project.id, "target_id": project.id},
-            ]
-        }
+        payload = [
+            {"project_id": project_2.id, "target_id": project.id},
+            {"project_id": project.id, "target_id": project.id},
+        ]
         response = self.client.post(
             reverse("LinkedProjects-add-many", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {
-                "project_id": [
-                    f"The project '{project.title}' can't be linked to itself"
-                ]
-            },
+            [
+                {},
+                {
+                    "project_id": [
+                        f"The project '{project.title}' can't be linked to itself"
+                    ]
+                },
+            ],
         )

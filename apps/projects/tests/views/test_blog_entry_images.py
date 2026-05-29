@@ -70,7 +70,10 @@ class RetrieveBlogEntryImageTestCase(JwtAPITestCase):
             if publication_status in retrieved_images:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertIn(
+                    response.status_code,
+                    [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
+                )
 
 
 class CreateBlogEntryImageTestCase(JwtAPITestCase):

@@ -3,7 +3,9 @@ from rest_framework import mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+from apps.accounts.permissions import ProjectNestedPermission
 from apps.organizations.models import Organization
+from apps.projects.models import Project
 
 from .mixins import HasMultipleIDs
 
@@ -157,12 +159,18 @@ class NestedOrganizationViewMixins:
 
 
 class NestedProjectViewMixins:
+    project: Project
+
     def initial(self, request, *args, **kwargs):
         self.project = get_object_or_404(
-            request.user.get_project_queryset().slug_or_id(kwargs["project_id"]),
+            Project.objects.slug_or_id(kwargs["project_id"]),
         )
 
         super().initial(request, *args, **kwargs)
+
+    def get_permissions(self):
+        """add check nested project"""
+        return [ProjectNestedPermission(), *super().get_permissions()]
 
 
 class NestedPeopleGroupViewMixins:
