@@ -53,7 +53,6 @@ class CreateInstructionTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
-            "organization": self.organization.code,
             "title": faker.sentence(),
             "content": faker.text(),
             "language": random.choice(Language.values),  # nosec
@@ -263,7 +262,6 @@ class ValidateInstructionTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user("superadmin", instances=[])
         self.client.force_authenticate(user=user)
         payload = {
-            "organization": self.organization.code,
             "title": faker.sentence(),
             "content": faker.text(),
             "language": "fr",
