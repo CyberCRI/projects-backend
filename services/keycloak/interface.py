@@ -80,6 +80,10 @@ class KeycloakService:
         return cls.service().get_user(keycloak_id)
 
     @classmethod
+    def get_user_id(cls, username: str) -> str:
+        return cls.service().get_user_id(username)
+
+    @classmethod
     def get_users(cls, **kwargs):
         return cls.service().get_users(kwargs)
 
