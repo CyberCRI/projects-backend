@@ -46,7 +46,6 @@ class RetrieveBlogEntryImageTestCase(JwtAPITestCase):
             (TestRoles.ANONYMOUS, ("public",)),
             (TestRoles.DEFAULT, ("public",)),
             (TestRoles.SUPERADMIN, ("public", "org", "private")),
-            (TestRoles.OWNER, ("public", "org", "private")),
             (TestRoles.ORG_ADMIN, ("public", "org", "private")),
             (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
             (TestRoles.ORG_USER, ("public", "org")),

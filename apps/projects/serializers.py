@@ -504,7 +504,17 @@ class LinkedProjectSerializer(serializers.ModelSerializer):
         return linked
 
     def update(self, instance, validate_data: dict) -> LinkedProject:
-        return instance
+        linked = LinkedProject.objects.filter(
+            project=validate_data.get("project", instance.project),
+            target=validate_data.get("target", instance.target),
+        ).first()
+        # already linked exists so delete it
+        if linked:
+            instance.delete()
+        else:
+            return super().update(instance, validate_data)
+
+        return linked
 
 
 class UserLighterSerializerKeycloakRelatedField(

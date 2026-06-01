@@ -300,7 +300,9 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"reason": faker.sentence()}
+        payload = {
+            "project_id": ProjectFactory(organizations=[self.organization]).id,
+        }
         self.client.patch(
             reverse("LinkedProjects-detail", args=(project.id, linked_project.id)),
             data=payload,
