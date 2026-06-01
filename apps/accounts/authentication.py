@@ -47,7 +47,8 @@ class AdminAuthentication(ModelBackend):
     def authenticate(self, request, username=None, password=None):
         token = KeycloakService.get_token_for_user(username, password)
         BearerToken(token["access_token"])
-        user_id = KeycloakService.get_user_id(username)
+        user_info = KeycloakService.get_user_info(token["access_token"])
+        user_id = user_info[api_settings.USER_ID_CLAIM]
         try:
             return ProjectUser.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except ProjectUser.DoesNotExist:
