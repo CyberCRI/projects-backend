@@ -47,6 +47,9 @@ class SearchObject(models.Model):
     type = models.CharField(max_length=50, choices=SearchObjectType.choices)
     last_update = models.DateTimeField(null=True)
 
+    def __str__(self):
+        return f"{self.type} - {self.item}"
+
     @property
     def item(self):
         match self.type:
@@ -57,6 +60,3 @@ class SearchObject(models.Model):
             case self.SearchObjectType.USER:
                 return self.user
         return None
-
-    def __str__(self):
-        return f"{self.type} - {self.item}"

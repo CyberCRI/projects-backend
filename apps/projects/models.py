@@ -234,6 +234,19 @@ class Project(
             *get_write_permissions_from_subscopes(write_only_subscopes),
         )
 
+    def __init__(self, *args, **kwargs):
+        super(Project, self).__init__(*args, **kwargs)
+        self._original_description = self.description
+        self._related_organizations = None
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if hasattr(self, "stat"):
+            if self._original_description != self.description:
+                self.stat.update_description_length()
+            self.stat.update_versions()
+
     @property
     def url(self) -> str:
         return os.path.join(
@@ -244,25 +257,12 @@ class Project(
     def content_type(self) -> ContentType:
         return ContentType.objects.get_for_model(Project)
 
-    def __init__(self, *args, **kwargs):
-        super(Project, self).__init__(*args, **kwargs)
-        self._original_description = self.description
-        self._related_organizations = None
-
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
         """Get the name of the field which contains the given ID."""
         if len(object_id) == 8:
             return "id"
         return "slug"
-
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if hasattr(self, "stat"):
-            if self._original_description != self.description:
-                self.stat.update_description_length()
-            self.stat.update_versions()
 
     def delete(self, using=None, keep_parents=False):
         """
@@ -883,9 +883,6 @@ class AbstractLocation(HasAutoTranslatedFields, DuplicableModel, models.Model):
         NEWS = "news"
         EVENT = "event"
 
-    class Meta:
-        abstract = True
-
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     lat = models.FloatField()
@@ -893,6 +890,9 @@ class AbstractLocation(HasAutoTranslatedFields, DuplicableModel, models.Model):
     type = models.CharField(
         max_length=10, choices=LocationType.choices, default=LocationType.TEAM
     )
+
+    class Meta:
+        abstract = True
 
 
 # TODO(remi): rename to ProjectLocation ?
@@ -967,6 +967,9 @@ class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.M
     deleted_at = models.DateTimeField(null=True, default=None)
     images = models.ManyToManyField("files.Image", related_name="project_messages")
 
+    class Meta:
+        ordering = ["-created_at"]
+
     def __str__(self):
         return f"Project message from {self.author} on {self.project}"
 
@@ -977,9 +980,6 @@ class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.M
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
-
-    class Meta:
-        ordering = ["-created_at"]
 
     def soft_delete(self):
         self.deleted_at = timezone.localtime(timezone.now())

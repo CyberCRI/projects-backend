@@ -96,7 +96,7 @@ class ListCategoryFollowTestCase(JwtAPITestCase):
         }
         cls.category_follows = {
             key: CategoryFollowFactory(category=cls.category, follower=cls.users[key])
-            for key in cls.users.keys()
+            for key in cls.users
         }
 
     @parameterized.expand(

@@ -35,7 +35,7 @@ def get_views_from_serializer(
 
     try:
         return project.get_views_organizations([Organization.objects.get(code=code)])
-    except Exception:  # noqa: PIE786
+    except Exception:
         return project.get_views()
 
 

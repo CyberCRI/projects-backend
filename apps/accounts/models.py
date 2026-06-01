@@ -100,8 +100,6 @@ class PeopleGroup(
             The visibility setting of the group.
     """
 
-    objects = MultipleIdsQuerySet.as_manager()
-
     auto_translated_fields: list[str] = [
         "name",
         "html:description",
@@ -166,6 +164,17 @@ class PeopleGroup(
     permissions_up_to_date = models.BooleanField(default=False)
 
     tags = models.ManyToManyField("skills.Tag", related_name="people_groups")
+
+    objects = MultipleIdsQuerySet.as_manager()
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                name="unique_root_group_per_organization",
+                fields=["organization"],
+                condition=Q(is_root=True),
+            )
+        ]
 
     def __str__(self) -> str:
         return str(self.name)
@@ -271,15 +280,6 @@ class PeopleGroup(
             for project in projects:
                 for group in project.groups.filter(people_groups=self):
                     project.set_role_group_members(group)
-
-    class Meta:
-        constraints = [
-            UniqueConstraint(
-                name="unique_root_group_per_organization",
-                fields=["organization"],
-                condition=Q(is_root=True),
-            )
-        ]
 
 
 class ProjectUser(

@@ -233,8 +233,8 @@ class CrisalidApolloImporterForm(forms.Form):
         content = data["file"].read()
         try:
             return json.loads(content)
-        except (TypeError, ValueError):
-            raise ValidationError("Invalid json files")
+        except (TypeError, ValueError) as e:
+            raise ValidationError("Invalid json files") from e
 
 
 class CrisalidApolloImporter(ExtraAdminMixins, TemplateView):

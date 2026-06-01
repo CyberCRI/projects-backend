@@ -179,8 +179,6 @@ class Document(
     Represents a research publicaiton (or 'document') in the Crisalid system.
     """
 
-    objects = DocumentQuerySet.as_manager()
-
     class DocumentType(models.TextChoices):
         """
         Document type from crisalid
@@ -225,9 +223,20 @@ class Document(
 
     organization_query_string = "contributors__user__groups__organizations"
 
+    objects = DocumentQuerySet.as_manager()
+
     class Meta:
         # order by publicattion date, and put "null date" at last
         ordering = (models.F("publication_date").desc(nulls_last=True),)
+
+    def __str__(self):
+        return f"<{self.document_type}> {self.title}"
+
+    def save(self, *ar, **kw):
+        md = super().save(*ar, **kw)
+        # when we update models , re-calculate vectorize
+        self.vectorize()
+        return md
 
     def get_related_organizations(self):
         """organizations from user"""
@@ -239,9 +248,6 @@ class Document(
             )
         )
 
-    def __str__(self):
-        return f"<{self.document_type}> {self.title}"
-
     @property
     def document_type_centralized(self) -> list[str]:
         """get group list document centralized"""
@@ -249,12 +255,6 @@ class Document(
             if self.document_type in vals:
                 return vals
         return [self.document_type]
-
-    def save(self, *ar, **kw):
-        md = super().save(*ar, **kw)
-        # when we update models , re-calculate vectorize
-        self.vectorize()
-        return md
 
 
 class DocumentTypeCentralized:

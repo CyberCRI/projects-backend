@@ -7,4 +7,4 @@ class NewsfeedConfig(AppConfig):
 
     def ready(self):
         """Register signals once the apps are loaded."""
-        import apps.newsfeed.signals  # noqa
+        import apps.newsfeed.signals  # noqa: F401

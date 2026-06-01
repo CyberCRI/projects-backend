@@ -54,7 +54,6 @@ else:
 
 
 class User(HttpUser):
-
     def on_start(self):
         self.client.headers = {"Authorization": f"Bearer {TOKEN['access_token']}"}
 

@@ -278,7 +278,7 @@ class KeycloakService:
         try:
             keycloak_user = cls.get_user(keycloak_account.keycloak_id)
         except KeycloakGetError:
-            raise Http404()
+            raise Http404() from None
         actions = list(
             set(["UPDATE_PASSWORD"] + keycloak_user.get("requiredActions", []))
         )
@@ -385,7 +385,7 @@ class KeycloakService:
             for organization in organizations:
                 if organization.code not in keycloak_organization_codes:
                     # At the moment we don't perform destructive actions using this system
-                    # keycloak_account.user.groups.remove(*organization.groups.all())  # noqa: E800
+                    # keycloak_account.user.groups.remove(*organization.groups.all())  # noqa: ERA001
                     pass
             # Add missing groups
             for organization_code in keycloak_organization_codes:

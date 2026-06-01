@@ -87,6 +87,9 @@ class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        permissions = (("manage_accessrequest", "Can manage access requests"),)
+
     def __str__(self):
         return f"{self.given_name} {self.family_name} ({self.email})"
 
@@ -179,6 +182,3 @@ class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return [self.organization]
-
-    class Meta:
-        permissions = (("manage_accessrequest", "Can manage access requests"),)

@@ -45,13 +45,13 @@ class PostDeployProcess(models.Model):
 
     _tasks = {task.task_name: task for task in PostDeployTask.__subclasses__()}
 
-    def __str__(self):
-        return self.task_name
-
     class Meta:
         verbose_name = "Post deploy process"
         verbose_name_plural = "Post deploy processes"
         ordering = ["priority"]
+
+    def __str__(self):
+        return self.task_name
 
     def run_task(self):
         self._status = self.PostDeployProcessStatus.NONE
@@ -70,7 +70,7 @@ class PostDeployProcess(models.Model):
                 self.task_id = result.id
             else:
                 self._status = self.PostDeployProcessStatus.SUCCESS
-        except Exception:  # noqa
+        except Exception:
             self._status = self.PostDeployProcessStatus.FAILURE
         self.last_run_version = settings.VERSION
         self.save()

@@ -7,7 +7,7 @@ from .models import PeopleGroup, ProjectUser
 
 class PeopleGroupFilter(filters.FilterSet):
     organizations = MultiValueCharFilter(method="filter_organizations")
-    type = MultiValueCharFilter(field_name="type", lookup_expr="in")  # noqa
+    type = MultiValueCharFilter(field_name="type", lookup_expr="in")
     is_root = filters.BooleanFilter(field_name="is_root")
 
     def filter_organizations(self, queryset, name, value):
