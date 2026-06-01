@@ -6,7 +6,7 @@ class CustomAutoSchema(AutoSchema):
 
     def get_operation(self, *args, **kwargs):
         operation = super().get_operation(*args, **kwargs)
-        if "summary" not in operation:
+        if operation and "summary" not in operation:
             title = operation.get("description")
             if title is not None and len(title) > 150:
                 title = title[:148] + "..."
