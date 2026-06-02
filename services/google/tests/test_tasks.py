@@ -241,7 +241,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             "email": f"googlesync-{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
             "description": "",
         }
-        payload_team = ({"members": [google_user.user.id]},)
+        payload_team = {"members": [google_user.user.id]}
 
         mocked.side_effect = self.google_side_effect(
             [
@@ -381,7 +381,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             "create_in_google": True,
             "description": "",
         }
-        payload_team = ({"members": [google_user.user.id]},)
+        payload_team = {"members": [google_user.user.id]}
         mocked.side_effect = self.google_side_effect(
             [
                 self.get_google_group_success(),  # group email is taken
@@ -426,7 +426,8 @@ class GoogleTasksTestCase(GoogleTestCase):
 
             response_team = self.client.post(
                 reverse(
-                    "PeopleGroup-list", args=(self.organization.code, people_group.id)
+                    "PeopleGroup-add-member",
+                    args=(self.organization.code, people_group.id),
                 ),
                 data=payload_team,
             )
