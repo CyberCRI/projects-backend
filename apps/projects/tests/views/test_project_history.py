@@ -1057,7 +1057,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             "project_id": project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(project.id,)), data=payload
+            reverse("Project-Announcement-list", args=(project.id,)), data=payload
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -1088,7 +1088,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
         )
         payload = {"title": faker.sentence()}
         self.client.patch(
-            reverse("Announcement-detail", args=(project.id, announcement.id)),
+            reverse("Project-Announcement-detail", args=(project.id, announcement.id)),
             data=payload,
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
@@ -1119,7 +1119,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .count()
         )
         self.client.delete(
-            reverse("Announcement-detail", args=(project.id, announcement.id))
+            reverse("Project-Announcement-detail", args=(project.id, announcement.id))
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()

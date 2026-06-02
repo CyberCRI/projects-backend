@@ -41,7 +41,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         ).distinct()
 
 
-class ProjectAnnouncementViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
+class ProjectAnnouncementViewSet(NestedProjectViewMixins, AnnouncementViewSet):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ProjectIsNotLocked,

@@ -142,7 +142,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "description": text,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(self.project.id,)), data=payload
+            reverse("Project-Announcement-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -150,7 +150,9 @@ class TextProcessingTestCase(JwtAPITestCase):
 
         payload = {"description": text}
         response = self.client.patch(
-            reverse("Announcement-detail", args=(self.project.id, content["id"])),
+            reverse(
+                "Project-Announcement-detail", args=(self.project.id, content["id"])
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

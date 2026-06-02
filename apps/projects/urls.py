@@ -59,7 +59,7 @@ project_router_register(
 project_router_register(router, r"follow", ProjectFollowViewSet, basename="Followed")
 project_router_register(router, r"review", ReviewViewSet, basename="Reviewed")
 project_router_register(
-    router, r"announcement", ProjectAnnouncementViewSet, basename="Announcement"
+    router, r"announcement", ProjectAnnouncementViewSet, basename="Project-Announcement"
 )
 project_router_register(router, r"image", ProjectImagesView, basename="Project-images")
 project_router_register(router, r"header", ProjectHeaderView, basename="Project-header")

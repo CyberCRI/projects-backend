@@ -58,7 +58,7 @@ class NewAnnouncementTestCase(JwtAPITestCase):
             "project_id": project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(project.id,)), data=payload
+            reverse("Project-Announcement-list", args=(project.id,)), data=payload
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -211,7 +211,7 @@ class NewApplicationTestCase(JwtAPITestCase):
             **application,
         }
         self.client.post(
-            reverse("Announcement-apply", args=(project.id, announcement.id)),
+            reverse("Project-Announcement-apply", args=(project.id, announcement.id)),
             data=payload,
         )
         notification_task.assert_called_once_with(announcement.pk, application)

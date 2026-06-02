@@ -4,5 +4,5 @@ from apps.announcements import views
 
 router = DefaultRouter()
 router.register(
-    r"announcement", views.AnnouncementViewSet, basename="Read-announcement"
+    r"announcement", views.AnnouncementViewSet, basename="Read-Announcement"
 )
