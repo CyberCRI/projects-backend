@@ -20,25 +20,15 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from simple_history.utils import update_change_reason
 
-from apps.accounts.models import PeopleGroupLocation, ProjectUser
+from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import PeopleGroupLocationSuperLightSerializer
 from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import (
-    MultipleIDViewsetMixin,
-    NestedOrganizationViewMixins,
-    NestedProjectViewMixins,
-)
+from apps.commons.views import MultipleIDViewsetMixin, NestedProjectViewMixins
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
-from apps.newsfeed.models import EventLocation, NewsLocation
-from apps.newsfeed.serializers import (
-    EventLocationSerializerLight,
-    NewsLocationSerializerLight,
-)
 from apps.notifications.tasks import (
     notify_group_as_member_added,
     notify_group_member_deleted,
@@ -49,7 +39,6 @@ from apps.notifications.tasks import (
     notify_new_private_message,
     notify_ready_for_review,
 )
-from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.exceptions import (
@@ -61,7 +50,6 @@ from .filters import ProjectFilter, ProjectGroupsFilter, ProjectMembersFilter
 from .models import (
     BlogEntry,
     LinkedProject,
-    Location,
     Project,
     ProjectMessage,
     ProjectTab,
@@ -124,13 +112,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 "categories",
                 "tags",
                 "organizations",
-                "reviews",
-                "locations",
-                "announcements",
-                "links",
-                "files",
-                "images",
-                "blog_entries",
             )
         )
 
@@ -308,7 +289,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
+class ProjectHeaderView(NestedProjectViewMixins, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ProjectIsNotLocked,
@@ -318,27 +299,21 @@ class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        if "project_id" in self.kwargs:
-            return Image.objects.filter(project_header__id=self.kwargs["project_id"])
-        return Image.objects.none()
+        return Image.objects.filter(project_header=self.project)
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"project/header/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "project_id" in self.kwargs:
-            project = Project.objects.get(id=self.kwargs["project_id"])
-            project.header_image = image
-            project.save()
-            return f"/v1/project/{self.kwargs['project_id']}/header/{image.id}"
-        return None
+        self.project.header_image = image
+        self.project.save()
+        return f"/v1/project/{self.project}/header/{image.id}"
 
 
-class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
+class ProjectImagesView(NestedProjectViewMixins, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ProjectIsNotLocked,
@@ -348,19 +323,13 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(projects=self.kwargs["project_id"]),
-                project_related_name="projects",
-            )
-            # Retrieve images before project is posted
-            if self.request.user.is_authenticated:
-                qs = qs | Image.objects.filter(owner=self.request.user)
-            return qs.distinct()
-        return Image.objects.none()
+        qs = self.project.images.all()
+        # Retrieve images before project is posted
+        if self.request.user.is_authenticated:
+            qs = qs | Image.objects.filter(owner=self.request.user)
+        return qs.distinct()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -371,17 +340,13 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return redirect(image.file.url)
 
     def add_image_to_model(self, image, *args, **kwargs):
-        if "project_id" in self.kwargs:
-            project = Project.objects.get(id=self.kwargs["project_id"])
-            project.images.add(image)
-            project.save()
-            return f"/v1/project/{self.kwargs['project_id']}/image/{image.id}"
-        return None
+        self.project.images.add(image)
+        self.project.save()
+        return f"/v1/project/{self.project.id}/image/{image.id}"
 
 
 class ProjectMemberViewSet(
     NestedProjectViewMixins,
-    MultipleIDViewsetMixin,
     viewsets.ModelViewSet,
 ):
     serializer_class = ProjectTeamMembersSerializer
@@ -398,7 +363,6 @@ class ProjectMemberViewSet(
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet[ProjectUser]:
         return self.project.modules_by_user(self.request.user).members()
@@ -499,7 +463,6 @@ class ProjectMemberViewSet(
 
 class ProjectGroupViewSet(
     NestedProjectViewMixins,
-    MultipleIDViewsetMixin,
     viewsets.ModelViewSet,
 ):
     serializer_class = ProjectGroupSerializer
@@ -516,7 +479,6 @@ class ProjectGroupViewSet(
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
         return (
@@ -526,9 +488,7 @@ class ProjectGroupViewSet(
         )
 
 
-class BlogEntryViewSet(
-    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
-):
+class BlogEntryViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
     serializer_class = BlogEntrySerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ("created_at", "updated_at")
@@ -542,7 +502,6 @@ class BlogEntryViewSet(
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
         return (
@@ -556,9 +515,7 @@ class BlogEntryViewSet(
         notify_new_blogentry.delay(instance.pk, self.request.user.pk)
 
 
-class BlogEntryImagesView(
-    NestedProjectViewMixins, MultipleIDViewsetMixin, ImageStorageView
-):
+class BlogEntryImagesView(NestedProjectViewMixins, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ProjectIsNotLocked,
@@ -568,7 +525,6 @@ class BlogEntryImagesView(
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         blogs_qs = self.project.modules_by_user(self.request.user).blogs()
@@ -588,23 +544,17 @@ class BlogEntryImagesView(
         return redirect(image.file.url)
 
     def add_image_to_model(self, image, *args, **kwargs):
-        if "project_id" in self.kwargs:
-            if "blog_entry_id" in self.request.query_params:
-                blog_entry = BlogEntry.objects.get(
-                    project_id=self.kwargs["project_id"],
-                    id=self.request.query_params["blog_entry_id"],
-                )
-                blog_entry.images.add(image)
-                blog_entry.save()
-            return (
-                f"/v1/project/{self.kwargs['project_id']}/blog-entry-image/{image.id}"
+        if "blog_entry_id" in self.request.query_params:
+            blog_entry = BlogEntry.objects.get(
+                project=self.project,
+                id=self.request.query_params["blog_entry_id"],
             )
-        return None
+            blog_entry.images.add(image)
+            blog_entry.save()
+        return f"/v1/project/{self.project.id}/blog-entry-image/{image.id}"
 
 
-class GoalViewSet(
-    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
-):
+class GoalViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
     serializer_class = GoalSerializer
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
@@ -617,15 +567,12 @@ class GoalViewSet(
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
         return self.project.modules_by_user(self.request.user).goals()
 
 
-class LocationViewSet(
-    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
-):
+class LocationViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
     serializer_class = LocationSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
@@ -638,7 +585,6 @@ class LocationViewSet(
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         return self.project.modules_by_user(self.request.user).locations()
@@ -654,10 +600,9 @@ class LocationViewSet(
         return super().dispatch(request, *args, **kwargs)
 
 
-class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
+class HistoricalProjectViewSet(NestedProjectViewMixins, viewsets.ReadOnlyModelViewSet):
     lookup_field = "pk"
     permission_classes = [ReadOnly]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -665,20 +610,12 @@ class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelVie
         return ProjectVersionSerializer
 
     def get_queryset(self) -> QuerySet:
-        if "project_id" in self.kwargs:
-            project = get_object_or_404(
-                self.request.user.get_project_queryset(),
-                id=self.kwargs["project_id"],
-            )
-            return apps.get_model("projects", "HistoricalProject").objects.filter(
-                history_relation=project, history_change_reason__isnull=False
-            )
-        return apps.get_model("projects", "HistoricalProject").objects.none()
+        return apps.get_model("projects", "HistoricalProject").objects.filter(
+            history_relation=self.project, history_change_reason__isnull=False
+        )
 
 
-class LinkedProjectViewSet(
-    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
-):
+class LinkedProjectViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
     serializer_class = LinkedProjectSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
@@ -690,7 +627,6 @@ class LinkedProjectViewSet(
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         return self.project.modules_by_user(self.request.user).linked_projects()
@@ -781,13 +717,10 @@ class LinkedProjectViewSet(
         )
 
 
-class ProjectMessageViewSet(
-    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
-):
+class ProjectMessageViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
     serializer_class = ProjectMessageSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectmessage")
@@ -812,19 +745,14 @@ class ProjectMessageViewSet(
         return queryset.select_related("author").prefetch_related("replies", "images")
 
     def perform_create(self, serializer):
-        message = serializer.save(
-            author=self.request.user, project_id=self.kwargs["project_id"]
-        )
+        message = serializer.save(author=self.request.user, project_id=self.project.id)
         notify_new_private_message.delay(message.id)
 
     def perform_destroy(self, instance: ProjectMessage):
         instance.soft_delete()
 
 
-class ProjectMessageImagesView(
-    NestedProjectViewMixins, MultipleIDViewsetMixin, ImageStorageView
-):
-    multiple_lookup_fields = [(Project, "project_id")]
+class ProjectMessageImagesView(NestedProjectViewMixins, ImageStorageView):
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectmessage")
@@ -841,13 +769,11 @@ class ProjectMessageImagesView(
     def get_queryset(self):
         messages_qs = self.project.modules_by_user(self.request.user).messages()
 
-        if "project_id" in self.kwargs:
-            qs = Image.objects.filter(project_messages__in=messages_qs)
-            # Retrieve images before message is posted
-            if self.request.user.is_authenticated:
-                qs = qs | Image.objects.filter(owner=self.request.user)
-            return qs.distinct()
-        return Image.objects.none()
+        qs = Image.objects.filter(project_messages__in=messages_qs)
+        # Retrieve images before message is posted
+        if self.request.user.is_authenticated:
+            qs = qs | Image.objects.filter(owner=self.request.user)
+        return qs.distinct()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -858,9 +784,7 @@ class ProjectMessageImagesView(
         return redirect(image.file.url)
 
     def add_image_to_model(self, image, *args, **kwargs):
-        if "project_id" in self.kwargs:
-            return f"/v1/project/{self.kwargs['project_id']}/project-message-image/{image.id}"
-        return None
+        return f"/v1/project/{self.project.id}/project-message-image/{image.id}"
 
 
 class ProjectTabViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
@@ -1022,39 +946,3 @@ class ProjectTabItemImagesView(MultipleIDViewsetMixin, ImageStorageView):
                 tab_item.save()
             return f"/v1/project/{self.kwargs['project_id']}/tab/{self.kwargs['tab_id']}/item-image/{image.id}"
         return None
-
-
-class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet):
-    http_method_names = ["get", "list"]
-
-    def list(self, request, *args, **kwargs):
-        organizations_code = get_below_hierarchy_codes((self.organization.code,))
-        organizations = Organization.objects.filter(code__in=organizations_code)
-
-        qs_project = (
-            request.user.get_project_related_queryset(Location.objects)
-            .select_related("project")
-            .filter(project__organizations__in=organizations)
-        )
-
-        qs_group = request.user.get_people_group_related_queryset(
-            PeopleGroupLocation.objects.filter(
-                people_group__organization__in=organizations
-            )
-        ).select_related("people_group")
-
-        qs_news = request.user.get_news_related_queryset(
-            NewsLocation.objects.filter(news__organization__in=organizations)
-        ).select_related("news")
-
-        qs_event = request.user.get_event_related_queryset(
-            EventLocation.objects.filter(event__organization__in=organizations)
-        ).select_related("event")
-
-        data = {
-            "groups": PeopleGroupLocationSuperLightSerializer(qs_group, many=True).data,
-            "projects": LocationSerializer(qs_project, many=True).data,
-            "news": NewsLocationSerializerLight(qs_news, many=True).data,
-            "event": EventLocationSerializerLight(qs_event, many=True).data,
-        }
-        return Response(data, status=status.HTTP_200_OK)

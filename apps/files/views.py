@@ -24,19 +24,16 @@ from apps.accounts.permissions import (
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
-    MultipleIDViewsetMixin,
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
+    NestedProjectViewMixins,
 )
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission, ProjectIsNotLocked
 
 from .exceptions import ProtectedImageError
 from .models import (
-    AttachmentFile,
-    AttachmentLink,
     Image,
     OrganizationAttachmentFile,
     ProjectUserAttachmentFile,
@@ -53,7 +50,7 @@ from .serializers import (
 )
 
 
-class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ProjectAttachmentLinkViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
     serializer_class = AttachmentLinkSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
@@ -65,15 +62,9 @@ class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
-        if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(
-                AttachmentLink.objects.all()
-            )
-            return qs.filter(project=self.kwargs["project_id"])
-        return AttachmentLink.objects.none()
+        return self.project.modules_by_user(self.request.user).links()
 
 
 class OrganizationAttachmentFileViewSet(viewsets.ModelViewSet):
@@ -118,7 +109,7 @@ class OrganizationAttachmentFileViewSet(viewsets.ModelViewSet):
         return redirect(instance.file.url)
 
 
-class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ProjectAttachmentFileViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
     parser_classes = [MultiPartParser]
     serializer_class = AttachmentFileSerializer
     filter_backends = [DjangoFilterBackend]
@@ -132,15 +123,9 @@ class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
-        if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(
-                AttachmentFile.objects.all()
-            )
-            return qs.filter(project=self.kwargs["project_id"])
-        return AttachmentFile.objects.none()
+        return self.project.modules_by_user(self.request.user).files()
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
