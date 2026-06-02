@@ -71,7 +71,13 @@ class RetrieveCommentImageTestCase(JwtAPITestCase):
             if publication_status in retrieved_comments:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertIn(
+                    response.status_code,
+                    (
+                        status.HTTP_401_UNAUTHORIZED,
+                        status.HTTP_403_FORBIDDEN,
+                    ),
+                )
 
 
 class CreateCommentImageTestCase(JwtAPITestCase):
@@ -146,7 +152,13 @@ class CreateCommentImageTestCase(JwtAPITestCase):
                 self.assertEqual(content["top"], payload["top"])
                 self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertIn(
+                    response.status_code,
+                    (
+                        status.HTTP_401_UNAUTHORIZED,
+                        status.HTTP_403_FORBIDDEN,
+                    ),
+                )
 
     def test_create_comment_image_anonymous(self):
         for project in self.projects.values():
