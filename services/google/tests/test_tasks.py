@@ -290,7 +290,7 @@ class GoogleTasksTestCase(GoogleTestCase):
                 ),
                 data=payload_team,
             )
-            self.assertEqual(response_team.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(response_team.status_code, status.HTTP_204_NO_CONTENT)
 
             self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)
@@ -431,7 +431,7 @@ class GoogleTasksTestCase(GoogleTestCase):
                 ),
                 data=payload_team,
             )
-            self.assertEqual(response_team.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(response_team.status_code, status.HTTP_204_NO_CONTENT)
 
             self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)

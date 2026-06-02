@@ -180,7 +180,7 @@ class CommentViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet[Comment]:
-        qs = self.project.modules_by_user(self.request.user).comment()
+        qs = self.project.modules_by_user(self.request.user).comments()
 
         if self.action in ["retrieve", "list"]:
             qs = qs.exclude(
@@ -220,8 +220,9 @@ class CommentImagesView(NestedProjectViewMixins, ImageStorageView):
             ]
         return super().get_permissions()
 
-    def get_queryset(self):
-        qs = self.project.modules_by_user(self.request.user).comment()
+    def get_queryset(self) -> QuerySet[Image]:
+        comments_qs = self.project.modules_by_user(self.request.user).comments()
+        qs = Image.objects.filter(comments__in=comments_qs)
         if self.request.user.is_authenticated:
             qs = qs | Image.objects.filter(owner=self.request.user)
         return qs.distinct()
