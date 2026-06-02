@@ -240,8 +240,9 @@ class GoogleTasksTestCase(GoogleTestCase):
             "create_in_google": True,
             "email": f"googlesync-{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
             "description": "",
-            "team": {"members": [google_user.user.id]},
         }
+        payload_team = ({"members": [google_user.user.id]},)
+
         mocked.side_effect = self.google_side_effect(
             [
                 self.get_google_group_error(),  # group email is available
@@ -278,9 +279,19 @@ class GoogleTasksTestCase(GoogleTestCase):
                     reverse("PeopleGroup-list", args=(self.organization.code,)),
                     data=payload,
                 )
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            content = response.json()
-            people_group = PeopleGroup.objects.get(id=content["id"])
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                content = response.json()
+                people_group = PeopleGroup.objects.get(id=content["id"])
+
+            response_team = self.client.post(
+                reverse(
+                    "PeopleGroup-add-member",
+                    args=(self.organization.code, people_group.id),
+                ),
+                data=payload_team,
+            )
+            self.assertEqual(response_team.status_code, status.HTTP_201_CREATED)
+
             self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)
             mocked_add_group_alias.assert_called_once_with(people_group.google_group)
@@ -369,8 +380,8 @@ class GoogleTasksTestCase(GoogleTestCase):
             "organization": self.organization.code,
             "create_in_google": True,
             "description": "",
-            "team": {"members": [google_user.user.id]},
         }
+        payload_team = ({"members": [google_user.user.id]},)
         mocked.side_effect = self.google_side_effect(
             [
                 self.get_google_group_success(),  # group email is taken
@@ -409,9 +420,18 @@ class GoogleTasksTestCase(GoogleTestCase):
                     reverse("PeopleGroup-list", args=(self.organization.code,)),
                     data=payload,
                 )
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            content = response.json()
-            people_group = PeopleGroup.objects.get(id=content["id"])
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                content = response.json()
+                people_group = PeopleGroup.objects.get(id=content["id"])
+
+            response_team = self.client.post(
+                reverse(
+                    "PeopleGroup-list", args=(self.organization.code, people_group.id)
+                ),
+                data=payload_team,
+            )
+            self.assertEqual(response_team.status_code, status.HTTP_201_CREATED)
+
             self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)
             mocked_add_group_alias.assert_called_once_with(people_group.google_group)
