@@ -107,7 +107,7 @@ def update_or_create_wikipedia_tags(wikipedia_qids: list[str]) -> list[Tag]:
     all_tags = Tag.objects.bulk_create(
         tags_to_create,
         update_conflicts=True,
-        unique_fields=("external_id", "type"),
+        unique_fields=("external_id",),
         update_fields=list(all_fields),
     )
 
