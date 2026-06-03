@@ -283,14 +283,14 @@ class GoogleTasksTestCase(GoogleTestCase):
                 content = response.json()
                 people_group = PeopleGroup.objects.get(id=content["id"])
 
-            response_team = self.client.post(
-                reverse(
-                    "PeopleGroup-add-member",
-                    args=(self.organization.code, people_group.id),
-                ),
-                data=payload_team,
-            )
-            self.assertEqual(response_team.status_code, status.HTTP_204_NO_CONTENT)
+                response_team = self.client.post(
+                    reverse(
+                        "PeopleGroup-add-member",
+                        args=(self.organization.code, people_group.id),
+                    ),
+                    data=payload_team,
+                )
+                self.assertEqual(response_team.status_code, status.HTTP_204_NO_CONTENT)
 
             self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)
@@ -424,14 +424,14 @@ class GoogleTasksTestCase(GoogleTestCase):
                 content = response.json()
                 people_group = PeopleGroup.objects.get(id=content["id"])
 
-            response_team = self.client.post(
-                reverse(
-                    "PeopleGroup-add-member",
-                    args=(self.organization.code, people_group.id),
-                ),
-                data=payload_team,
-            )
-            self.assertEqual(response_team.status_code, status.HTTP_204_NO_CONTENT)
+                response_team = self.client.post(
+                    reverse(
+                        "PeopleGroup-add-member",
+                        args=(self.organization.code, people_group.id),
+                    ),
+                    data=payload_team,
+                )
+                self.assertEqual(response_team.status_code, status.HTTP_204_NO_CONTENT)
 
             self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)
