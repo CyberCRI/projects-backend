@@ -258,14 +258,12 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         tag_classification_id = self.kwargs.get("tag_classification_id")
         if organization_code and not tag_classification_id:
             return Tag.objects.filter(organization__code=organization_code)
+
         if organization_code and tag_classification_id:
             if tag_classification_id in TagClassification.reserved_slugs:
-                tag_classification_ids = [
-                    c.id
-                    for c in self.get_enabled_classifications(
-                        organization_code, tag_classification_id
-                    )
-                ]
+                tag_classification_ids = self.get_enabled_classifications(
+                    organization_code, tag_classification_id
+                ).values_list("id", flat=True)
             else:
                 tag_classification_ids = [tag_classification_id]
             wikipedia_classification = TagClassification.get_or_create_default_classification(
