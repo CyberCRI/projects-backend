@@ -1,5 +1,18 @@
-from django.db.models import BigIntegerField, Case, F, JSONField, Q, Value, When
+from functools import partial, wraps
+
+from django.db.models import (
+    BigIntegerField,
+    Case,
+    F,
+    JSONField,
+    Q,
+    QuerySet,
+    Value,
+    When,
+)
 from django_filters import rest_framework as filters
+from numpy import number
+from opensearchpy.helpers.response import Response
 from rest_framework.filters import SearchFilter
 from rest_framework.settings import api_settings
 
@@ -13,114 +26,108 @@ from .interface import OpenSearchService
 from .models import SearchObject
 
 
-def MultiMatchSearchFieldsFilter(  # noqa: N802
-    index: str,
-    fields: list[str] | None,
-    highlight: list[str] | None = None,
-    highlight_size: int = 150,
-):
-    class _MultiMatchSearchFieldsFilter(SearchFilter):
-        def filter_queryset(self, request, queryset, view):
-            query = self.get_search_terms(request)
-            if isinstance(query, list):
-                query = " ".join(query)
-            if query:
-                limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
-                offset = request.query_params.get("offset", 0)
-                response = OpenSearchService.multi_match_search(
-                    indices=index,
-                    fields=fields,
-                    query=query,
-                    highlight=highlight,
-                    highlight_size=highlight_size,
-                    limit=limit,
-                    offset=offset,
-                    id=list(queryset.values_list("id", flat=True)),
-                )
-                ids = [hit.id for hit in response.hits]
-                if not ids:
-                    return queryset.none()
-                queryset = queryset.filter(id__in=ids).annotate(
-                    ordering=ArrayPosition(ids, F("id"), base_field=BigIntegerField())
-                )
-                if highlight:
-                    queryset = queryset.annotate(
-                        highlight=Case(
-                            *[
-                                When(
-                                    id=hit.id,
-                                    then=Value(
-                                        (
-                                            hit.meta.highlight.to_dict()
-                                            if hasattr(hit.meta, "highlight")
-                                            else {}
-                                        ),
-                                        output_field=JSONField(),
-                                    ),
-                                )
-                                for hit in response.hits
-                            ]
-                        )
-                    )
-                return queryset.order_by("ordering")
+class AbstractOpensearch(SearchFilter):
+    def __init__(
+        self,
+        index: str,
+        fields: list[str] | None = None,
+        highlight: list[str] | None = None,
+        highlight_size: int = 150,
+    ):
+
+        self.index = index
+        self.fields = fields
+        self.highlight = highlight
+        self.highlight_size = highlight_size
+
+    @classmethod
+    def prepare(cls, **kw):
+        return wraps(cls)(partial(cls, **kw))
+
+    def search(self, request) -> str:
+        query = self.get_search_terms(request)
+        if isinstance(query, list):
+            query = " ".join(query)
+
+        return query
+
+    def opensearch(
+        self, queryset: QuerySet, query: str, limit: number, offset: number
+    ) -> Response:
+        """method to return result from opensearch"""
+        raise NotImplementedError
+
+    def filter_queryset(self, request, queryset, view):
+        search = self.search(request)
+        if not search:
             return queryset
 
-    return _MultiMatchSearchFieldsFilter
+        limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
+        offset = request.query_params.get("offset", 0)
 
+        response = self.opensearch(queryset, search, limit, offset)
 
-def MultiMatchPrefixSearchFieldsFilter(  # noqa: N802
-    index: str,
-    fields: list[str] | None,
-    highlight: list[str] | None = None,
-    highlight_size: int = 150,
-):
-    class _MultiMatchPrefixSearchFieldsFilter(SearchFilter):
-        def filter_queryset(self, request, queryset, view):
-            query = self.get_search_terms(request)
-            if isinstance(query, list):
-                query = " ".join(query)
-            if query:
-                limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
-                offset = request.query_params.get("offset", 0)
-                response = OpenSearchService.multi_match_prefix_search(
-                    indices=index,
-                    fields=fields,
-                    query=query,
-                    highlight=highlight,
-                    highlight_size=highlight_size,
-                    limit=limit,
-                    offset=offset,
-                    id=list(queryset.values_list("id", flat=True)),
-                )
-                ids = [hit.id for hit in response.hits]
-                if not ids:
-                    return queryset.none()
-                queryset = queryset.filter(id__in=ids).annotate(
-                    ordering=ArrayPosition(ids, F("id"), base_field=BigIntegerField())
-                )
-                if highlight:
-                    queryset = queryset.annotate(
-                        highlight=Case(
-                            *[
-                                When(
-                                    id=hit.id,
-                                    then=Value(
-                                        (
-                                            hit.meta.highlight.to_dict()
-                                            if hasattr(hit.meta, "highlight")
-                                            else {}
-                                        ),
-                                        output_field=JSONField(),
-                                    ),
-                                )
-                                for hit in response.hits
-                            ]
+        ids = [hit.id for hit in response.hits]
+
+        if not ids:
+            return queryset.none()
+
+        queryset = queryset.filter(id__in=ids).annotate(
+            ordering=ArrayPosition(ids, F("id"), base_field=BigIntegerField())
+        )
+        if self.highlight:
+            queryset = queryset.annotate(
+                highlight=Case(
+                    *[
+                        When(
+                            id=hit.id,
+                            then=Value(
+                                (
+                                    hit.meta.highlight.to_dict()
+                                    if hasattr(hit.meta, "highlight")
+                                    else {}
+                                ),
+                                output_field=JSONField(),
+                            ),
                         )
-                    )
-                return queryset.order_by("ordering")
-            return queryset
+                        for hit in response.hits
+                    ]
+                )
+            )
+        return queryset.order_by("ordering")
 
-    return _MultiMatchPrefixSearchFieldsFilter
+
+class MultiMatchSearchFieldsFilter(AbstractOpensearch):
+
+    def opensearch(
+        self, queryset: QuerySet, query: str, limit: int, offset: int
+    ) -> Response:
+        return OpenSearchService.multi_match_search(
+            indices=self.index,
+            fields=self.fields,
+            query=query,
+            highlight=self.highlight,
+            highlight_size=self.highlight_size,
+            limit=limit,
+            offset=offset,
+            id=list(queryset.values_list("id", flat=True)),
+        )
+
+
+class MultiMatchPrefixSearchFieldsFilter(AbstractOpensearch):
+    def opensearch(
+        self, queryset: QuerySet, query: str, limit: int, offset: int
+    ) -> Response:
+        return OpenSearchService.multi_match_prefix_search(
+            indices=self.index,
+            fields=self.fields,
+            query=query,
+            highlight=self.highlight,
+            highlight_size=self.highlight_size,
+            limit=limit,
+            offset=offset,
+            id=list(queryset.values_list("id", flat=True)),
+        )
 
 
 class SearchObjectFilter(filters.FilterSet):

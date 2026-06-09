@@ -3,6 +3,7 @@ import logging
 
 from django.conf import settings
 
+from apps.search.documents import TagDocument
 from services.esco.interface import EscoService
 from services.wikipedia.interface import WikipediaService
 
@@ -90,11 +91,9 @@ def update_or_create_wikipedia_tags(wikipedia_qids: list[str]) -> list[Tag]:
     tags = [set_default_language_title_and_description(tag) for tag in tags]
 
     tags_to_create = []
-    all_ids = []
     all_fields = set()
     for tag in tags:
         external_id = tag.pop("external_id")
-        all_ids.append(external_id)
         all_fields |= set(tag.keys())
         tags_to_create.append(
             Tag(external_id=external_id, type=Tag.TagType.WIKIPEDIA, **tag)
@@ -114,7 +113,11 @@ def update_or_create_wikipedia_tags(wikipedia_qids: list[str]) -> list[Tag]:
     classification = TagClassification.get_or_create_default_classification(
         classification_type=TagClassification.TagClassificationType.WIKIPEDIA
     )
-    classification.tags.add(*all_tags)
+    to_adds = Tag.objects.filter(external_id__in=all_ids)
+    classification.tags.add(*to_adds)
+
+    # regenerate index
+    TagDocument().update(list(to_adds), action="index")
     return all_tags
 
 

@@ -186,8 +186,8 @@ class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = TagSerializer
     filter_backends = (
-        MultiMatchPrefixSearchFieldsFilter(
-            f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
+        MultiMatchPrefixSearchFieldsFilter.prepare(
+            index=f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
             fields=["title^5", "alternative_titles^3", "content^1"],
             highlight=["title", "content"],
         ),
