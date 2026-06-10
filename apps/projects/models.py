@@ -14,6 +14,7 @@ from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.analytics.models import Stat
@@ -30,7 +31,7 @@ from apps.commons.mixins import (
 from apps.commons.models import GroupData
 from apps.commons.queryset import MultipleIdsQuerySet
 from apps.commons.utils import get_write_permissions_from_subscopes
-from services.translator.mixins import HasAutoTranslatedFields
+from apps.modules.models import Tab, TabItem
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -223,6 +224,14 @@ class Project(
     )
     permissions_up_to_date = models.BooleanField(default=False)
     objects = SoftDeleteManager()
+
+    @property
+    def tabs(self):
+        return Tab.create_relation(type(self))
+
+    @property
+    def tabitems(self):
+        return TabItem.create_relation(type(self))
 
     class Meta:
         write_only_subscopes = (
@@ -1000,41 +1009,14 @@ class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.M
         return self.author == user
 
 
-class ProjectTab(HasAutoTranslatedFields, ProjectRelated, models.Model):
-    """A tab in the project page.
-
-    Attributes
-    ----------
-    project: ForeignKey
-        Project this tab belong to.
-    type: CharField
-        Type of the tab. Can be either "text" or "blog".
-    title: CharField
-        Title of the tab.
-    description: TextField
-        Description of the tab.
-    """
-
-    auto_translated_fields: list[str] = ["title", "html:description"]
-
-    class TabType(models.TextChoices):
-        """Type of a tab."""
-
-        TEXT = "text"
-        BLOG = "blog"
+class ProjectTab(ProjectRelated, AbstractTab):
+    """A tab in the project page."""
 
     project = models.ForeignKey(
         "projects.Project",
         on_delete=models.CASCADE,
         related_name="additional_tabs",
     )
-    type = models.CharField(
-        max_length=32, choices=TabType.choices, default=TabType.TEXT
-    )
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    icon = models.CharField(max_length=255, blank=True)
-    images = models.ManyToManyField("files.Image", related_name="project_tabs")
 
     def get_related_project(self) -> Project:
         """Return the projects related to this model."""
@@ -1045,7 +1027,7 @@ class ProjectTab(HasAutoTranslatedFields, ProjectRelated, models.Model):
         return self.project.get_related_organizations()
 
 
-class ProjectTabItem(HasAutoTranslatedFields, ProjectRelated, models.Model):
+class ProjectTabItem(ProjectRelated, AbstramtTabIten):
     """An item in a project tab.
 
     Attributes

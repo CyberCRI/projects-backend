@@ -136,6 +136,7 @@ INSTALLED_APPS = [
     "apps.healthcheck",
     "apps.invitations",
     "apps.newsfeed",
+    "apps.modules",
     "apps.notifications",
     "apps.organizations",
     "apps.projects",
