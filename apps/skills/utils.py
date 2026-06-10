@@ -113,11 +113,11 @@ def update_or_create_wikipedia_tags(wikipedia_qids: list[str]) -> list[Tag]:
     classification = TagClassification.get_or_create_default_classification(
         classification_type=TagClassification.TagClassificationType.WIKIPEDIA
     )
-    to_adds = Tag.objects.filter(external_id__in=all_ids)
+    to_adds = list(Tag.objects.filter(external_id__in=all_ids))
     classification.tags.add(*to_adds)
 
     # regenerate index
-    TagDocument().update(list(to_adds), action="index")
+    TagDocument().update(to_adds, action="index")
     return all_tags
 
 
