@@ -9,7 +9,7 @@ from rest_framework.settings import api_settings
 from apps.accounts.permissions import ProjectNestedPermission
 from apps.organizations.models import Organization
 from apps.organizations.utils import get_below_hierarchy_codes
-from apps.projects.models import Project
+from apps.projects.models import Project, ProjectTab
 
 from .mixins import HasMultipleIDs
 
@@ -182,6 +182,19 @@ class NestedProjectViewMixins(MultipleIDViewsetMixin):
     def get_permissions(self):
         """add check nested project"""
         return [ProjectNestedPermission(), *super().get_permissions()]
+
+
+class NestedProjectTabViewMixins:
+    tab: ProjectTab
+    project: Project
+
+    def initial(self, request, *args, **kwargs):
+
+        self.tab = get_object_or_404(
+            self.project.modules_by_user(request.user).tabs(), pk=kwargs["tab_id"]
+        )
+
+        super().initial(request, *args, **kwargs)
 
 
 class NestedPeopleGroupViewMixins:

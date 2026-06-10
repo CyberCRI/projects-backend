@@ -26,7 +26,11 @@ from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import MultipleIDViewsetMixin, NestedProjectViewMixins
+from apps.commons.views import (
+    MultipleIDViewsetMixin,
+    NestedProjectTabViewMixins,
+    NestedProjectViewMixins,
+)
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import (
@@ -787,7 +791,7 @@ class ProjectMessageImagesView(NestedProjectViewMixins, ImageStorageView):
         return f"/v1/project/{self.project.id}/project-message-image/{image.id}"
 
 
-class ProjectTabViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ProjectTabViewset(NestedProjectViewMixins, viewsets.ModelViewSet):
     """Project tabs."""
 
     serializer_class = ProjectTabSerializer
@@ -802,23 +806,15 @@ class ProjectTabViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet[ProjectTab]:
-        if "project_id" in self.kwargs:
-            return self.request.user.get_project_related_queryset(
-                ProjectTab.objects.filter(project=self.kwargs["project_id"])
-            )
-        return ProjectTab.objects.none()
+        return self.project.modules_by_user(self.request.user).tabs()
 
     def perform_create(self, serializer: ProjectTabSerializer):
-        project_id = self.kwargs.get("project_id")
-        if project_id:
-            project = get_object_or_404(Project, id=project_id)
-            serializer.save(project=project)
+        serializer.save(project=self.project)
 
 
-class ProjectTabImagesView(MultipleIDViewsetMixin, ImageStorageView):
+class ProjectTabImagesView(NestedProjectViewMixins, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ProjectIsNotLocked,
@@ -828,19 +824,15 @@ class ProjectTabImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(project_tabs__project=self.kwargs["project_id"]),
-                project_related_name="project_tabs__project",
-            )
-            # Retrieve images before tab is posted
-            if self.request.user.is_authenticated:
-                qs = qs | Image.objects.filter(owner=self.request.user)
-            return qs.distinct()
-        return Image.objects.none()
+        tabs_qs = self.project.modules_by_user(self.request.user).tabs()
+
+        qs = Image.objects.filter(project_tabs__in=tabs_qs)
+        # Retrieve images before tab is posted
+        if self.request.user.is_authenticated:
+            qs = qs | Image.objects.filter(owner=self.request.user)
+        return qs.distinct()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -851,19 +843,19 @@ class ProjectTabImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return redirect(image.file.url)
 
     def add_image_to_model(self, image, *args, **kwargs):
-        if "project_id" in self.kwargs:
-            if "tab_id" in self.request.query_params:
-                project_tab = ProjectTab.objects.get(
-                    project_id=self.kwargs["project_id"],
-                    id=self.request.query_params["tab_id"],
-                )
-                project_tab.images.add(image)
-                project_tab.save()
-            return f"/v1/project/{self.kwargs['project_id']}/tab-image/{image.id}"
-        return None
+        if "tab_id" in self.request.query_params:
+            project_tab = ProjectTab.objects.get(
+                project=self.project,
+                id=self.request.query_params["tab_id"],
+            )
+            project_tab.images.add(image)
+            project_tab.save()
+        return f"/v1/project/{self.project.id}/tab-image/{image.id}"
 
 
-class ProjectTabItemViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ProjectTabItemViewset(
+    NestedProjectViewMixins, NestedProjectTabViewMixins, viewsets.ModelViewSet
+):
     """Project tabs."""
 
     serializer_class = ProjectTabItemSerializer
@@ -878,28 +870,17 @@ class ProjectTabItemViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet[ProjectTabItem]:
-        if "project_id" in self.kwargs and "tab_id" in self.kwargs:
-            return self.request.user.get_project_related_queryset(
-                ProjectTabItem.objects.filter(
-                    tab__project=self.kwargs["project_id"],
-                    tab=self.kwargs["tab_id"],
-                ),
-                project_related_name="tab__project",
-            )
-        return ProjectTabItem.objects.none()
+        return self.tab.items.all()
 
     def perform_create(self, serializer: ProjectTabItemSerializer):
-        project_id = self.kwargs.get("project_id")
-        tab_id = self.kwargs.get("tab_id")
-        if project_id and tab_id:
-            tab = get_object_or_404(ProjectTab, id=tab_id, project_id=project_id)
-            serializer.save(tab=tab)
+        serializer.save(tab=self.tab)
 
 
-class ProjectTabItemImagesView(MultipleIDViewsetMixin, ImageStorageView):
+class ProjectTabItemImagesView(
+    NestedProjectViewMixins, NestedProjectTabViewMixins, ImageStorageView
+):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ProjectIsNotLocked,
