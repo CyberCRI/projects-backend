@@ -1000,7 +1000,9 @@ class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.M
         return self.author == user
 
 
-class ProjectTab(HasAutoTranslatedFields, ProjectRelated, models.Model):
+class ProjectTab(
+    HasRelatedModules, HasAutoTranslatedFields, ProjectRelated, models.Model
+):
     """A tab in the project page.
 
     Attributes

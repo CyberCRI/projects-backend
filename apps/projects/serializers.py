@@ -897,6 +897,7 @@ class ProjectMessageSerializer(
 
 @auto_translated
 class ProjectTabSerializer(
+    ModulesSerializers,
     StringsImagesSerializer,
     serializers.ModelSerializer,
 ):
@@ -911,7 +912,7 @@ class ProjectTabSerializer(
 
     class Meta:
         model = ProjectTab
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "modules"]
         fields = read_only_fields + [
             "type",
             "title",
