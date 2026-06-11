@@ -50,7 +50,6 @@ from .exceptions import (
     ProjectCategoryOrganizationError,
     ProjectMessageReplyOnReplyError,
     ProjectMessageReplyToSelfError,
-    ProjectTabChangeTypeError,
     ProjectWithNoOrganizationError,
     RemoveLastProjectOwnerError,
 )
@@ -914,17 +913,11 @@ class ProjectTabSerializer(
         model = ProjectTab
         read_only_fields = ["id", "modules"]
         fields = read_only_fields + [
-            "type",
             "title",
             "description",
             "icon",
             "images",
         ]
-
-    def validate_type(self, value: str):
-        if self.instance and self.instance.type != value:
-            raise ProjectTabChangeTypeError
-        return value
 
     def get_string_images_kwargs(
         self, instance: ProjectTab, field_name: str, *args: Any, **kwargs: Any

@@ -12,7 +12,7 @@ from apps.projects.factories import (
     ProjectTabFactory,
     ProjectTabItemFactory,
 )
-from apps.projects.models import ProjectTab, ProjectTabItem
+from apps.projects.models import ProjectTabItem
 from services.translator.models import AutoTranslatedField
 
 faker = Faker()
@@ -25,7 +25,7 @@ class ProjectTabItemTranslatedFieldsTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
         cls.project_tab = ProjectTabFactory(
-            project=cls.project, type=ProjectTab.TabType.BLOG
+            project=cls.project,
         )
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
         cls.content_type = ContentType.objects.get_for_model(ProjectTabItem)

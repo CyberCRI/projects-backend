@@ -26,7 +26,6 @@ class ProjectTabTranslatedFieldsTestCase(JwtAPITestCase):
     def test_create_project_tab(self):
         self.client.force_authenticate(self.superadmin)
         payload = {
-            "type": ProjectTab.TabType.BLOG,
             "icon": faker.word(),
             "title": faker.word(),
             "description": faker.word(),

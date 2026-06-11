@@ -1019,23 +1019,14 @@ class ProjectTab(
 
     auto_translated_fields: list[str] = ["title", "html:description"]
 
-    class TabType(models.TextChoices):
-        """Type of a tab."""
-
-        TEXT = "text"
-        BLOG = "blog"
-
     project = models.ForeignKey(
         "projects.Project",
         on_delete=models.CASCADE,
         related_name="additional_tabs",
     )
-    type = models.CharField(
-        max_length=32, choices=TabType.choices, default=TabType.TEXT
-    )
     title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    icon = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True, null=True)
+    icon = models.CharField(max_length=255, blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
 
     def get_related_project(self) -> Project:
@@ -1069,7 +1060,7 @@ class ProjectTabItem(HasAutoTranslatedFields, ProjectRelated, models.Model):
         "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"
     )
     title = models.CharField(max_length=255)
-    content = models.TextField(blank=True)
+    content = models.TextField(blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tab_items")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

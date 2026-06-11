@@ -168,7 +168,6 @@ class ProjectTabFactory(factory.django.DjangoModelFactory):
     icon = factory.Faker("word")
     title = factory.Faker("sentence")
     description = factory.Faker("text")
-    type = FuzzyChoice(ProjectTab.TabType.choices, getter=lambda c: c[0])
 
     class Meta:
         model = ProjectTab

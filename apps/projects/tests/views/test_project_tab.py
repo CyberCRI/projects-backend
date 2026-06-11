@@ -1,12 +1,8 @@
-import random
-
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import UserFactory
-from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory, ProjectTabFactory
@@ -42,7 +38,6 @@ class CreateTabTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {
-            "type": random.choice(ProjectTab.TabType.values),  # nosec
             "icon": faker.word(),
             "title": faker.sentence(),
             "description": faker.text(),
@@ -55,7 +50,6 @@ class CreateTabTestCase(JwtAPITestCase):
             content = response.json()
             tab = ProjectTab.objects.get(id=content["id"])
             self.assertEqual(tab.project.id, self.project.id)
-            self.assertEqual(content["type"], payload["type"])
             self.assertEqual(content["icon"], payload["icon"])
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["description"], payload["description"])
@@ -195,37 +189,3 @@ class DeleteProjectTabTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(ProjectTab.objects.filter(id=tab.id).exists())
-
-
-class ValidateProjectTabTestCase(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.organization = OrganizationFactory()
-        cls.project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC,
-            organizations=[cls.organization],
-        )
-        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
-
-    def test_update_tab_type(self):
-        self.client.force_authenticate(self.superadmin)
-        tab = ProjectTabFactory(project=self.project, type=ProjectTab.TabType.TEXT)
-        payload = {"type": ProjectTab.TabType.TEXT}
-        response = self.client.patch(
-            reverse("ProjectTab-detail", args=(self.project.id, tab.id)),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["type"], payload["type"])
-        payload = {"type": ProjectTab.TabType.BLOG}
-        response = self.client.patch(
-            reverse("ProjectTab-detail", args=(self.project.id, tab.id)),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertApiValidationError(
-            response,
-            {"type": ["You cannot change the type of a project's tab"]},
-        )
