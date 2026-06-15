@@ -14,6 +14,7 @@ from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.analytics.models import Stat
@@ -30,7 +31,6 @@ from apps.commons.mixins import (
 from apps.commons.models import GroupData
 from apps.commons.queryset import MultipleIdsQuerySet
 from apps.commons.utils import get_write_permissions_from_subscopes
-from services.translator.mixins import HasAutoTranslatedFields
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -1019,15 +1019,25 @@ class ProjectTab(
 
     auto_translated_fields: list[str] = ["title", "html:description"]
 
+    class TabType(models.TextChoices):
+        """Type of a tab."""
+
+        TEXT = "text"
+        BLOG = "blog"
+
     project = models.ForeignKey(
         "projects.Project",
         on_delete=models.CASCADE,
         related_name="additional_tabs",
     )
+    type = models.CharField(
+        max_length=32, choices=TabType.choices, default=TabType.TEXT
+    )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
+    show_preview = models.BooleanField(default=True)
 
     def get_related_project(self) -> Project:
         """Return the projects related to this model."""

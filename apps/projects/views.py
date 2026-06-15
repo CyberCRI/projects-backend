@@ -50,7 +50,12 @@ from apps.projects.exceptions import (
     OrganizationsParameterMissing,
 )
 
-from .filters import ProjectFilter, ProjectGroupsFilter, ProjectMembersFilter
+from .filters import (
+    ProjectFilter,
+    ProjectGroupsFilter,
+    ProjectMembersFilter,
+    ProjectTabFilter,
+)
 from .models import (
     BlogEntry,
     LinkedProject,
@@ -796,6 +801,7 @@ class ProjectTabViewset(NestedProjectViewMixins, viewsets.ModelViewSet):
 
     serializer_class = ProjectTabSerializer
     filter_backends = [DjangoFilterBackend]
+    filterset_class = ProjectTabFilter
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     permission_classes = [

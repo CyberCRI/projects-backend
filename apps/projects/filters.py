@@ -10,7 +10,7 @@ from apps.commons.filters import (
 )
 from apps.organizations.utils import get_below_hierarchy_codes
 
-from .models import Location, Project
+from .models import Location, Project, ProjectTab
 
 
 class ProjectFilterMixin(filters.FilterSet):
@@ -118,3 +118,12 @@ class ProjectGroupsFilter(filters.FilterSet):
     class Meta:
         model = PeopleGroup
         fields = ("role",)
+
+
+class ProjectTabFilter(filters.FilterSet):
+    type = filters.CharFilter()
+    show_preview = filters.BooleanFilter()
+
+    class Meta:
+        model = ProjectTab
+        fields = ("type", "show_preview")
