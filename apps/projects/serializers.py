@@ -7,7 +7,6 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from services.translator.serializers import auto_translated
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import (
@@ -41,6 +40,7 @@ from apps.organizations.serializers import (
 )
 from apps.skills.models import Tag
 from apps.skills.serializers import TagRelatedField
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,

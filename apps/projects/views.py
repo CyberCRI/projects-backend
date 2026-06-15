@@ -55,6 +55,7 @@ from .filters import (
     ProjectGroupsFilter,
     ProjectMembersFilter,
     ProjectTabFilter,
+    ProjectTabItemFilter,
 )
 from .models import (
     BlogEntry,
@@ -865,7 +866,9 @@ class ProjectTabItemViewset(
     """Project tabs."""
 
     serializer_class = ProjectTabItemSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProjectTabItemFilter
+    ordering = ("created_at", "updated_at")
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     permission_classes = [
