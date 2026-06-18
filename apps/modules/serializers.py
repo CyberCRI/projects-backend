@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from django.http import QueryDict
 from rest_framework import serializers
 
@@ -7,9 +9,8 @@ class ModulesSerializers(serializers.ModelSerializer):
 
     modules = serializers.SerializerMethodField()
 
-    def __init__(self, *ar, **kw):
-        super().__init__(*ar, **kw)
-
+    @cached_property
+    def __modules_keys(self):
         if "modules_keys" not in self.context:
             request = self.context.get("request")
             query = request.query_params if request else QueryDict()
@@ -24,10 +25,9 @@ class ModulesSerializers(serializers.ModelSerializer):
             self.context["modules_keys"] = (
                 tuple(modules_keys) if modules_keys is not None else None
             )
+        return self.context["modules_keys"]
 
     def get_modules(self, instance):
         request = self.context.get("request")
-        modules_keys = self.context.get("modules_keys")
 
-        modules_manager = instance.get_related_module()
-        return modules_manager(instance, user=request.user).count(modules_keys)
+        return instance.modules_by_user(request.user).count(self.__modules_keys)

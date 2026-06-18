@@ -11,7 +11,7 @@ class MultiValueCharFilter(filters.BaseCSVFilter, filters.CharFilter):
     def filter(self, query_set: QuerySet, value: str) -> QuerySet:  # noqa: A003
         # value is either a list or an 'empty' value
         if value:
-            return super(MultiValueCharFilter, self).filter(query_set, value)
+            return super().filter(query_set, value)
         return query_set
 
 
@@ -34,6 +34,17 @@ class PeopleGroupMultipleIDFilter(MultiValueCharFilter):
     def filter(self, queryset: QuerySet, value: str) -> QuerySet:  # noqa: A003
         if value:
             return super().filter(queryset, PeopleGroup.get_main_ids(value))
+        return queryset
+
+
+class ProjectUserMultipleIDFilter(MultiValueCharFilter):
+    def __init__(self, group_id_field: str = "id", *args, **kwargs):
+        self.group_id_field = group_id_field
+        super().__init__(*args, **kwargs)
+
+    def filter(self, queryset: QuerySet, value: str) -> QuerySet:  # noqa: A003
+        if value:
+            return super().filter(queryset, ProjectUser.get_main_ids(value))
         return queryset
 
 

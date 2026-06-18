@@ -32,7 +32,7 @@ class AnnouncementTranslatedFieldsTestCase(JwtAPITestCase):
             "project_id": self.project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(self.project.id,)), data=payload
+            reverse("Project-Announcement-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -62,7 +62,9 @@ class AnnouncementTranslatedFieldsTestCase(JwtAPITestCase):
             for translated_field in Announcement._auto_translated_fields
         }
         response = self.client.patch(
-            reverse("Announcement-detail", args=(self.project.id, announcement.pk)),
+            reverse(
+                "Project-Announcement-detail", args=(self.project.id, announcement.pk)
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -91,7 +93,9 @@ class AnnouncementTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         response = self.client.delete(
-            reverse("Announcement-detail", args=(self.project.id, announcement.pk))
+            reverse(
+                "Project-Announcement-detail", args=(self.project.id, announcement.pk)
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         auto_translated_fields = AutoTranslatedField.objects.filter(

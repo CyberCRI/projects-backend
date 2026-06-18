@@ -6,13 +6,13 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
-from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import (
     PeopleGroupLightSerializer,
     UserLighterSerializer,
 )
-from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
     RecursiveField,
@@ -27,13 +27,10 @@ from apps.commons.serializers import (
     StringsImagesSerializer,
 )
 from apps.feedbacks.models import Comment, Follow
-from apps.feedbacks.serializers import CommentSerializer, ReviewSerializer
+from apps.feedbacks.serializers import CommentSerializer
 from apps.files.models import Image
-from apps.files.serializers import (
-    AttachmentFileSerializer,
-    AttachmentLinkSerializer,
-    ImageSerializer,
-)
+from apps.files.serializers import ImageSerializer
+from apps.modules.serializers import ModulesSerializers
 from apps.notifications.tasks import notify_new_project, notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory, Template
 from apps.organizations.serializers import (
@@ -42,7 +39,7 @@ from apps.organizations.serializers import (
     ProjectTemplateSerializer,
 )
 from apps.skills.models import Tag
-from apps.skills.serializers import TagRelatedField, TagSerializer
+from apps.skills.serializers import TagRelatedField
 from services.translator.serializers import auto_translated
 
 from .exceptions import (
@@ -120,7 +117,7 @@ class BlogEntrySerializer(
                 created_at=self.initial_data["created_at"]
             )
             instance.refresh_from_db()
-        return super(BlogEntrySerializer, self).update(instance, validated_data)
+        return super().update(instance, validated_data)
 
     def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
@@ -182,11 +179,232 @@ class GoalSerializer(
 
 
 @auto_translated
-class LocationProjectSerializer(serializers.ModelSerializer):
+class ProjectSerializer(
+    ModulesSerializers,
+    StringsImagesSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
+    string_images_fields: list[str] = ["description"]
+    string_images_forbid_fields: list[str] = ["title", "purpose"]
+    string_images_upload_to: str = "project/images/"
+    string_images_view: str = "Project-images-detail"
+    string_images_process_template: bool = True
+
+    tags = TagRelatedField(many=True, required=False)
+
+    # read_only
     header_image = ImageSerializer(read_only=True)
+    categories = ProjectCategoryLightSerializer(many=True, read_only=True)
+    organizations = OrganizationSerializer(many=True, read_only=True)
+
+    template = ProjectTemplateSerializer(read_only=True)
+    views = serializers.SerializerMethodField()
+    is_followed = serializers.SerializerMethodField(read_only=True)
+
+    # write_only
+    header_image_id = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=Image.objects.all(),
+        source="header_image",
+        required=False,
+    )
+    project_categories_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=ProjectCategory.objects.all(),
+        source="categories",
+        required=False,
+    )
+    organizations_codes = serializers.SlugRelatedField(
+        write_only=True,
+        slug_field="code",
+        source="organizations",
+        queryset=Organization.objects.all(),
+        many=True,
+        required=True,
+    )
+    images_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Image.objects.all(),
+        source="images",
+        required=False,
+    )
+    template_id = serializers.PrimaryKeyRelatedField(
+        required=False,
+        write_only=True,
+        queryset=Template.objects.all(),
+        source="template",
+    )
 
     class Meta:
         model = Project
+        read_only_fields = ["is_locked", "slug"]
+        fields = read_only_fields + [
+            "id",
+            "title",
+            "description",
+            "is_shareable",
+            "purpose",
+            "language",
+            "publication_status",
+            "life_status",
+            "sdgs",
+            "created_at",
+            "updated_at",
+            "deleted_at",
+            "tags",
+            # read only
+            "header_image",
+            "categories",
+            # "last_comment",
+            "organizations",
+            "views",
+            "template",
+            "is_followed",
+            # write_only
+            "project_categories_ids",
+            "header_image_id",
+            "template_id",
+            "organizations_codes",
+            "images_ids",
+            # "team",
+            "modules",
+        ]
+
+    def get_is_followed(self, project: Project) -> dict[str, Any]:
+        if "request" in self.context:
+            user = self.context["request"].user
+            if not user.is_anonymous:
+                follow = Follow.objects.filter(follower=user, project=project)
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
+        return {"is_followed": False, "follow_id": None}
+
+    def get_string_images_kwargs(
+        self, instance: Project, field_name: str, *args: Any, **kwargs: Any
+    ) -> dict[str, Any]:
+        return {"project_id": instance.id}
+
+    def get_related_organizations(self) -> list[Organization]:
+        """Retrieve the related organizations"""
+        if "organizations" in self.validated_data:
+            return self.validated_data["organizations"]
+        return []
+
+    def create(self, validated_data):
+        team = validated_data.pop("team", {})
+        project = super().create(validated_data)
+        ProjectAddTeamMembersSerializer().create({"project": project, **team})
+        notify_new_project.delay(project.pk, self.context["request"].user.pk)
+        return project
+
+    def update(self, instance, validated_data):
+        validated_data.pop("team", {})
+        changes = compute_project_changes(instance, validated_data)
+        notify_project_changes.delay(
+            instance.pk, changes, self.context["request"].user.pk
+        )
+        return super().update(instance, validated_data)
+
+    def validate_organizations_codes(self, value: list[Organization]):
+        if len(value) < 1:
+            raise ProjectWithNoOrganizationError
+        request = self.context.get("request")
+        if request:
+            organizations_to_add = (
+                [o for o in value if o not in self.instance.organizations.all()]
+                if self.instance
+                else value
+            )
+            if not all(
+                request.user.has_perm("organizations.add_project", organization)
+                for organization in organizations_to_add
+            ):
+                raise AddProjectToOrganizationPermissionError
+        return value
+
+    def validate_publication_status(self, value: str):
+        request = self.context["request"]
+        user = request.user
+        if (
+            not self.instance
+            or self.instance.publication_status == value
+            or not any(
+                category.only_reviewer_can_publish
+                for category in self.instance.categories.all()
+            )
+            or user.is_superuser
+            or any(
+                (o.admins.all() | o.facilitators.all()).contains(user)
+                for o in self.instance.organizations.all()
+            )
+            or self.instance.reviewers.contains(user)
+            or self.instance.reviewer_groups_users.contains(user)
+        ):
+            return value
+        raise OnlyReviewerCanChangeStatusError
+
+    # This is a fix to prevent bugs from hocus pocus
+    # TODO: Remove this validation when history is implemented in the frontend
+    def validate_description(self, value: str):
+        if not self.instance:
+            return value
+        empty_descriptions = ["<p></p>", ""]
+        if (
+            self.instance.description not in empty_descriptions
+            and value in empty_descriptions
+        ):
+            raise EmptyProjectDescriptionError
+        return value
+
+    def validate_categories(self, value: list[ProjectCategory]):
+        organizations_codes = self.initial_data.get("organizations_codes", [])
+        if self.instance and not organizations_codes:
+            organizations_codes = self.instance.organizations.all().values_list(
+                "code", flat=True
+            )
+        if not all(
+            category.organization.code in organizations_codes for category in value
+        ):
+            raise ProjectCategoryOrganizationError
+        return value
+
+    get_views = get_views_from_serializer
+
+
+@auto_translated
+class ProjectLightSerializer(ProjectSerializer):
+    is_featured = serializers.BooleanField(read_only=True, required=False)
+    is_group_project = serializers.BooleanField(read_only=True, required=False)
+
+    class Meta(ProjectSerializer.Meta):
+        model = Project
+        fields = [
+            "id",
+            "slug",
+            "title",
+            "purpose",
+            "categories",
+            "header_image",
+            "language",
+            "publication_status",
+            "life_status",
+            "created_at",
+            "updated_at",
+            "is_followed",
+            "is_featured",
+            "is_group_project",
+            "updated_at",
+            "tags",
+        ]
+
+
+@auto_translated
+class ProjectSuperLightSerializer(ProjectLightSerializer):
+    class Meta(ProjectLightSerializer.Meta):
         fields = ["id", "slug", "title", "purpose", "header_image"]
 
 
@@ -194,7 +412,7 @@ class LocationProjectSerializer(serializers.ModelSerializer):
 class LocationSerializer(ProjectRelatedSerializer, BaseLocationSerializer):
     string_images_forbid_fields: list[str] = ["title", "description"]
 
-    project = LocationProjectSerializer(read_only=True)
+    project = ProjectSuperLightSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
         many=False,
         write_only=True,
@@ -221,54 +439,6 @@ class LocationSerializer(ProjectRelatedSerializer, BaseLocationSerializer):
         if "project" in self.validated_data:
             return self.validated_data["project"]
         return None
-
-
-@auto_translated
-class ProjectSuperLightSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = ["id", "slug", "title"]
-
-
-@auto_translated
-class ProjectLightSerializer(serializers.ModelSerializer):
-    categories = ProjectCategoryLightSerializer(many=True, read_only=True)
-    header_image = ImageSerializer(read_only=True)
-    is_followed = serializers.SerializerMethodField(read_only=True)
-    is_featured = serializers.BooleanField(read_only=True, required=False)
-    is_group_project = serializers.BooleanField(read_only=True, required=False)
-    tags = TagSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Project
-        fields = [
-            "id",
-            "slug",
-            "title",
-            "purpose",
-            "categories",
-            "header_image",
-            "language",
-            "publication_status",
-            "life_status",
-            "created_at",
-            "updated_at",
-            "is_followed",
-            "is_featured",
-            "is_group_project",
-            "updated_at",
-            "tags",
-        ]
-
-    def get_is_followed(self, project: Project) -> dict[str, Any]:
-        if "request" in self.context:
-            user = self.context["request"].user
-            if not user.is_anonymous:
-                follow = Follow.objects.filter(follower=user, project=project)
-                user_follow = follow.first()
-                if user_follow:
-                    return {"is_followed": True, "follow_id": user_follow.id}
-        return {"is_followed": False, "follow_id": None}
 
 
 class ProjectRemoveLinkedProjectSerializer(serializers.ModelSerializer):
@@ -299,6 +469,15 @@ class LinkedProjectSerializer(serializers.ModelSerializer):
         model = LinkedProject
         fields = ["id", "project_id", "target_id", "project"]
 
+    def run_validators(self, value):
+        # ignore unique_together
+        self.validators = [
+            validator
+            for validator in self.validators
+            if not isinstance(validator, UniqueTogetherValidator)
+        ]
+        return super().run_validators(value)
+
     def validate(self, data):
         project = None
         target = None
@@ -306,31 +485,36 @@ class LinkedProjectSerializer(serializers.ModelSerializer):
             project = data["project"]
         elif self.instance:
             project = self.instance.project
+
         if "target" in data:
             target = data["target"]
         elif self.instance:
             target = self.instance.target
+
         if project and target and project == target:
             raise LinkProjectToSelfError(target.title)
+
         return data
 
+    def create(self, validate_data: dict) -> LinkedProject:
+        linked, _ = LinkedProject.objects.get_or_create(
+            project=validate_data["project"],
+            target=validate_data["target"],
+        )
+        return linked
 
-class ProjectAddLinkedProjectSerializer(serializers.Serializer):
-    """Used to link projects to another one."""
+    def update(self, instance, validate_data: dict) -> LinkedProject:
+        linked = LinkedProject.objects.filter(
+            project=validate_data.get("project", instance.project),
+            target=validate_data.get("target", instance.target),
+        ).first()
+        # already linked exists so delete it
+        if linked:
+            instance.delete()
+        else:
+            return super().update(instance, validate_data)
 
-    projects = LinkedProjectSerializer(many=True)
-
-    def update(self, instance, validated_data):
-        pass
-
-    def create(self, validated_data):
-        pass
-
-
-class ProjectIdSerializer(serializers.Serializer):
-    """Used to retrieve a project from their `id`."""
-
-    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all())
+        return linked
 
 
 class UserLighterSerializerKeycloakRelatedField(
@@ -351,6 +535,23 @@ class PeopleGroupLightSerializerPrimaryKeyRelatedField(
 
     def to_internal_value(self, data):
         return serializers.PrimaryKeyRelatedField.to_internal_value(self, data)
+
+
+class ProjectTeamMembersSerializer(UserLighterSerializer):
+    role = serializers.CharField()
+
+    class Meta(UserLighterSerializer.Meta):
+        fields = UserLighterSerializer.Meta.fields + ("role",)
+
+
+class ProjectGroupSerializer(PeopleGroupLightSerializer):
+    role = serializers.SerializerMethodField()
+
+    class Meta(PeopleGroupLightSerializer.Meta):
+        fields = PeopleGroupLightSerializer.Meta.fields + ("role",)
+
+    def get_role(self, instance: PeopleGroup):
+        return instance.role
 
 
 class ProjectAddTeamMembersSerializer(serializers.Serializer):
@@ -508,233 +709,6 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
             "users": self.remove_users(validated_data),
             "people_groups": self.remove_people_groups(validated_data),
         }
-
-
-@auto_translated
-class ProjectSerializer(
-    StringsImagesSerializer,
-    OrganizationRelatedSerializer,
-    serializers.ModelSerializer,
-):
-    string_images_fields: list[str] = ["description"]
-    string_images_forbid_fields: list[str] = ["title", "purpose"]
-    string_images_upload_to: str = "project/images/"
-    string_images_view: str = "Project-images-detail"
-    string_images_process_template: bool = True
-
-    team = ProjectAddTeamMembersSerializer(required=False, source="*")
-    tags = TagRelatedField(many=True, required=False)
-
-    # read_only
-    header_image = ImageSerializer(read_only=True)
-    categories = ProjectCategoryLightSerializer(many=True, read_only=True)
-    last_comment = serializers.SerializerMethodField(read_only=True)
-    organizations = OrganizationSerializer(many=True, read_only=True)
-    goals = GoalSerializer(many=True, read_only=True)
-    reviews = ReviewSerializer(many=True, read_only=True)
-    locations = LocationSerializer(many=True, read_only=True)
-    announcements = AnnouncementSerializer(many=True, read_only=True)
-    links = AttachmentLinkSerializer(many=True, read_only=True)
-    files = AttachmentFileSerializer(many=True, read_only=True)
-    images = ImageSerializer(many=True, read_only=True)
-    blog_entries = BlogEntrySerializer(many=True, read_only=True)
-    linked_projects = serializers.SerializerMethodField(read_only=True)
-    template = ProjectTemplateSerializer(read_only=True)
-    views = serializers.SerializerMethodField()
-    is_followed = serializers.SerializerMethodField(read_only=True)
-
-    # write_only
-    header_image_id = serializers.PrimaryKeyRelatedField(
-        write_only=True,
-        queryset=Image.objects.all(),
-        source="header_image",
-        required=False,
-    )
-    project_categories_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=ProjectCategory.objects.all(),
-        source="categories",
-        required=False,
-    )
-    organizations_codes = serializers.SlugRelatedField(
-        write_only=True,
-        slug_field="code",
-        source="organizations",
-        queryset=Organization.objects.all(),
-        many=True,
-        required=True,
-    )
-    images_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Image.objects.all(),
-        source="images",
-        required=False,
-    )
-    template_id = serializers.PrimaryKeyRelatedField(
-        required=False,
-        write_only=True,
-        queryset=Template.objects.all(),
-        source="template",
-    )
-
-    class Meta:
-        model = Project
-        read_only_fields = ["is_locked", "slug"]
-        fields = read_only_fields + [
-            "id",
-            "title",
-            "description",
-            "is_shareable",
-            "purpose",
-            "language",
-            "publication_status",
-            "life_status",
-            "sdgs",
-            "created_at",
-            "updated_at",
-            "deleted_at",
-            "tags",
-            # read only
-            "header_image",
-            "categories",
-            "last_comment",
-            "organizations",
-            "goals",
-            "reviews",
-            "locations",
-            "announcements",
-            "links",
-            "files",
-            "images",
-            "blog_entries",
-            "linked_projects",
-            "views",
-            "template",
-            "is_followed",
-            # write_only
-            "project_categories_ids",
-            "header_image_id",
-            "template_id",
-            "organizations_codes",
-            "images_ids",
-            "team",
-        ]
-
-    @staticmethod
-    def get_last_comment(project: Project) -> dict | None:
-        last_comment = (
-            project.comments.filter(reply_on=None).order_by("-created_at").first()
-        )
-        return CommentSerializer(last_comment).data if last_comment else None
-
-    def get_linked_projects(self, project: Project) -> dict[str, Any]:
-        queryset = LinkedProject.objects.filter(target=project)
-        user = getattr(self.context.get("request"), "user", AnonymousUser())
-        queryset = user.get_project_related_queryset(queryset)
-        return LinkedProjectSerializer(queryset, many=True).data
-
-    def get_is_followed(self, project: Project) -> dict[str, Any]:
-        if "request" in self.context:
-            user = self.context["request"].user
-            if not user.is_anonymous:
-                follow = Follow.objects.filter(follower=user, project=project)
-                user_follow = follow.first()
-                if user_follow:
-                    return {"is_followed": True, "follow_id": user_follow.id}
-        return {"is_followed": False, "follow_id": None}
-
-    def get_string_images_kwargs(
-        self, instance: Project, field_name: str, *args: Any, **kwargs: Any
-    ) -> dict[str, Any]:
-        return {"project_id": instance.id}
-
-    def get_related_organizations(self) -> list[Organization]:
-        """Retrieve the related organizations"""
-        if "organizations" in self.validated_data:
-            return self.validated_data["organizations"]
-        return []
-
-    def create(self, validated_data):
-        team = validated_data.pop("team", {})
-        project = super(ProjectSerializer, self).create(validated_data)
-        ProjectAddTeamMembersSerializer().create({"project": project, **team})
-        notify_new_project.delay(project.pk, self.context["request"].user.pk)
-        return project
-
-    def update(self, instance, validated_data):
-        validated_data.pop("team", {})
-        changes = compute_project_changes(instance, validated_data)
-        notify_project_changes.delay(
-            instance.pk, changes, self.context["request"].user.pk
-        )
-        return super(ProjectSerializer, self).update(instance, validated_data)
-
-    def validate_organizations_codes(self, value: list[Organization]):
-        if len(value) < 1:
-            raise ProjectWithNoOrganizationError
-        request = self.context.get("request")
-        if request:
-            organizations_to_add = (
-                [o for o in value if o not in self.instance.organizations.all()]
-                if self.instance
-                else value
-            )
-            if not all(
-                request.user.has_perm("organizations.add_project", organization)
-                for organization in organizations_to_add
-            ):
-                raise AddProjectToOrganizationPermissionError
-        return value
-
-    def validate_publication_status(self, value: str):
-        request = self.context["request"]
-        user = request.user
-        if (
-            not self.instance
-            or self.instance.publication_status == value
-            or not any(
-                category.only_reviewer_can_publish
-                for category in self.instance.categories.all()
-            )
-            or user.is_superuser
-            or any(
-                (o.admins.all() | o.facilitators.all()).contains(user)
-                for o in self.instance.organizations.all()
-            )
-            or self.instance.reviewers.contains(user)
-            or self.instance.reviewer_groups_users.contains(user)
-        ):
-            return value
-        raise OnlyReviewerCanChangeStatusError
-
-    # This is a fix to prevent bugs from hocus pocus
-    # TODO: Remove this validation when history is implemented in the frontend
-    def validate_description(self, value: str):
-        if not self.instance:
-            return value
-        empty_descriptions = ["<p></p>", ""]
-        if (
-            self.instance.description not in empty_descriptions
-            and value in empty_descriptions
-        ):
-            raise EmptyProjectDescriptionError
-        return value
-
-    def validate_categories(self, value: list[ProjectCategory]):
-        organizations_codes = self.initial_data.get("organizations_codes", [])
-        if self.instance and not organizations_codes:
-            organizations_codes = self.instance.organizations.all().values_list(
-                "code", flat=True
-            )
-        if not all(
-            category.organization.code in organizations_codes for category in value
-        ):
-            raise ProjectCategoryOrganizationError
-        return value
-
-    get_views = get_views_from_serializer
 
 
 class ProjectVersionSerializer(serializers.ModelSerializer):

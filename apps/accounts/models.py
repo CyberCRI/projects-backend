@@ -982,3 +982,39 @@ class InvitationUser(AnonymousUser):
 
     def has_perm(self, perm, obj=None):
         return perm == "accounts.add_projectuser"
+
+
+class InternalAdmin(AnonymousUser):
+    """internal admim user (he have access to all models)"""
+
+    def get_project_queryset(self):
+        return Project.objects.all()
+
+    def get_news_queryset(self):
+        return News.objects.all()
+
+    def get_event_queryset(self):
+        return Event.objects.all()
+
+    def get_instruction_queryset(self):
+        return Instruction.objects.all()
+
+    def get_user_queryset(self):
+        return ProjectUser.objects.all()
+
+    def get_people_group_queryset(self):
+        return PeopleGroup.objects.all()
+
+    def _query_function(self, queryset, *ar, **kw):
+        return queryset
+
+    get_project_related_queryset = _query_function
+    get_user_related_queryset = _query_function
+    get_people_group_related_queryset = _query_function
+    get_news_related_queryset = _query_function
+    get_instruction_related_queryset = _query_function
+    get_event_related_queryset = _query_function
+
+    def get_related_organizations(self) -> list["Organization"]:
+        """Return the organizations related to this model."""
+        return list(Organization.objects.all())

@@ -110,7 +110,7 @@ msgstr "No puedes asignar este rol a un usuario"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No puedes asignar este rol a un usuario: {role}"
 
-#: apps/accounts/models.py:161 apps/projects/models.py:164
+#: apps/accounts/models.py:161 apps/projects/models.py:169
 msgid "visibility"
 msgstr "visibilidad"
 
@@ -1567,23 +1567,23 @@ msgstr "Un mensaje no puede ser una respuesta a sí mismo"
 msgid "You cannot change the type of a project's tab"
 msgstr "No puedes cambiar el tipo de una pestaña de proyecto"
 
-#: apps/projects/models.py:147
+#: apps/projects/models.py:152
 msgid "title"
 msgstr "título"
 
-#: apps/projects/models.py:157
+#: apps/projects/models.py:162
 msgid "main goal"
 msgstr "objetivo principal"
 
-#: apps/projects/models.py:170
+#: apps/projects/models.py:175
 msgid "life status"
 msgstr "estado de vida"
 
-#: apps/projects/models.py:181
+#: apps/projects/models.py:186
 msgid "categories"
 msgstr "categorías"
 
-#: apps/projects/models.py:198
+#: apps/projects/models.py:203
 msgid "sustainable development goals"
 msgstr "objetivos de desarrollo sostenible"
 

@@ -16,21 +16,31 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import (
     PeopleGroupHierarchySerializer,
+    PeopleGroupLocationSuperLightSerializer,
     UserSerializer,
 )
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
+from apps.commons.views import (
+    CreateListDestroyViewSet,
+    MultipleIDViewsetMixin,
+    NestedOrganizationViewMixins,
+)
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.modules.group import PeopleGroupModules
-from apps.projects.models import Project
-from apps.projects.serializers import ProjectLightSerializer
+from apps.newsfeed.models import EventLocation, NewsLocation
+from apps.newsfeed.serializers import (
+    EventLocationSerializerLight,
+    NewsLocationSerializerLight,
+)
+from apps.projects.models import Location, Project
+from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
 
 from .exceptions import (
     MissingLifeStatusParameterError,
@@ -306,11 +316,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         )
     )
     def list(self, request, *args, **kwargs):
-        return super(OrganizationViewSet, self).list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
 
     @method_decorator(clear_cache_with_key("organizations_list_cache"))
     def dispatch(self, request, *args, **kwargs):
-        return super(OrganizationViewSet, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     @extend_schema(
         request=OrganizationAddTeamMembersSerializer, responses=UserSerializer
@@ -721,3 +731,36 @@ class AvailableLanguagesView(APIView):
             [{"code": code, "name": name} for code, name in settings.LANGUAGES],
             status=status.HTTP_200_OK,
         )
+
+
+class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet):
+    http_method_names = ["get", "list"]
+
+    def list(self, request, *args, **kwargs):
+        qs_project = (
+            request.user.get_project_related_queryset(Location.objects)
+            .select_related("project")
+            .filter(project__organizations__in=self.organizations)
+        )
+
+        qs_group = request.user.get_people_group_related_queryset(
+            PeopleGroupLocation.objects.filter(
+                people_group__organization__in=self.organizations
+            )
+        ).select_related("people_group")
+
+        qs_news = request.user.get_news_related_queryset(
+            NewsLocation.objects.filter(news__organization__in=self.organizations)
+        ).select_related("news")
+
+        qs_event = request.user.get_event_related_queryset(
+            EventLocation.objects.filter(event__organization__in=self.organizations)
+        ).select_related("event")
+
+        data = {
+            "groups": PeopleGroupLocationSuperLightSerializer(qs_group, many=True).data,
+            "projects": LocationSerializer(qs_project, many=True).data,
+            "news": NewsLocationSerializerLight(qs_news, many=True).data,
+            "event": EventLocationSerializerLight(qs_event, many=True).data,
+        }
+        return Response(data, status=status.HTTP_200_OK)

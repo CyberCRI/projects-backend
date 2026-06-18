@@ -3,6 +3,7 @@ import logging
 
 from django.conf import settings
 
+from apps.search.documents import TagDocument
 from services.esco.interface import EscoService
 from services.wikipedia.interface import WikipediaService
 
@@ -86,20 +87,38 @@ def set_default_language_title_and_description(
 
 
 def update_or_create_wikipedia_tags(wikipedia_qids: list[str]) -> list[Tag]:
-    data = WikipediaService.get_by_ids(wikipedia_qids)
-    data = [set_default_language_title_and_description(tag) for tag in data]
-    tags = []
-    for tag in data:
+    tags = WikipediaService.get_by_ids(wikipedia_qids)
+    tags = [set_default_language_title_and_description(tag) for tag in tags]
+
+    tags_to_create = []
+    all_fields = set()
+    for tag in tags:
         external_id = tag.pop("external_id")
-        tag, _ = Tag.objects.update_or_create(
-            external_id=external_id, type=Tag.TagType.WIKIPEDIA, defaults=tag
+        all_fields |= set(tag.keys())
+        tags_to_create.append(
+            Tag(external_id=external_id, type=Tag.TagType.WIKIPEDIA, **tag)
         )
-        tags.append(tag)
+    all_ids = [tag.external_id for tag in tags_to_create]
+
+    # remove keys
+    all_fields.discard("external_id")
+
+    all_tags = Tag.objects.bulk_create(
+        tags_to_create,
+        update_conflicts=True,
+        unique_fields=("external_id",),
+        update_fields=list(all_fields),
+    )
+
     classification = TagClassification.get_or_create_default_classification(
         classification_type=TagClassification.TagClassificationType.WIKIPEDIA
     )
-    classification.tags.add(*tags)
-    return tags
+    to_adds = list(Tag.objects.filter(external_id__in=all_ids))
+    classification.tags.add(*to_adds)
+
+    # regenerate index
+    TagDocument().update(to_adds, action="index")
+    return all_tags
 
 
 def update_wikipedia_data(chunk_size: int = 50):

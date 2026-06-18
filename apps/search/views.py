@@ -3,6 +3,7 @@ from django.db.models import F, Q, QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.settings import api_settings
 
 from apps.commons.views import ListViewSet
@@ -17,7 +18,8 @@ from .serializers import SearchObjectSerializer
 class SearchViewSet(ListViewSet):
     filterset_class = SearchObjectFilter
     serializer_class = SearchObjectSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ("type", "last_update")
 
     def get_queryset(self, order: bool = True) -> QuerySet[SearchObject]:
         groups = self.request.user.get_people_group_queryset()
@@ -71,6 +73,14 @@ class SearchViewSet(ListViewSet):
                 required=False,
                 type=str,
             ),
+            OpenApiParameter(
+                name="types",
+                description="The type of data to search",
+                required=False,
+                many=True,
+                type=str,
+                enum=("project", "user", "people_group"),
+            ),
         ],
     )
     @action(detail=False, methods=["GET"], url_path="(?P<search>.+)")
@@ -84,11 +94,7 @@ class SearchViewSet(ListViewSet):
         query = self.kwargs.get("search", "")
         indices = [
             f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
-            for index in (
-                request.query_params.get("types", "project,user,people_group").split(
-                    ","
-                )
-            )
+            for index in request.query_params.getlist("types")
         ]
         limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
         offset = request.query_params.get("offset", 0)

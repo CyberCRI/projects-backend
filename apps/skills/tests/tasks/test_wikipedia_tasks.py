@@ -10,8 +10,9 @@ faker = Faker()
 
 
 class WikipediaServiceTestCase(WikipediaTestCase):
+    @patch("apps.search.documents.TagDocument.update")
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_or_create_tag(self, mocked):
+    def test_update_or_create_tag(self, mocked, tag_doc_updated):
         wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
         mocked.return_value = self.get_wikipedia_tags_mocked_return(wikipedia_qids)
         update_or_create_wikipedia_tags(wikipedia_qids)
@@ -19,6 +20,7 @@ class WikipediaServiceTestCase(WikipediaTestCase):
             classification_type=TagClassification.TagClassificationType.WIKIPEDIA
         )
         classification_tags = classification.tags.all()
+        tag_doc_updated.assert_called_once()
         for wikipedia_qid in wikipedia_qids:
             tag = Tag.objects.get(external_id=wikipedia_qid)
             self.assertEqual(tag.title_fr, f"title_fr_{wikipedia_qid}")
@@ -29,8 +31,9 @@ class WikipediaServiceTestCase(WikipediaTestCase):
             self.assertEqual(tag.description, f"description_en_{wikipedia_qid}")
             self.assertIn(tag, classification_tags)
 
+    @patch("apps.search.documents.TagDocument.update")
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_or_create_tag_no_english(self, mocked):
+    def test_update_or_create_tag_no_english(self, mocked, tag_doc_updated):
         wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
         mocked.return_value = self.get_wikipedia_tags_mocked_return(
             wikipedia_qids, en=False
@@ -40,6 +43,7 @@ class WikipediaServiceTestCase(WikipediaTestCase):
             classification_type=TagClassification.TagClassificationType.WIKIPEDIA
         )
         classification_tags = classification.tags.all()
+        tag_doc_updated.assert_called_once()
         for wikipedia_qid in wikipedia_qids:
             tag = Tag.objects.get(external_id=wikipedia_qid)
             self.assertEqual(tag.title_fr, f"title_fr_{wikipedia_qid}")
@@ -50,8 +54,9 @@ class WikipediaServiceTestCase(WikipediaTestCase):
             self.assertEqual(tag.description, f"description_fr_{wikipedia_qid}")
             self.assertIn(tag, classification_tags)
 
+    @patch("apps.search.documents.TagDocument.update")
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_or_create_tag_no_french(self, mocked):
+    def test_update_or_create_tag_no_french(self, mocked, tag_doc_updated):
         wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
         mocked.return_value = self.get_wikipedia_tags_mocked_return(
             wikipedia_qids, fr=False
@@ -61,6 +66,7 @@ class WikipediaServiceTestCase(WikipediaTestCase):
             classification_type=TagClassification.TagClassificationType.WIKIPEDIA
         )
         classification_tags = classification.tags.all()
+        tag_doc_updated.assert_called_once()
         for wikipedia_qid in wikipedia_qids:
             tag = Tag.objects.get(external_id=wikipedia_qid)
             self.assertEqual(tag.title_fr, None)
@@ -71,8 +77,9 @@ class WikipediaServiceTestCase(WikipediaTestCase):
             self.assertEqual(tag.description, f"description_en_{wikipedia_qid}")
             self.assertIn(tag, classification_tags)
 
+    @patch("apps.search.documents.TagDocument.update")
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_or_create_tag_no_english_no_french(self, mocked):
+    def test_update_or_create_tag_no_english_no_french(self, mocked, tag_doc_updated):
         wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
         mocked.return_value = self.get_wikipedia_tags_mocked_return(
             wikipedia_qids, en=False, fr=False
@@ -82,6 +89,7 @@ class WikipediaServiceTestCase(WikipediaTestCase):
             classification_type=TagClassification.TagClassificationType.WIKIPEDIA
         )
         classification_tags = classification.tags.all()
+        tag_doc_updated.assert_called_once()
         for wikipedia_qid in wikipedia_qids:
             tag = Tag.objects.get(external_id=wikipedia_qid)
             self.assertEqual(tag.title_fr, None)

@@ -1,9 +1,15 @@
+from functools import cached_property
+
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+from apps.accounts.permissions import ProjectNestedPermission
 from apps.organizations.models import Organization
+from apps.organizations.utils import get_below_hierarchy_codes
+from apps.projects.models import Project
 
 from .mixins import HasMultipleIDs
 
@@ -154,6 +160,28 @@ class NestedOrganizationViewMixins:
         )
 
         super().initial(request, *args, **kwargs)
+
+    @cached_property
+    def organizations(self) -> QuerySet[Organization]:
+        """get all organizations"""
+        organizations_code = get_below_hierarchy_codes((self.organization.code,))
+        return Organization.objects.filter(code__in=organizations_code)
+
+
+class NestedProjectViewMixins(MultipleIDViewsetMixin):
+    multiple_lookup_fields = [(Project, "project_id")]
+    project: Project
+
+    def initial(self, request, *args, **kwargs):
+        self.project = get_object_or_404(
+            Project.objects.slug_or_id(kwargs["project_id"]),
+        )
+
+        super().initial(request, *args, **kwargs)
+
+    def get_permissions(self):
+        """add check nested project"""
+        return [ProjectNestedPermission(), *super().get_permissions()]
 
 
 class NestedPeopleGroupViewMixins:
