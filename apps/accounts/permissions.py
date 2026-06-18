@@ -7,6 +7,12 @@ from apps.accounts.models import PeopleGroup
 from apps.commons.permissions import IgnoreCall
 
 
+class ProjectNestedPermission(permissions.BasePermission):
+    def has_permission(self, request: Request, view: GenericViewSet) -> bool:
+        """check "project" from NestedProjectMixins"""
+        return request.user.get_project_queryset().contains(view.project)
+
+
 def HasBasePermission(  # noqa: N802
     codename: str, app: str = ""
 ) -> permissions.BasePermission:

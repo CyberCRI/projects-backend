@@ -20,13 +20,16 @@ from apps.analytics.models import Stat
 from apps.commons.enums import SDG, Language
 from apps.commons.mixins import (
     DuplicableModel,
+    HasEmbedding,
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
     HasRelatedLocationContent,
+    HasRelatedModules,
     ProjectRelated,
 )
 from apps.commons.models import GroupData
+from apps.commons.queryset import MultipleIdsQuerySet
 from apps.commons.utils import get_write_permissions_from_subscopes
 from services.translator.mixins import HasAutoTranslatedFields
 
@@ -47,7 +50,7 @@ def uuid_generator() -> str:
     return shortuuid.ShortUUID().random(length=8)
 
 
-class SoftDeleteManager(models.Manager):
+class SoftDeleteManager(models.manager.BaseManager.from_queryset(MultipleIdsQuerySet)):
     """Exclude by default soft-deleted Projects."""
 
     def get_queryset(self):
@@ -66,7 +69,9 @@ class SoftDeleteManager(models.Manager):
 
 
 class Project(
+    HasEmbedding,
     HasMultipleIDs,
+    HasRelatedModules,
     HasAutoTranslatedFields,
     HasPermissionsSetup,
     ProjectRelated,
@@ -246,7 +251,7 @@ class Project(
         return ContentType.objects.get_for_model(Project)
 
     def __init__(self, *args, **kwargs):
-        super(Project, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._original_description = self.description
         self._related_organizations = None
 
@@ -286,7 +291,7 @@ class Project(
     def hard_delete(self):
         """Hard-delete the project."""
         self.groups.all().delete()
-        super(Project, self).delete()
+        super().delete()
 
     def restore(self):
         """Restore a soft-deleted project."""
@@ -927,7 +932,7 @@ class Location(ProjectRelated, HasRelatedLocationContent, AbstractLocation):
 
 class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.Model):
     """
-    A message in a project.
+    A message in a project (private-exchange)
 
     Attributes
     ----------

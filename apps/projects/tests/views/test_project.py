@@ -1,6 +1,8 @@
 import datetime
+import json
 import random
 
+from django.core import serializers
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import make_aware
@@ -28,6 +30,11 @@ from apps.projects.factories import (
 )
 from apps.projects.models import Project
 from apps.skills.factories import TagFactory
+
+
+def modeljson(model):
+    return json.loads(serializers.serialize("json", [model]))[0]["fields"]
+
 
 faker = Faker()
 
@@ -84,20 +91,13 @@ class CreateProjectTestCase(JwtAPITestCase):
             "project_categories_ids": [self.category.id],
             "template_id": self.template.id,
             "tags": [t.id for t in self.tags],
-            "images_ids": [],
-            "team": {
-                "members": [m.id for m in self.members],
-                "reviewers": [r.id for r in self.reviewers],
-                "owners": [o.id for o in self.owners],
-                "member_groups": [pg.id for pg in self.member_groups],
-                "reviewer_groups": [pg.id for pg in self.reviewer_groups],
-                "owner_groups": [pg.id for pg in self.owner_groups],
-            },
         }
         response = self.client.post(reverse("Project-list"), data=payload)
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
+
             content = response.json()
+
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["description"], payload["description"])
             self.assertEqual(content["is_shareable"], payload["is_shareable"])
@@ -119,30 +119,6 @@ class CreateProjectTestCase(JwtAPITestCase):
             )
             self.assertSetEqual(
                 {t["id"] for t in content["tags"]}, set(payload["tags"])
-            )
-            self.assertSetEqual(
-                {u["id"] for u in content["team"]["members"]},
-                set(payload["team"]["members"]),
-            )
-            self.assertSetEqual(
-                {u["id"] for u in content["team"]["reviewers"]},
-                set(payload["team"]["reviewers"]),
-            )
-            self.assertSetEqual(
-                {u["id"] for u in content["team"]["owners"]},
-                {user.id, *payload["team"]["owners"]},
-            )
-            self.assertSetEqual(
-                {u["id"] for u in content["team"]["member_groups"]},
-                set(payload["team"]["member_groups"]),
-            )
-            self.assertSetEqual(
-                {u["id"] for u in content["team"]["reviewer_groups"]},
-                set(payload["team"]["reviewer_groups"]),
-            )
-            self.assertSetEqual(
-                {u["id"] for u in content["team"]["owner_groups"]},
-                set(payload["team"]["owner_groups"]),
             )
 
 
@@ -348,7 +324,7 @@ class ProjectMembersTestCase(JwtAPITestCase):
             "reviewer_groups": [pg.id for pg in self.reviewer_groups],
         }
         response = self.client.post(
-            reverse("Project-add-member", args=(project.id,)), data=payload
+            reverse("Project-member-add-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -400,7 +376,7 @@ class ProjectMembersTestCase(JwtAPITestCase):
             ],
         }
         response = self.client.post(
-            reverse("Project-remove-member", args=(project.id,)), data=payload
+            reverse("Project-member-remove-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -468,7 +444,9 @@ class DuplicateProjectTestCase(JwtAPITestCase):
         )
         blog_entries[0].save()
 
-    def check_duplicated_project(self, duplicated_project: dict, initial_project: dict):
+    def check_duplicated_project(
+        self, duplicated_project: Project, initial_project: Project
+    ):
         fields = [
             "is_locked",
             "title",
@@ -488,94 +466,93 @@ class DuplicateProjectTestCase(JwtAPITestCase):
         ]
         list_fields = ["sdgs"]
         self.assertEqual(
-            duplicated_project["publication_status"],
+            duplicated_project.publication_status,
             Project.PublicationStatus.PRIVATE,
         )
-        self.assertNotEqual(
-            duplicated_project["created_at"], initial_project["created_at"]
-        )
-        self.assertNotEqual(
-            duplicated_project["updated_at"], initial_project["updated_at"]
-        )
+        self.assertNotEqual(duplicated_project.created_at, initial_project.created_at)
+        self.assertNotEqual(duplicated_project.updated_at, initial_project.updated_at)
         for field in fields:
-            self.assertEqual(duplicated_project[field], initial_project[field])
+            self.assertEqual(
+                getattr(duplicated_project, field), getattr(initial_project, field)
+            )
 
         for field in list_fields:
             self.assertSetEqual(
-                set(duplicated_project[field]), set(initial_project[field])
+                set(getattr(duplicated_project, field)),
+                set(getattr(initial_project, field)),
             )
 
         for field in many_to_many_fields:
             self.assertSetEqual(
-                {item["id"] for item in duplicated_project[field]},
-                {item["id"] for item in initial_project[field]},
+                {item.id for item in getattr(duplicated_project, field).all()},
+                {item.id for item in getattr(initial_project, field).all()},
             )
 
         for related_field in related_fields:
             self.assertEqual(
-                len(duplicated_project[related_field]),
-                len(initial_project[related_field]),
+                getattr(duplicated_project, related_field).count(),
+                getattr(initial_project, related_field).count(),
             )
             duplicated_field = [
                 {
                     key: value
-                    for key, value in item.items()
+                    for key, value in modeljson(item).items()
                     if key not in ["id", "project", "created_at", "updated_at", "file"]
                 }
-                for item in duplicated_project[related_field]
+                for item in getattr(duplicated_project, related_field).all()
             ]
             initial_field = [
                 {
                     key: value
-                    for key, value in item.items()
+                    for key, value in modeljson(item).items()
                     if key not in ["id", "project", "created_at", "updated_at", "file"]
                 }
-                for item in initial_project[related_field]
+                for item in getattr(initial_project, related_field).all()
             ]
             self.assertEqual(len(duplicated_field), len(initial_field))
             for item in duplicated_field:
                 self.assertIn(item, initial_field)
 
         self.assertEqual(
-            len(duplicated_project["images"]), len(initial_project["images"])
+            duplicated_project.images.count(), initial_project.images.count()
         )
-        for duplicated_image in duplicated_project["images"]:
-            self.assertNotIn(
-                duplicated_image["id"],
-                [i["id"] for i in initial_project["images"]],
-            )
+        initial_images_ids = (initial_project.images.values_list("id", flat=True),)
+        for duplicated_image in duplicated_project.images.all():
+            self.assertNotIn(duplicated_image.id, initial_images_ids)
             self.assertIn(
-                f'<img src="/v1/project/{duplicated_project["id"]}/image/{duplicated_image["id"]}/" />',
-                duplicated_project["description"],
+                f'<img src="/v1/project/{duplicated_project.id}/image/{duplicated_image.id}/" />',
+                duplicated_project.description,
             )
 
         self.assertEqual(
-            len(duplicated_project["blog_entries"]),
-            len(initial_project["blog_entries"]),
+            duplicated_project.modules.blogs().count(),
+            initial_project.modules.blogs().count(),
         )
-        for duplicated_blog_entry in duplicated_project["blog_entries"]:
-            self.assertNotIn(
-                duplicated_blog_entry["id"],
-                [i["id"] for i in initial_project["blog_entries"]],
-            )
-        initial_blog_entry = list(
-            filter(lambda x: len(x["images"]) > 0, initial_project["blog_entries"])
-        )[0]
-        duplicated_blog_entry = list(
-            filter(
-                lambda x: len(x["images"]) > 0,
-                duplicated_project["blog_entries"],
-            )
-        )[0]
-        for duplicated_image in duplicated_blog_entry["images"]:
-            self.assertNotIn(duplicated_image, initial_blog_entry["images"])
-            self.assertIn(
-                f'<img src="/v1/project/{duplicated_project["id"]}/blog-entry-image/{duplicated_image}/" />',
-                duplicated_blog_entry["content"],
-            )
+
+        initial_blogs_ids = initial_project.modules.blogs().values_list("id", flat=True)
+        initial_blogs_images_ids = (
+            initial_project.modules.blogs()
+            .values_list("images__id", flat=True)
+            .distinct()
+        )
+
+        for blog in duplicated_project.modules.blogs():
+            self.assertNotIn(blog.id, initial_blogs_ids)
+
+            duplicate_blogs_images_ids = blog.images.values_list(
+                "id", flat=True
+            ).distinct()
+            for image_id in duplicate_blogs_images_ids:
+                self.assertNotIn(image_id, initial_blogs_images_ids)
+
+                self.assertIn(
+                    f'<img src="/v1/project/{duplicated_project.id}/blog-entry-image/{image_id}/" />',
+                    blog.content,
+                )
+
         self.assertEqual(
-            Project.objects.get(id=duplicated_project["id"]).duplicated_from,
-            initial_project["id"],
+            duplicated_project.duplicated_from,
+            initial_project.id,
         )
 
     @parameterized.expand(
@@ -606,9 +583,9 @@ class DuplicateProjectTestCase(JwtAPITestCase):
                 reverse("Project-detail", args=(self.project.id,))
             )
             self.assertEqual(initial_response.status_code, status.HTTP_200_OK)
-            duplicated_project = response.json()
-            initial_project = initial_response.json()
-            self.check_duplicated_project(duplicated_project, initial_project)
+            duplicate = Project.objects.get(id=response.json()["id"])
+
+            self.check_duplicated_project(duplicate, self.project)
 
 
 class LockUnlockProjectTestCase(JwtAPITestCase):
@@ -976,7 +953,7 @@ class ValidateProjectTestCase(JwtAPITestCase):
         owner = project.owners.first()
         payload = {"users": [owner.id]}
         response = self.client.post(
-            reverse("Project-remove-member", args=(project.id,)), data=payload
+            reverse("Project-member-remove-member", args=(project.id,)), data=payload
         )
         self.assertEqual(
             response.status_code, status.HTTP_400_BAD_REQUEST, response.content
@@ -1147,7 +1124,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         user = UserFactory(groups=[project.get_members()])
         payload = {GroupData.Role.OWNERS: [user.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(project.id,)), data=payload
+            reverse("Project-member-add-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertIn(user, project.owners.all())
@@ -1207,7 +1184,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         reviewer = UserFactory()
         payload = {GroupData.Role.REVIEWERS: [reviewer.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(project.id,)), data=payload
+            reverse("Project-member-add-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         project.refresh_from_db()
@@ -1223,7 +1200,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         reviewer = UserFactory()
         payload = {GroupData.Role.REVIEWERS: [reviewer.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(project.id,)), data=payload
+            reverse("Project-member-add-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         project.refresh_from_db()

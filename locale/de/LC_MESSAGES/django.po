@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03 13:14+0200\n"
+"POT-Creation-Date: 2026-06-18 15:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Sie können diese Rolle keinem Benutzer zuweisen"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sie können diese Rolle keinem Benutzer zuweisen: {role}"
 
-#: apps/accounts/models.py:168 apps/projects/models.py:165
+#: apps/accounts/models.py:168 apps/projects/models.py:170
 msgid "visibility"
 msgstr "Sichtbarkeit"
 
@@ -1586,23 +1586,23 @@ msgstr "Eine Nachricht kann keine Antwort auf sich selbst sein"
 msgid "You cannot change the type of a project's tab"
 msgstr "Sie können den Typ eines Projekt-Tabs nicht ändern"
 
-#: apps/projects/models.py:148
+#: apps/projects/models.py:153
 msgid "title"
 msgstr "Titel"
 
-#: apps/projects/models.py:158
+#: apps/projects/models.py:163
 msgid "main goal"
 msgstr "Hauptziel"
 
-#: apps/projects/models.py:171
+#: apps/projects/models.py:176
 msgid "life status"
 msgstr "Lebensstatus"
 
-#: apps/projects/models.py:182
+#: apps/projects/models.py:187
 msgid "categories"
 msgstr "Kategorien"
 
-#: apps/projects/models.py:199
+#: apps/projects/models.py:204
 msgid "sustainable development goals"
 msgstr "Ziele für nachhaltige Entwicklung"
 
@@ -4440,11 +4440,13 @@ msgstr "Diese Sprache wird nicht unterstützt"
 msgid "Language {language} is not supported"
 msgstr "Die Sprache {language} wird nicht unterstützt"
 
-#~ msgid "Copyright"
-#~ msgstr "Urheberrecht"
+#: templates/admin/base.html:16
+msgid "Copyright"
+msgstr "Urheberrecht"
 
-#~ msgid "All rights reserved."
-#~ msgstr "Alle Rechte vorbehalten."
+#: templates/admin/base.html:16
+msgid "All rights reserved."
+msgstr "Alle Rechte vorbehalten."
 
 #~ msgid "Book Review"
 #~ msgstr "Buchrezension"

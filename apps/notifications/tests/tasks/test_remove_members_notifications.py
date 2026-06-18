@@ -48,7 +48,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
         project.members.add(member)
         payload = {"users": [member.id]}
         response = self.client.post(
-            reverse("Project-remove-member", args=(project.id,)), data=payload
+            reverse("Project-member-remove-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(project.pk, member.pk, owner.pk)
@@ -68,7 +68,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
         project.member_groups.add(group)
         payload = {"people_groups": [group.id]}
         response = self.client.post(
-            reverse("Project-remove-member", args=(project.id,)), data=payload
+            reverse("Project-member-remove-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(project.pk, group.pk, owner.pk)

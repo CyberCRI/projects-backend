@@ -13,7 +13,11 @@ from rest_framework.settings import api_settings
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import ListViewSet, QuerySerializersMixin
+from apps.commons.views import (
+    ListViewSet,
+    NestedOrganizationViewMixins,
+    QuerySerializersMixin,
+)
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.permissions import HasOrganizationPermission
@@ -239,7 +243,7 @@ class NewsImagesView(ImageStorageView):
         return None
 
 
-class InstructionViewSet(viewsets.ModelViewSet):
+class InstructionViewSet(NestedOrganizationViewMixins, viewsets.ModelViewSet):
     """Main endpoints for instructions."""
 
     serializer_class = InstructionSerializer
@@ -265,20 +269,18 @@ class InstructionViewSet(viewsets.ModelViewSet):
         Force the usage of the organization code from the url in the serializer
         """
         if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update({"organization": self.kwargs["organization_code"]})
+            self.request.data.update({"organization": self.organization.code})
         return super().get_serializer(*args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Instruction]:
-        if "organization_code" in self.kwargs:
-            return self.request.user.get_instruction_queryset().filter(
-                organization__code=self.kwargs["organization_code"]
-            )
-        return Instruction.objects.none()
+        return self.request.user.get_instruction_queryset().filter(
+            organization=self.organization
+        )
 
     def get_serializer_context(self):
         return {
             **super().get_serializer_context(),
-            "organization_code": self.kwargs.get("organization_code"),
+            "organization_code": self.organization.code,
         }
 
     def perform_create(self, serializer: InstructionSerializer):

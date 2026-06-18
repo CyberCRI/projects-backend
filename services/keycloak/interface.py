@@ -7,7 +7,7 @@ from babel.dates import format_date, format_time
 from django.conf import settings
 from django.db import models
 from django.http import Http404
-from keycloak import KeycloakAdmin
+from keycloak import KeycloakAdmin, KeycloakOpenID
 from keycloak.exceptions import (
     KeycloakAuthenticationError,
     KeycloakDeleteError,
@@ -74,6 +74,15 @@ class KeycloakService:
             return service.connection.token
         except KeycloakAuthenticationError as err:
             raise KeycloakApiAuthenticationError from err
+
+    @classmethod
+    def get_user_info(cls, access_token: str):
+        openid = KeycloakOpenID(
+            server_url=settings.KEYCLOAK_SERVER_URL,
+            realm_name=settings.KEYCLOAK_REALM,
+            client_id=settings.KEYCLOAK_OPENID_CLIENT_ID,
+        )
+        return openid.userinfo(access_token)
 
     @classmethod
     def get_user(cls, keycloak_id: str):

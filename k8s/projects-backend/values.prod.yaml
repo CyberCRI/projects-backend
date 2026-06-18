@@ -25,8 +25,8 @@ config:
     ENVIRONMENT: production
     EMAIL_CONTACT_SENDER: contact.projects@learningplanetinstitute.org
     EMAIL_REPORT_SENDER: contact.projects@learningplanetinstitute.org
-    EMAIL_CONTACT_RECIPIENTS: helpdesk@oto-technology.fr
-    EMAIL_REPORT_RECIPIENTS: helpdesk@oto-technology.fr
+    EMAIL_CONTACT_RECIPIENTS: servicedesk@oto-technology.fr
+    EMAIL_REPORT_RECIPIENTS: servicedesk@oto-technology.fr
 
 hostname: api.projects.lp-i.org
 

@@ -104,7 +104,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"members": []}
         response = self.client.post(
-            reverse("Project-add-member", args=(self.project.id,)), data=payload
+            reverse("Project-member-add-member", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -126,7 +126,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"users": []}
         response = self.client.post(
-            reverse("Project-remove-member", args=(self.project.id,)),
+            reverse("Project-member-remove-member", args=(self.project.id,)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -222,7 +222,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             "project_id": self.project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(self.project.id,)), data=payload
+            reverse("Project-Announcement-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -320,7 +320,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         payload = {"title": faker.sentence()}
         response = self.client.patch(
             reverse(
-                "Announcement-detail",
+                "Project-Announcement-detail",
                 args=(self.project.id, self.announcement.id),
             ),
             data=payload,
@@ -428,7 +428,9 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         # Destroy announcement
         announcement = AnnouncementFactory(project=self.project)
         response = self.client.delete(
-            reverse("Announcement-detail", args=(self.project.id, announcement.id))
+            reverse(
+                "Project-Announcement-detail", args=(self.project.id, announcement.id)
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:

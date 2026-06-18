@@ -111,8 +111,7 @@ class UserLighterSerializer(serializers.ModelSerializer):
     profile_picture = PrivacySettingProtectedMethodField(
         privacy_field="profile_picture"
     )
-    is_manager = serializers.BooleanField(required=False, read_only=True)
-    is_leader = serializers.BooleanField(required=False, read_only=True)
+    role = serializers.CharField(required=False, read_only=True)
 
     class Meta:
         model = ProjectUser
@@ -126,8 +125,7 @@ class UserLighterSerializer(serializers.ModelSerializer):
             "pronouns",
             "job",
             "profile_picture",
-            "is_manager",
-            "is_leader",
+            "role",
         ]
         fields = read_only_fields
 
@@ -144,8 +142,7 @@ class UserLighterSerializer(serializers.ModelSerializer):
             return super().to_representation(instance)
         return {
             **AnonymousUser.serialize(with_permissions=False),
-            "is_manager": False,
-            "is_leader": False,
+            "role": None,
         }
 
 
@@ -530,13 +527,6 @@ class PeopleGroupSerializer(
     roles = serializers.SlugRelatedField(
         many=True, slug_field="name", read_only=True, source="groups"
     )
-    team = PeopleGroupAddTeamMembersSerializer(required=False, write_only=True)
-    featured_projects = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        required=False,
-        queryset=Project.objects.all(),
-    )
     tags = TagRelatedField(many=True, required=False)
     sdgs = serializers.ListField(
         child=serializers.IntegerField(min_value=1, max_value=17),
@@ -557,12 +547,6 @@ class PeopleGroupSerializer(
                     PeopleGroupSuperLightSerializer(obj, context=self.context).data
                 )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
-
-    def validate_featured_projects(self, projects: list[Project]) -> list[Project]:
-        request = self.context.get("request")
-        if not all(request.user.can_see_project(project) for project in projects):
-            raise FeaturedProjectPermissionDeniedError
-        return projects
 
     def validate_organization(self, value):
         if self.instance and self.instance.organization != value:
@@ -604,31 +588,18 @@ class PeopleGroupSerializer(
         return value
 
     def create(self, validated_data):
-        team = validated_data.pop("team", {})
-        featured_projects = validated_data.pop("featured_projects", [])
         locations = validated_data.pop("locations", [])
 
-        people_group = super(PeopleGroupSerializer, self).create(validated_data)
-        PeopleGroupAddTeamMembersSerializer().create(
-            {"people_group": people_group, **team}
-        )
-        PeopleGroupAddFeaturedProjectsSerializer().create(
-            {
-                "people_group": people_group,
-                "featured_projects": featured_projects,
-            }
-        )
+        people_group = super().create(validated_data)
         PeopleGroupAddLocationsSerializer().create(
             {"people_group": people_group, "locations": locations}
         )
         return people_group
 
     def update(self, instance, validated_data):
-        validated_data.pop("team", {})
-        validated_data.pop("featured_projects", [])
         validated_data.pop("locations", None)
 
-        return super(PeopleGroupSerializer, self).update(instance, validated_data)
+        return super().update(instance, validated_data)
 
     class Meta:
         model = PeopleGroup
@@ -649,8 +620,6 @@ class PeopleGroupSerializer(
             "tags",
             "locations",
             "publication_status",
-            "team",
-            "featured_projects",
         ]
 
 
@@ -825,8 +794,6 @@ class UserSerializer(
         return {
             **AnonymousUser.serialize(with_permissions=False),
             "current_org_role": None,
-            "is_manager": False,
-            "is_leader": False,
         }
 
     def _validate_role(
@@ -964,7 +931,7 @@ class UserSerializer(
                 "natural_ratio",
             ]
         }
-        instance = super(UserSerializer, self).create(validated_data)
+        instance = super().create(validated_data)
         if profile_picture["file"]:
             image = Image(
                 name=profile_picture["file"].name,

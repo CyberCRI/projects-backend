@@ -15,6 +15,7 @@ from apps.invitations.views import AccessRequestViewSet, InvitationViewSet
 
 from .views import (
     CategoryFollowViewset,
+    GeneralLocationView,
     OrganizationBannerView,
     OrganizationImagesView,
     OrganizationLogoView,
@@ -81,4 +82,8 @@ organization_people_group_router_register(
     r"header",
     PeopleGroupHeaderView,
     basename="PeopleGroup-header",
+)
+
+organization_router_register(
+    router, r"location", GeneralLocationView, basename="General-location"
 )

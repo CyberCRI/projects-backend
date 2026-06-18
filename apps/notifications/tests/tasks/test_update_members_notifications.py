@@ -47,7 +47,7 @@ class UpdatedMemberTestCase(JwtAPITestCase):
         project.owners.add(member)
         payload = {GroupData.Role.MEMBERS: [member.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(project.id,)), data=payload
+            reverse("Project-member-add-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(

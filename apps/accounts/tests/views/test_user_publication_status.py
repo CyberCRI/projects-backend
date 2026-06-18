@@ -133,40 +133,46 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, ("public", None, None)),
-            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
             (TestRoles.SUPERADMIN, ("public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
-            (TestRoles.ORG_USER, ("public", "org", None)),
-            (TestRoles.ORG_VIEWER, ("public", "org", None)),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.ORG_VIEWER, ("public", "org")),
         ]
     )
     def test_view_project_members(self, role, expected_users):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
+        response = self.client.get(
+            reverse("Project-member-list", args=(self.project.pk,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertEqual(len(content["team"]["members"]), len(expected_users))
+
+        members = content["results"]
+
+        self.assertEqual(len(members), len(expected_users))
         self.assertEqual(
-            {user["id"] for user in content["team"]["members"]},
+            {user["id"] for user in members},
             {
-                self.users[user_type].id if user_type in expected_users else None
+                self.users[user_type].id
                 for user_type in self.users.keys()
+                if user_type in expected_users
             },
         )
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, ("public", None, None)),
-            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
             (TestRoles.SUPERADMIN, ("public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
-            (TestRoles.ORG_USER, ("public", "org", None)),
-            (TestRoles.ORG_VIEWER, ("public", "org", None)),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.ORG_VIEWER, ("public", "org")),
         ]
     )
     def test_view_people_group_members(self, role, expected_users):
@@ -185,8 +191,9 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         self.assertEqual(
             {user["id"] for user in content},
             {
-                self.users[user_type].id if user_type in expected_users else None
+                self.users[user_type].id
                 for user_type in self.users.keys()
+                if user_type in expected_users
             },
         )
 
