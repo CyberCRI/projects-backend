@@ -46,8 +46,9 @@ class BearerToken(AccessToken):
 class AdminAuthentication(ModelBackend):
     def authenticate(self, request, username=None, password=None):
         token = KeycloakService.get_token_for_user(username, password)
-        validated_token = BearerToken(token["access_token"])
-        user_id = validated_token[api_settings.USER_ID_CLAIM]
+        BearerToken(token["access_token"])
+        user_info = KeycloakService.get_user_info(token["access_token"])
+        user_id = user_info[api_settings.USER_ID_CLAIM]
         try:
             return ProjectUser.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except ProjectUser.DoesNotExist:

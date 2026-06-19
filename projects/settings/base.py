@@ -328,6 +328,7 @@ KEYCLOAK_ROOT_GROUP = os.getenv("KEYCLOAK_ROOT_GROUP", "projects")
 KEYCLOAK_SERVER_URL = os.getenv("KEYCLOAK_SERVER_URL", "http://keycloak:8080/")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "lp")
 KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID", "projects-backend-local")
+KEYCLOAK_OPENID_CLIENT_ID = os.getenv("KEYCLOAK_OPENID_CLIENT_ID", "admin-cli")
 KEYCLOAK_FRONTEND_CLIENT_ID = os.getenv(
     "KEYCLOAK_FRONTEND_CLIENT_ID", "projects-frontend-local"
 )
