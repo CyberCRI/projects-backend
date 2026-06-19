@@ -24,6 +24,7 @@ from apps.commons.mixins import (
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
+    HasRelatedLocationContent,
     HasRelatedModules,
     ProjectRelated,
 )
@@ -901,7 +902,7 @@ class AbstractLocation(HasAutoTranslatedFields, DuplicableModel, models.Model):
 
 
 # TODO(remi): rename to ProjectLocation ?
-class Location(ProjectRelated, AbstractLocation):
+class Location(ProjectRelated, HasRelatedLocationContent, AbstractLocation):
     """A project location on Earth.
 
     Attributes
@@ -915,6 +916,10 @@ class Location(ProjectRelated, AbstractLocation):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="locations"
     )
+
+    @classmethod
+    def get_related_content(cls):
+        return cls.project.field.name
 
     def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""

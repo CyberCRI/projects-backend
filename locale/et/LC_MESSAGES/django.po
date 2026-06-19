@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 10:40+0200\n"
+"POT-Creation-Date: 2026-06-18 15:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "Sa ei saa seda rolli kasutajale määrata"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sa ei saa seda rolli kasutajale määrata: {role}"
 
-#: apps/accounts/models.py:161 apps/projects/models.py:169
+#: apps/accounts/models.py:168 apps/projects/models.py:170
 msgid "visibility"
 msgstr "nähtavus"
 
@@ -1546,23 +1546,23 @@ msgstr "Sõnum ei saa olla vastus iseendale"
 msgid "You cannot change the type of a project's tab"
 msgstr "Sa ei saa muuta projekti vahelehe tüüpi"
 
-#: apps/projects/models.py:152
+#: apps/projects/models.py:153
 msgid "title"
 msgstr "pealkiri"
 
-#: apps/projects/models.py:162
+#: apps/projects/models.py:163
 msgid "main goal"
 msgstr "peamine eesmärk"
 
-#: apps/projects/models.py:175
+#: apps/projects/models.py:176
 msgid "life status"
 msgstr "elutsükli olek"
 
-#: apps/projects/models.py:186
+#: apps/projects/models.py:187
 msgid "categories"
 msgstr "kategooriad"
 
-#: apps/projects/models.py:203
+#: apps/projects/models.py:204
 msgid "sustainable development goals"
 msgstr "säästva arengu eesmärgid"
 

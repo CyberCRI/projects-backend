@@ -20,7 +20,6 @@ from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import (
     PeopleGroupHierarchySerializer,
-    PeopleGroupLocationSuperLightSerializer,
     UserSerializer,
 )
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
@@ -35,12 +34,12 @@ from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.modules.group import PeopleGroupModules
 from apps.newsfeed.models import EventLocation, NewsLocation
-from apps.newsfeed.serializers import (
-    EventLocationSerializerLight,
-    NewsLocationSerializerLight,
-)
 from apps.projects.models import Location, Project
-from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
+from apps.projects.serializers import (
+    GeneralLocationSerializer,
+    ProjectLightSerializer,
+)
+from apps.projects.utils import annotate_queryset_location
 
 from .exceptions import (
     MissingLifeStatusParameterError,
@@ -736,31 +735,35 @@ class AvailableLanguagesView(APIView):
 class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet):
     http_method_names = ["get", "list"]
 
-    def list(self, request, *args, **kwargs):
-        qs_project = (
-            request.user.get_project_related_queryset(Location.objects)
-            .select_related("project")
-            .filter(project__organizations__in=self.organizations)
+    def get_queryset_project(self) -> QuerySet[Location]:
+        return self.request.user.get_project_related_queryset(Location.objects).filter(
+            project__organizations__in=self.organizations
         )
 
-        qs_group = request.user.get_people_group_related_queryset(
+    def get_queryset_groups(self) -> QuerySet[PeopleGroupLocation]:
+        return self.request.user.get_people_group_related_queryset(
             PeopleGroupLocation.objects.filter(
                 people_group__organization__in=self.organizations
             )
-        ).select_related("people_group")
+        )
 
-        qs_news = request.user.get_news_related_queryset(
+    def get_queryset_news(self) -> QuerySet[NewsLocation]:
+        return self.request.user.get_news_related_queryset(
             NewsLocation.objects.filter(news__organization__in=self.organizations)
-        ).select_related("news")
+        )
 
-        qs_event = request.user.get_event_related_queryset(
+    def get_queryset_event(self) -> QuerySet[EventLocation]:
+        return self.request.user.get_event_related_queryset(
             EventLocation.objects.filter(event__organization__in=self.organizations)
-        ).select_related("event")
+        )
 
-        data = {
-            "groups": PeopleGroupLocationSuperLightSerializer(qs_group, many=True).data,
-            "projects": LocationSerializer(qs_project, many=True).data,
-            "news": NewsLocationSerializerLight(qs_news, many=True).data,
-            "event": EventLocationSerializerLight(qs_event, many=True).data,
-        }
+    def list(self, request, *args, **kwargs):
+        qs_project = self.get_queryset_project()
+        qs_groups = self.get_queryset_groups()
+        qs_news = self.get_queryset_news()
+        qs_event = self.get_queryset_event()
+
+        qs = annotate_queryset_location(qs_project, qs_groups, qs_news, qs_event)
+
+        data = GeneralLocationSerializer(list(qs), many=True).data
         return Response(data, status=status.HTTP_200_OK)

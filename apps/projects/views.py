@@ -1,4 +1,3 @@
-import enum
 import uuid
 
 from django.apps import apps
@@ -26,7 +25,11 @@ from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import MultipleIDViewsetMixin, NestedProjectViewMixins
+from apps.commons.views import (
+    MultipleIDViewsetMixin,
+    NestedProjectViewMixins,
+    QuerySerializersMixin,
+)
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import (
@@ -77,11 +80,10 @@ from .serializers import (
 )
 
 
-class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ProjectViewSet(
+    QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     """Main endpoints for projects."""
-
-    class InfoDetails(enum.Enum):
-        SUMMARY = "summary"
 
     serializer_class = ProjectSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -90,6 +92,10 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     multiple_lookup_fields = [(Project, "id")]
+    query_serializers = {
+        "light": ProjectLightSerializer,
+        "superlight": ProjectSuperLightSerializer,
+    }
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "project")
@@ -116,13 +122,8 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
 
     def get_serializer_class(self):
-        is_summary = (
-            self.request.query_params.get("info_details")
-            == ProjectViewSet.InfoDetails.SUMMARY
-        )
-        if self.action == "list" or is_summary:
-            return ProjectLightSerializer
-        return self.serializer_class
+        query = "light" if self.action == "list" else None
+        return super().get_serializer_class(query)
 
     def get_serializer_context(self):
         """Adds request to the serializer's context."""
@@ -157,15 +158,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         super().perform_destroy(instance)
 
     @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="info_details",
-                description='set this parameter to "summary" to get less details '
-                "about the project",
-                required=False,
-                type=str,
-            )
-        ]
+        parameters=[QuerySerializersMixin.OpenApiParameter(query_serializers)]
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
