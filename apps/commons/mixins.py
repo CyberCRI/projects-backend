@@ -483,8 +483,6 @@ class HasEmbedding:
 
     def similars(self, threshold: float = 0.15) -> QuerySet[Self]:
         """return similars documents"""
-        return type(self).objects.all()
-
         if getattr(self, "embedding", None):
             vector = self.embedding.embedding
             model_embedding = type(self).embedding.related.related_model
