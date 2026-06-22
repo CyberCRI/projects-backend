@@ -858,7 +858,7 @@ class ProjectTabItemViewset(
     serializer_class = ProjectTabItemSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = ProjectTabItemFilter
-    ordering = ("created_at", "updated_at")
+    ordering_fields = ("created_at", "updated_at")
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     permission_classes = [

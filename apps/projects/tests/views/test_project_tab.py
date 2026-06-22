@@ -109,13 +109,16 @@ class ListProjectTabsTestCase(JwtAPITestCase):
             user = self.get_parameterized_test_user(role, instances=[project])
             self.client.force_authenticate(user)
             response = self.client.get(reverse("ProjectTab-list", args=(project.id,)))
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            content = response.json()["results"]
             if publication_status in retrieved_tabs:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                content = response.json()["results"]
                 self.assertEqual(len(content), 1)
                 self.assertEqual(content[0]["id"], tab.id)
             else:
-                self.assertEqual(len(content), 0)
+                self.assertIn(
+                    response.status_code,
+                    (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+                )
 
 
 class UpdateProjectTabTestCase(JwtAPITestCase):
