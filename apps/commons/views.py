@@ -2,7 +2,8 @@ from functools import cached_property
 
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, viewsets
+from drf_spectacular.utils import OpenApiParameter as _OpenApiParameter
+from rest_framework import mixins, serializers, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
@@ -206,3 +207,28 @@ class NestedPeopleGroupViewMixins:
         )
 
         super().initial(request, *args, **kwargs)
+
+
+class QuerySerializersMixin:
+    """return specified serializer from queryparams"""
+
+    query_serializers: dict[str, serializers.Serializer] = {}
+
+    def get_serializer_class(self, query=None) -> serializers.Serializer:
+        query = query or self.request.query_params.get("serializer")
+        serializer = None
+        if query:
+            serializer = self.query_serializers.get(query)
+
+        return serializer or super().get_serializer_class()
+
+    @classmethod
+    def OpenApiParameter(  # noqa: N802
+        cls, serializers: dict[str, serializers.Serializer]
+    ) -> _OpenApiParameter:
+        return _OpenApiParameter(
+            name="serializer",
+            description="change output serializer",
+            required=False,
+            enum=serializers.keys(),
+        )

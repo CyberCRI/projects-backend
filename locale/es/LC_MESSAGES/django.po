@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 10:40+0200\n"
+"POT-Creation-Date: 2026-06-18 15:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "No puedes asignar este rol a un usuario"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No puedes asignar este rol a un usuario: {role}"
 
-#: apps/accounts/models.py:161 apps/projects/models.py:169
+#: apps/accounts/models.py:168 apps/projects/models.py:170
 msgid "visibility"
 msgstr "visibilidad"
 
@@ -1567,23 +1567,23 @@ msgstr "Un mensaje no puede ser una respuesta a sí mismo"
 msgid "You cannot change the type of a project's tab"
 msgstr "No puedes cambiar el tipo de una pestaña de proyecto"
 
-#: apps/projects/models.py:152
+#: apps/projects/models.py:153
 msgid "title"
 msgstr "título"
 
-#: apps/projects/models.py:162
+#: apps/projects/models.py:163
 msgid "main goal"
 msgstr "objetivo principal"
 
-#: apps/projects/models.py:175
+#: apps/projects/models.py:176
 msgid "life status"
 msgstr "estado de vida"
 
-#: apps/projects/models.py:186
+#: apps/projects/models.py:187
 msgid "categories"
 msgstr "categorías"
 
-#: apps/projects/models.py:203
+#: apps/projects/models.py:204
 msgid "sustainable development goals"
 msgstr "objetivos de desarrollo sostenible"
 
