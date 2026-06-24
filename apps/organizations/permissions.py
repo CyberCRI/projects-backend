@@ -1,5 +1,3 @@
-from functools import cache
-
 from django.db.models import Model
 from rest_framework import permissions
 from rest_framework.generics import get_object_or_404
@@ -20,12 +18,6 @@ from .models import Organization
 
 
 class OrganizationRelatedPermission(IgnoreCall):
-    def __init__(self, *ar, **kw):
-        super().__init__(*ar, **kw)
-
-        # add locale cache
-        self.get_related_organizations = cache(self.get_related_organizations)
-
     def get_related_organizations(
         self, request: Request, view: GenericViewSet, obj: Model = None
     ) -> list[Organization]:

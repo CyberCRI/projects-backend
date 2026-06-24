@@ -1,7 +1,4 @@
-from collections.abc import Generator
 from contextlib import suppress
-from functools import cache
-from typing import Any
 
 from django.db.models import Model
 from rest_framework import permissions
@@ -19,12 +16,6 @@ from .models import Project
 
 
 class ProjectRelatedPermission(IgnoreCall):
-    def __init__(self, *ar, **kw):
-        super().__init__(*ar, **kw)
-
-        # add locale cache
-        self.get_related_project = cache(self.get_related_project)
-
     def get_related_project(
         self, request: Request, view: GenericViewSet, obj: Model | None = None
     ) -> Project | None:
@@ -64,20 +55,9 @@ def HasProjectPermission(  # noqa: N802
     codename: str, app: str = "projects"
 ) -> permissions.BasePermission:
     class _HasProjectPermission(permissions.BasePermission, ProjectRelatedPermission):
-        def __init__(self, *ar, **kw):
-            super().__init__(*ar, **kw)
-
-            self.has_permission = cache(self.has_permission)
-
-        def has_permission(
-            self, request: Request, view: GenericViewSet, project: Model = None
-        ) -> bool:
+        def has_permission(self, request: Request, view: GenericViewSet) -> bool:
             if request.user.is_authenticated:
-                # If get_related_project returns None with a non-null obj, it might be
-                # because the object is not yet linked to a project. In that case, it is
-                # relevant to retry the permission check with the project_id in the URL.
-                if not project:
-                    project = self.get_related_project(request, view)
+                project = self.get_related_project(request, view)
                 if project and app:
                     return request.user.has_perm(f"{app}.{codename}", project)
                 if project:
@@ -87,29 +67,36 @@ def HasProjectPermission(  # noqa: N802
         def has_object_permission(
             self, request: Request, view: GenericViewSet, obj: Model
         ) -> bool:
-            return self.has_permission(request, view, obj)
+            if request.user.is_authenticated:
+                project = self.get_related_project(request, view, obj)
+                # If get_related_project returns None with a non-null obj, it might be
+                # because the object is not yet linked to a project. In that case, it is
+                # relevant to retry the permission check with the project_id in the URL.
+                if not project:
+                    project = self.get_related_project(request, view)
+                if project and app:
+                    request.user.has_perm(f"{app}.{codename}", project)
+                if project:
+                    return request.user.has_perm(codename, project)
+            return False
 
     return _HasProjectPermission
 
 
 class ProjectIsNotLocked(permissions.BasePermission, ProjectRelatedPermission):
-    def __init__(self, *ar, **kw):
-        super().__init__(*ar, **kw)
-
-        self.cache_iter_perms = cache(self.user_can_modify_locked_project)
-
-    def iter_perms(
-        self, project: Project, user: ProjectUser
-    ) -> Generator[tuple[bool], Any, Any]:
-        yield user.has_perm("projects.change_locked_project"),
-        yield user.has_perm("projects.change_locked_project", project),
-        for o in project.get_related_organizations():
-            yield user.has_perm("organizations.change_locked_project", o)
-
     def user_can_modify_locked_project(
         self, project: Project, user: ProjectUser
     ) -> bool:
-        return any(self.iter_perms(project, user))
+        return any(
+            [
+                user.has_perm("projects.change_locked_project"),
+                user.has_perm("projects.change_locked_project", project),
+                *[
+                    user.has_perm("organizations.change_locked_project", o)
+                    for o in project.get_related_organizations()
+                ],
+            ]
+        )
 
     def has_permission(self, request: Request, view: GenericViewSet) -> bool:
         return self.has_object_permission(request, view, None)
