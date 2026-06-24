@@ -15,23 +15,21 @@ class PeopleGroupModules(AbstractModules):
     instance: PeopleGroup
 
     def members(self) -> QuerySet[ProjectUser]:
-        def queryset_users(role: GroupData.Role, priority_role_order: int):
+        def queryset_users(role: GroupData.Role):
             group_data = GroupData.objects.filter(
                 role=role, group__people_groups=self.instance
             )
 
-            return ProjectUser.objects.filter(groups__data__in=group_data).annotate(
-                role=Value(role), priority_role_order=Value(priority_role_order)
-            )
+            return ProjectUser.objects.filter(groups__data__in=group_data)
 
         skills_prefetch = Prefetch(
             "skills", queryset=Skill.objects.select_related("tag")
         )
 
         # get all members and annote rolepeople_groups
-        leaders = queryset_users(GroupData.Role.LEADERS, 1)
-        managers = queryset_users(GroupData.Role.MANAGERS, 2)
-        members = queryset_users(GroupData.Role.MEMBERS, 3)
+        leaders = queryset_users(GroupData.Role.LEADERS)
+        managers = queryset_users(GroupData.Role.MANAGERS)
+        members = queryset_users(GroupData.Role.MEMBERS)
 
         # union all and filter by request.user
         all_members = leaders | managers | members
@@ -40,8 +38,23 @@ class PeopleGroupModules(AbstractModules):
             all_members.distinct()
             .filter(pk__in=self.user.get_user_queryset())
             .prefetch_related(skills_prefetch)
+            .annotate(
+                role=Case(
+                    When(pk__in=leaders, then=Value(GroupData.Role.LEADERS)),
+                    When(pk__in=managers, then=Value(GroupData.Role.MANAGERS)),
+                    When(
+                        pk__in=members,
+                        then=Value(GroupData.Role.MEMBERS),
+                    ),
+                ),
+                # add sort order priority (first leader, manager and members)
+                priority_role_order=Case(
+                    When(pk__in=leaders, then=1),
+                    When(pk__in=managers, then=2),
+                    When(pk__in=members, then=3),
+                ),
+            )
             .order_by("priority_role_order")
-            .distinct()
         )
 
     def featured_projects(self) -> QuerySet[Project]:
