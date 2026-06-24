@@ -290,9 +290,7 @@ class PeopleGroupGalleryViewSet(
         return super().get_permissions()
 
     def get_queryset(self):
-        modules_manager = self.people_group.get_related_module()
-        modules = modules_manager(self.people_group, self.request.user)
-        return modules.gallery()
+        return self.people_group.modules_by_user(self.request.user).gallery()
 
     def update(self, request, *ar, **kw):
         request.data["people_group"] = self.people_group.id

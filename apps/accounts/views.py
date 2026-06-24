@@ -704,9 +704,7 @@ class PeopleGroupViewSet(
     def member(self, request, *args, **kwargs):
         group = self.get_object()
 
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.members()
+        queryset = group.modules_by_user(request.user).members()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -795,9 +793,7 @@ class PeopleGroupViewSet(
     )
     def project(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.featured_projects()
+        queryset = group.modules_by_user(request.user).featured_projects()
 
         page = self.paginate_queryset(queryset)
         project_serializer = ProjectLightSerializer(
@@ -842,9 +838,7 @@ class PeopleGroupViewSet(
     )
     def subgroups(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.subgroups()
+        queryset = group.modules_by_user(request.user).subgroups()
 
         queryset_page = self.paginate_queryset(queryset)
         data = PeopleGroupLightSerializer(
@@ -861,9 +855,7 @@ class PeopleGroupViewSet(
     )
     def similars(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.similars()
+        queryset = group.modules_by_user(request.user).similars()
 
         queryset_page = self.paginate_queryset(queryset)
         data = PeopleGroupLightSerializer(
@@ -880,9 +872,7 @@ class PeopleGroupViewSet(
     )
     def locations(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.locations()
+        queryset = group.modules_by_user(request.user).locations()
 
         return Response(
             LocationSerializer(queryset, many=True, context={"request": request}).data,
@@ -898,9 +888,7 @@ class PeopleGroupViewSet(
     )
     def news(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.news()
+        queryset = group.modules_by_user(request.user).news()
 
         # use NewsViewSet to filter/order events
         queryset = NewsViewSet(request=self.request).filter_queryset(queryset)
@@ -920,9 +908,7 @@ class PeopleGroupViewSet(
     )
     def event(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.event()
+        queryset = group.modules_by_user(request.user).event()
 
         # use EventViewSet to filter/order events
         queryset = EventViewSet(request=self.request).filter_queryset(queryset)
