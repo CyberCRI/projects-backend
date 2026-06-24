@@ -10,6 +10,7 @@ from django.conf import settings
 from django.http import QueryDict
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+from services.translator.serializers import auto_translated
 
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
@@ -18,7 +19,6 @@ from apps.commons.serializers import (
 )
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from services.translator.serializers import auto_translated
 
 from .exceptions import (
     ChangeFileProjectError,
@@ -38,54 +38,6 @@ from .models import (
     ProjectUserAttachmentFile,
     ProjectUserAttachmentLink,
 )
-
-
-# From https://github.com/glemmaPaul/django-stdimage-serializer (however the repo is not maintained anymore)
-class StdImageField(serializers.ImageField):
-    """
-    Get all the variations of the StdImageField
-    """
-
-    def to_native(self, obj):
-        return self.get_variations_urls(obj)
-
-    def to_representation(self, obj):
-        return self.get_variations_urls(obj)
-
-    def get_variations_urls(self, obj):
-        """
-        Get all the logo urls.
-        """
-
-        # Initiate return object
-        return_object = {}
-
-        # Get the field of the object
-        field = obj.field
-
-        # A lot of ifs going araound, first check if it has the field variations
-        if hasattr(field, "variations"):
-            # Get the variations
-            variations = field.variations
-            # Go through the variations dict
-            for key in variations.keys():
-                # Just to be sure if the stdimage object has it stored in the obj
-                if hasattr(obj, key):
-                    # get the by stdimage properties
-                    field_obj = getattr(obj, key, None)
-                    if field_obj and hasattr(field_obj, "url"):
-                        # store it, with the name of the variation type into our return object
-                        return_object[key] = super(
-                            StdImageField, self
-                        ).to_representation(field_obj)
-
-        # Also include the original (if possible)
-        if hasattr(obj, "url"):
-            return_object["original"] = super(StdImageField, self).to_representation(
-                obj
-            )
-
-        return return_object
 
 
 class AbstractAttachmentLink(metaclass=serializers.SerializerMetaclass):
@@ -386,8 +338,8 @@ class AttachmentFileSerializer(
 
 class ImageSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
+    variations = serializers.SerializerMethodField()
     file = serializers.ImageField(write_only=True)
-    variations = StdImageField(source="file", read_only=True)
 
     class Meta:
         model = Image
@@ -406,6 +358,9 @@ class ImageSerializer(serializers.ModelSerializer):
             "file",
             "variations",
         ]
+
+    def get_variations(self, file):
+        return file.variations
 
     def validate_file(self, file):
         limit = settings.MAX_FILE_SIZE * 1024 * 1024
