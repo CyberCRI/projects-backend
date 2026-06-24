@@ -10,7 +10,6 @@ from django.conf import settings
 from django.http import QueryDict
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from services.translator.serializers import auto_translated
 
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
@@ -19,6 +18,7 @@ from apps.commons.serializers import (
 )
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     ChangeFileProjectError,
