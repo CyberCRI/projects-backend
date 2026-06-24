@@ -41,10 +41,7 @@ class ProjectModules(AbstractModules):
                 role=Case(
                     When(pk__in=owners, then=Value(GroupData.Role.OWNERS)),
                     When(pk__in=members, then=Value(GroupData.Role.MEMBERS)),
-                    When(
-                        pk__in=reviewers,
-                        then=Value(GroupData.Role.REVIEWERS),
-                    ),
+                    When(pk__in=reviewers, then=Value(GroupData.Role.REVIEWERS)),
                 ),
                 # add sort order priority (first leader, manager and members)
                 priority_role_order=Case(
@@ -54,6 +51,7 @@ class ProjectModules(AbstractModules):
                 ),
             )
             .order_by("priority_role_order")
+            .distinct()
         )
 
     def groups(self) -> QuerySet[PeopleGroup]:
@@ -92,6 +90,7 @@ class ProjectModules(AbstractModules):
                 ),
             )
             .order_by("priority_role_order")
+            .distinct()
         )
 
     def linked_projects(self) -> QuerySet[Project]:

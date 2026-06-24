@@ -37,15 +37,11 @@ class PeopleGroupModules(AbstractModules):
         return (
             all_members.distinct()
             .filter(pk__in=self.user.get_user_queryset())
-            .prefetch_related(skills_prefetch)
             .annotate(
                 role=Case(
                     When(pk__in=leaders, then=Value(GroupData.Role.LEADERS)),
                     When(pk__in=managers, then=Value(GroupData.Role.MANAGERS)),
-                    When(
-                        pk__in=members,
-                        then=Value(GroupData.Role.MEMBERS),
-                    ),
+                    When(pk__in=members, then=Value(GroupData.Role.MEMBERS)),
                 ),
                 # add sort order priority (first leader, manager and members)
                 priority_role_order=Case(
@@ -54,6 +50,7 @@ class PeopleGroupModules(AbstractModules):
                     When(pk__in=members, then=3),
                 ),
             )
+            .prefetch_related(skills_prefetch)
             .order_by("priority_role_order")
         )
 
