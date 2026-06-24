@@ -415,7 +415,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
     def get_url(self, image: Image) -> str | None:
         try:
-            url = image.file.url
+            url = image.url
         except AttributeError:
             return None
         request = self.context.get("request")

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Optional, Self
 from azure.core.exceptions import ResourceNotFoundError
 from django.apps import apps
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import models, transaction
 from django.db.models import ForeignObjectRel, Model, Q, QuerySet
@@ -253,6 +254,25 @@ class BaseImage(models.Model, DuplicableModel):
         ordering = ("-created_at",)
         abstract = True
 
+    @property
+    def url_key(self) -> str:
+        return f"image::url::{self.pk}"
+
+    @property
+    def url(self) -> str:
+        """create cache for url file"""
+        value = cache.get(self.url_key)
+        if value:
+            return value
+
+        try:
+            value = self.file.url
+        except AttributeError:
+            return ""
+
+        cache.set(self.url_key, value)
+        return value
+
     def duplicate(self, upload_to: str = "", **fields) -> None | Self:
         with suppress(ResourceNotFoundError):
             file_path = self.file.name.split("/")
@@ -270,6 +290,10 @@ class BaseImage(models.Model, DuplicableModel):
             _upload_to = lambda instance, filename: upload_to  # noqa: E731
             return super().duplicate(_upload_to=_upload_to, file=new_file, **fields)
         return None
+
+    def save(self, *ar, **kw):
+        cache.delete(self.url_key)
+        return super().save(*ar, **kw)
 
 
 class Image(BaseImage, HasOwner, ProjectRelated, OrganizationRelated):
