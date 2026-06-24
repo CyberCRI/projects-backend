@@ -301,7 +301,7 @@ class BaseImage(models.Model, DuplicableModel):
         return varias
 
     def clear_cache_urls(self):
-        cache.delete_many(self.__url_key, *list(self.__url_variations_key.values()))
+        cache.delete_many([self.__url_key, *list(self.__url_variations_key.values())])
 
     def duplicate(self, upload_to: str = "", **fields) -> None | Self:
         with suppress(ResourceNotFoundError):
