@@ -15,33 +15,33 @@ class PeopleGroupModules(AbstractModules):
     instance: PeopleGroup
 
     def members(self) -> QuerySet[ProjectUser]:
+        def queryset_users(role: GroupData.Role, priority_role_order: int):
+            group_data = GroupData.objects.filter(
+                role=role, group__people_groups=self.instance
+            )
+
+            return ProjectUser.objects.filter(groups__data__in=group_data).annotate(
+                role=Value(role), priority_role_order=Value(priority_role_order)
+            )
+
         skills_prefetch = Prefetch(
             "skills", queryset=Skill.objects.select_related("tag")
         )
 
-        leaders = self.instance.leaders.all()
-        managers = self.instance.managers.all()
-        members = self.instance.members.all()
+        # get all members and annote rolepeople_groups
+        leaders = queryset_users(GroupData.Role.LEADERS, 1)
+        managers = queryset_users(GroupData.Role.MANAGERS, 2)
+        members = queryset_users(GroupData.Role.MEMBERS, 3)
 
+        # union all and filter by request.user
         all_members = leaders | managers | members
+
         return (
             all_members.distinct()
             .filter(pk__in=self.user.get_user_queryset())
-            .annotate(
-                role=Case(
-                    When(pk__in=leaders, then=Value(GroupData.Role.LEADERS)),
-                    When(pk__in=managers, then=Value(GroupData.Role.MANAGERS)),
-                    When(pk__in=members, then=Value(GroupData.Role.MEMBERS)),
-                ),
-                # add sort order priority (first leader, manager and members)
-                priority_role_order=Case(
-                    When(pk__in=leaders, then=1),
-                    When(pk__in=managers, then=2),
-                    When(pk__in=members, then=3),
-                ),
-            )
+            .prefetch_related(skills_prefetch)
             .order_by("priority_role_order")
-            .prefetch_related(skills_prefetch, "groups")
+            .distinct()
         )
 
     def featured_projects(self) -> QuerySet[Project]:
