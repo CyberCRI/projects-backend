@@ -94,7 +94,10 @@ class SearchViewSet(ListViewSet):
         query = self.kwargs.get("search", "")
         indices = [
             f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
-            for index in request.query_params.getlist("types")
+            for index in (
+                request.query_params.getlist("types")
+                or ["project", "user", "people_group"]
+            )
         ]
         limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
         offset = request.query_params.get("offset", 0)
