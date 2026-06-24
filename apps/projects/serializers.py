@@ -34,7 +34,7 @@ from apps.modules.serializers import ModulesSerializers
 from apps.notifications.tasks import notify_new_project, notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory, Template
 from apps.organizations.serializers import (
-    OrganizationSerializer,
+    OrganizationLightSerializer,
     ProjectCategoryLightSerializer,
     ProjectTemplateSerializer,
 )
@@ -199,7 +199,7 @@ class ProjectSerializer(
     # read_only
     header_image = ImageSerializer(read_only=True)
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
-    organizations = OrganizationSerializer(many=True, read_only=True)
+    organizations = OrganizationLightSerializer(many=True, read_only=True)
 
     template = ProjectTemplateSerializer(read_only=True)
     views = serializers.SerializerMethodField()
