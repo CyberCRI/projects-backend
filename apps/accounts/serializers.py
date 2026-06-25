@@ -6,6 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
+from services.crisalid.serializers import ResearcherSerializerLight
+from services.translator.serializers import auto_translated
 
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
@@ -28,8 +30,6 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer, TagRelatedField
-from services.crisalid.serializers import ResearcherSerializerLight
-from services.translator.serializers import auto_translated
 
 from .exceptions import (
     FeaturedProjectPermissionDeniedError,
@@ -372,6 +372,7 @@ class PeopleGroupHierarchySerializer(
     def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
         context = self.context
         request = context.get("request")
+
         mapping = context.get("mapping")
 
         depth = request.query_params.get("depth")
@@ -383,6 +384,7 @@ class PeopleGroupHierarchySerializer(
                 request.user.get_people_group_queryset()
                 .filter(organization=people_group.organization)
                 .select_related("header_image")
+                .annotate_modules(request.user, self._modules_keys)
             )
             mapping = {group.id: group for group in base_queryset}
             context["mapping"] = mapping

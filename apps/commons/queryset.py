@@ -1,11 +1,38 @@
+import uuid
 from collections import defaultdict
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import F, OuterRef
+from django.db.models.functions import JSONObject
+
+if TYPE_CHECKING:
+    from apps.accounts.models import ProjectUser
 
 
-class MultipleIdsQuerySet(models.QuerySet):
+class ModulesQuerySet(models.QuerySet):
+    def annotate_modules(
+        self,
+        user: "ProjectUser",
+        modules_keys: list[str] | None = None,
+        /,
+        outout_key: str = "modules",
+    ) -> Self:
+        modules_manager = self.model.get_related_module()
+
+        # generate unique internal_key to match all subquery with a OuterRef
+        unique = str(uuid.uuid4())
+        outer_ref = f"__internal_modules_id_{unique}"
+        instance = OuterRef(outer_ref)
+
+        infos = modules_manager.annotate_subquery(user, instance, modules_keys)
+        return self.annotate(
+            **{outer_ref: F("id")},
+        ).annotate(**{outout_key: JSONObject(**infos)})
+
+
+class MultipleIdsQuerySet(ModulesQuerySet, models.QuerySet):
     """queryset/manager to filter queryset by id or slug"""
 
     def _get_related_field(self, model: models.Model, field: str) -> models.Field:

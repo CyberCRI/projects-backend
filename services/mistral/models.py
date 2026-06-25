@@ -3,13 +3,14 @@ import itertools
 import traceback
 from typing import TYPE_CHECKING
 
+from apps.commons.models import GroupData
+from apps.projects.models import Project
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
-from apps.commons.models import GroupData
-from apps.projects.models import Project
+from services.mistral.query import EmbdeddingQuerySet
 
 from .exceptions import VectorSearchWrongQuerysetError
 from .interface import MistralService
@@ -64,6 +65,8 @@ class Embedding(models.Model):
     embedding = VectorField(dimensions=1024, null=True)
     is_visible = models.BooleanField(default=False)
 
+    objects = EmbdeddingQuerySet.as_manager()
+
     class Meta:
         abstract = True
 
@@ -89,6 +92,7 @@ class Embedding(models.Model):
                     self.embedding = None
                     self.save()
         except Exception as e:  # noqa: PIE786
+            print(e)
             EmbeddingError.objects.create(
                 item_type=self.item.__class__.__name__,
                 item_id=self.item.id,

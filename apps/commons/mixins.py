@@ -453,10 +453,11 @@ class HasMultipleIDs:
 class HasRelatedModules:
     """Mixins for related modules class"""
 
-    def get_related_module(self):
+    @classmethod
+    def get_related_module(cls):
         from apps.modules.base import get_module
 
-        return get_module(type(self))
+        return get_module(cls)
 
     def modules_by_user(self, user: "ProjectUser"):
         """return modules wrapped by user"""
@@ -481,11 +482,15 @@ class HasEmbedding:
             self.embedding.save()
         self.embedding.vectorize()
 
+    @classmethod
+    def embedding_model(cls):
+        return cls.embedding.related.related_model
+
     def similars(self, threshold: float = 0.15) -> QuerySet[Self]:
         """return similars documents"""
         if getattr(self, "embedding", None):
             vector = self.embedding.embedding
-            model_embedding = type(self).embedding.related.related_model
+            model_embedding = self.embedding_model()
             queryset = type(self).objects.all()
             return model_embedding.vector_search(vector, queryset, threshold).exclude(
                 pk=self.pk

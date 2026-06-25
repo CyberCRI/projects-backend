@@ -4,13 +4,19 @@ from django.http import QueryDict
 from rest_framework import serializers
 
 
+def sanitize_modules_by(keys: list[str] | None, default=None):
+    if not keys:
+        return default
+    return keys
+
+
 class ModulesSerializers(serializers.ModelSerializer):
     """Modules serializers to return how many elements is linked to objects"""
 
     modules = serializers.SerializerMethodField()
 
     @cached_property
-    def __modules_keys(self):
+    def _modules_keys(self):
         if "modules_keys" not in self.context:
             request = self.context.get("request")
             query = request.query_params if request else QueryDict()
@@ -30,4 +36,12 @@ class ModulesSerializers(serializers.ModelSerializer):
     def get_modules(self, instance):
         request = self.context.get("request")
 
-        return instance.modules_by_user(request.user).count(self.__modules_keys)
+        if hasattr(instance, "modules") and isinstance(instance.modules, dict):
+            return instance.modules
+
+        # instance.modules_by_user(request.user)
+
+        # return instance.annotate_modules(self._modules_keys)
+        return {}
+
+        return instance.modules_by_user(request.user).count(self._modules_keys)

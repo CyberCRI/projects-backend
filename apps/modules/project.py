@@ -1,4 +1,16 @@
-from django.db.models import Case, QuerySet, Value, When
+from django.db.models import (
+    Case,
+    F,
+    OuterRef,
+    Q,
+    QuerySet,
+    Subquery,
+    Value,
+    When,
+)
+from django.db.models.functions import Coalesce, JSONObject
+from pgvector.django import CosineDistance, VectorField
+from services.mistral.models import ProjectEmbedding
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
@@ -9,6 +21,7 @@ from apps.modules.base import AbstractModules, register_module
 from apps.projects.models import (
     BlogEntry,
     Goal,
+    LinkedProject,
     Location,
     Project,
     ProjectMessage,
@@ -17,7 +30,7 @@ from apps.projects.models import (
 
 @register_module(Project)
 class ProjectModules(AbstractModules):
-    instance: Project
+    instance: OuterRef
 
     def members(self) -> QuerySet[ProjectUser]:
 
@@ -93,37 +106,43 @@ class ProjectModules(AbstractModules):
             .distinct()
         )
 
-    def linked_projects(self) -> QuerySet[Project]:
-        return self.instance.linked_projects.filter(
+    def linked_projects(self) -> QuerySet[LinkedProject]:
+        return LinkedProject.objects.filter(target=self.instance).filter(
             project__in=self.user.get_project_queryset()
         )
 
     def similars(self) -> QuerySet[Project]:
-        return self.instance.similars().filter(pk__in=self.user.get_project_queryset())
+        base_qs = self.outer_ref(ProjectEmbedding.objects.all())
+
+        qs_similar = base_qs.vector_search(self.instance, 0.15)
+
+        project_qs = self.outer_ref(self.user.get_project_queryset())
+
+        return project_qs.filter(embedding__in=qs_similar)
 
     def locations(self) -> QuerySet[Location]:
-        return self.instance.locations.all()
+        return Location.objects.filter(project=self.instance)
 
     def comments(self) -> QuerySet[Comment]:
-        return self.instance.comments.all()
+        return Comment.objects.filter(project=self.instance)
 
     def goals(self) -> QuerySet[Goal]:
-        return self.instance.goals.all()
+        return Goal.objects.filter(project=self.instance)
 
     def blogs(self) -> QuerySet[BlogEntry]:
-        return self.instance.blog_entries.all()
+        return BlogEntry.objects.filter(project=self.instance)
 
     def files(self) -> QuerySet[AttachmentFile]:
-        return self.instance.files.all()
+        return AttachmentFile.objects.filter(project=self.instance)
 
     def links(self) -> QuerySet[AttachmentLink]:
-        return self.instance.links.all()
+        return AttachmentLink.objects.filter(project=self.instance)
 
     def announcements(self) -> QuerySet[Announcement]:
-        return self.instance.announcements.all()
+        return Announcement.objects.filter(project=self.instance)
 
     def reviews(self) -> QuerySet[Review]:
-        return self.instance.reviews.all()
+        return Review.objects.filter(project=self.instance)
 
     def messages(self) -> QuerySet[ProjectMessage]:
-        return self.instance.messages.all()
+        return ProjectMessage.objects.filter(project=self.instance)

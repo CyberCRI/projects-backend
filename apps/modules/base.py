@@ -3,6 +3,8 @@ from collections.abc import Callable
 from functools import cache
 
 from django.db import models
+from django.db.models import Count, OuterRef, QuerySet, Subquery, Value
+from django.db.models.functions import Coalesce
 from drf_spectacular.utils import OpenApiParameter
 
 from apps.accounts.models import ProjectUser
@@ -19,7 +21,16 @@ def ignore_method(method):
 class AbstractModules:
     """abstract class for modules/queryset declarations"""
 
-    def __init__(self, instance, /, user: ProjectUser, **kw):
+    model: models.Model
+
+    def __init__(
+        self,
+        instance: models.Model | OuterRef,
+        /,
+        user: ProjectUser,
+        **kw,
+    ):
+
         self.instance = instance
         self.user = user
 
@@ -60,12 +71,48 @@ class AbstractModules:
         return tuple(modules_list)
 
     @ignore_method
-    def count(self, modules_keys: tuple[str] | None = None):
-        modules = {}
-        for name, method in type(self).modules(modules_keys):
-            # method is one modules (class method and not instance method)
-            modules[name] = method(self).count()
-        return modules
+    def outer_ref(self, queryset: QuerySet) -> QuerySet:
+        if isinstance(self.instance, OuterRef):
+            return queryset.annotate(**{self.instance.name: self.instance})
+        return queryset
+
+    @classmethod
+    @ignore_method
+    def annotate_subquery(
+        cls,
+        user: ProjectUser,
+        instance: OuterRef,
+        modules_keys: tuple[str] | None = None,
+    ) -> dict[str, Subquery]:
+        all_queries = {}
+
+        instance = cls(instance, user)
+
+        for name, method in cls.modules(modules_keys):
+
+            qs = (
+                method(instance)
+                .annotate(__modules=Value("__modules"))
+                .values("__modules")
+                .order_by("__modules")
+                .annotate(count=Count("__modules"))
+                .values("count")[:1]
+            )
+
+            all_queries[name] = Coalesce(
+                Subquery(qs, output_field=models.IntegerField()), 0
+            )
+
+        return all_queries
+
+    @ignore_method
+    def count(self, modules_keys: tuple[str] | None = None) -> dict[str, int]:
+
+        return (
+            self.model.objects.filter(pk=self.instance.pk)
+            .annotate_modules(self.user, modules_keys, outout_key="modules")
+            .values_list("modules", flat=True)
+        )
 
     @classmethod
     @ignore_method
@@ -95,6 +142,7 @@ def register_module(model: models.Model):
 
     def _wrap(cls):
         _modules[model] = cls
+        cls.model = model
         return cls
 
     return _wrap

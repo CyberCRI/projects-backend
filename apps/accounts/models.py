@@ -17,6 +17,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import get_objects_for_user
 from keycloak import KeycloakGetError
+from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
+from services.keycloak.interface import KeycloakService
+from services.keycloak.models import KeycloakAccount
+from services.translator.mixins import HasAutoTranslatedFields
 
 from apps.accounts.utils import (
     default_onboarding_status,
@@ -39,10 +43,6 @@ from apps.commons.queryset import MultipleIdsQuerySet
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import AbstractLocation, Project
-from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
-from services.keycloak.interface import KeycloakService
-from services.keycloak.models import KeycloakAccount
-from services.translator.mixins import HasAutoTranslatedFields
 
 
 class PeopleGroupLocation(

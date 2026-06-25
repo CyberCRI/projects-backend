@@ -276,6 +276,9 @@ class ProjectSerializer(
             "modules",
         ]
 
+    # def get_modules(self, obj):
+    #     ...
+
     def get_is_followed(self, project: Project) -> dict[str, Any]:
         if "request" in self.context:
             user = self.context["request"].user

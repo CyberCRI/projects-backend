@@ -1,5 +1,6 @@
 import uuid
 
+from debug_toolbar import sanitize
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
@@ -32,6 +33,7 @@ from apps.commons.views import (
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
+from apps.modules.serializers import sanitize_modules_by
 from apps.notifications.tasks import (
     notify_group_as_member_added,
     notify_group_member_deleted,
@@ -119,6 +121,7 @@ class ProjectViewSet(
                 "tags",
                 "organizations__logo_image",
             )
+            .annotate_modules(self.request.user)
         )
 
     def get_serializer_class(self):
@@ -477,6 +480,13 @@ class ProjectGroupViewSet(
         return (
             self.project.modules_by_user(self.request.user)
             .groups()
+            .annotate_modules(
+                self.request.user,
+                sanitize_modules_by(
+                    self.request.query_params.getlist("modules"),
+                    ProjectGroupSerializer.Meta.modules_keys,
+                ),
+            )
             .select_related("organization")
         )
 
