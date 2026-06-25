@@ -1,9 +1,15 @@
 from collections.abc import Iterable
 
-from django.db.models import Case, OuterRef, Prefetch, Q, QuerySet, Value, When
-from numpy import isin
-from services.crisalid.models import Document, DocumentTypeCentralized
-from services.mistral.models import GroupEmbedding
+from django.db.models import (
+    Case,
+    CharField,
+    IntegerField,
+    OuterRef,
+    Q,
+    QuerySet,
+    Value,
+    When,
+)
 
 from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from apps.commons.models import GroupData
@@ -11,7 +17,9 @@ from apps.files.models import PeopleGroupImage
 from apps.modules.base import AbstractModules, register_module
 from apps.newsfeed.models import Event, EventLocation, NewsLocation
 from apps.projects.models import Location, Project
-from apps.skills.models import Skill
+from apps.projects.utils import annotate_queryset_location
+from services.crisalid.models import Document, DocumentTypeCentralized
+from services.mistral.models import GroupEmbedding
 
 
 @register_module(PeopleGroup)
@@ -19,45 +27,44 @@ class PeopleGroupModules(AbstractModules):
     instance: OuterRef
 
     def members(self) -> QuerySet[ProjectUser]:
-        def queryset_users(role: GroupData.Role):
-            group_data = GroupData.objects.all().filter(
-                role=role, group__people_groups=self.instance
-            )
-
-            return self.outer_ref(ProjectUser.objects).filter(
-                groups__data__in=group_data
-            )
-
-        skills_prefetch = Prefetch(
-            "skills", queryset=Skill.objects.select_related("tag")
-        )
-
-        # get all members and annote rolepeople_groups
-        leaders = queryset_users(GroupData.Role.LEADERS)
-        managers = queryset_users(GroupData.Role.MANAGERS)
-        members = queryset_users(GroupData.Role.MEMBERS)
-
-        # union all and filter by request.user
-        all_members = leaders | managers | members
-
         return (
-            all_members.distinct()
-            .filter(pk__in=self.user.get_user_queryset())
+            self.user.get_user_queryset()
+            .filter(
+                groups__data__role__in=(
+                    GroupData.Role.LEADERS,
+                    GroupData.Role.MANAGERS,
+                    GroupData.Role.MEMBERS,
+                ),
+                groups__people_groups=self.instance,
+            )
             .annotate(
                 role=Case(
-                    When(pk__in=leaders, then=Value(GroupData.Role.LEADERS)),
-                    When(pk__in=managers, then=Value(GroupData.Role.MANAGERS)),
-                    When(pk__in=members, then=Value(GroupData.Role.MEMBERS)),
+                    When(
+                        groups__data__role=GroupData.Role.LEADERS,
+                        then=Value(GroupData.Role.LEADERS.value),
+                    ),
+                    When(
+                        groups__data__role=GroupData.Role.MANAGERS,
+                        then=Value(GroupData.Role.MANAGERS.value),
+                    ),
+                    When(
+                        groups__data__role=GroupData.Role.MEMBERS,
+                        then=Value(GroupData.Role.MEMBERS.value),
+                    ),
+                    output_field=CharField(),
                 ),
-                # add sort order priority (first leader, manager and members)
                 priority_role_order=Case(
-                    When(pk__in=leaders, then=1),
-                    When(pk__in=managers, then=2),
-                    When(pk__in=members, then=3),
+                    When(groups__data__role=GroupData.Role.LEADERS, then=Value(1)),
+                    When(groups__data__role=GroupData.Role.MANAGERS, then=Value(2)),
+                    When(
+                        groups__data__role=GroupData.Role.MEMBERS,
+                        then=Value(3),
+                    ),
+                    output_field=IntegerField(),
                 ),
             )
-            .prefetch_related(skills_prefetch)
             .order_by("priority_role_order")
+            .distinct()
         )
 
     def featured_projects(self) -> QuerySet[Project]:
@@ -99,19 +106,17 @@ class PeopleGroupModules(AbstractModules):
         )
 
     # def locations(self) -> QuerySet[Location]:
-    #     qs_project = Location.objects.filter(project__in=self.featured_projects())
-    #     qs_news = NewsLocation.objects.filter(news__in=self.news())
-    #     qs_group = PeopleGroupLocation.objects.filter(people_group__in=self.subgroups())
-    #     qs_location = PeopleGroupLocation.objects.filter(people_group=self.instance)
-    #     qs_event = EventLocation.objects.filter(event__in=self.event())
-
-    #     return (
-    #         qs_group.union(qs_project)
-    #         .union(qs_news)
-    #         .union(qs_location)
-    #         .union(qs_event)
-    #         .values("lat", "lng", "id", "type", "title", "description")
+    #     qs_project = self.outer_ref(Location.objects).filter(
+    #         project__in=self.featured_projects()
     #     )
+    #     qs_news = self.outer_ref(NewsLocation.objects).filter(news__in=self.news())
+    #     qs_group = self.outer_ref(PeopleGroupLocation.objects).filter(
+    #         Q(people_group__in=self.outer_ref(self.subgroups()))
+    #         | Q(people_group=self.instance)
+    #     )
+    #     qs_event = self.outer_ref(EventLocation.objects).filter(event__in=self.event())
+
+    #     return qs_project.union(qs_news).union(qs_group).union(qs_event)
 
     def gallery(self):
         return PeopleGroupImage.objects.filter(people_group=self.instance)

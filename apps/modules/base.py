@@ -21,7 +21,7 @@ def ignore_method(method):
 class AbstractModules:
     """abstract class for modules/queryset declarations"""
 
-    model: models.Model
+    model: type[models.Model]
 
     def __init__(
         self,
@@ -111,8 +111,16 @@ class AbstractModules:
         return (
             self.model.objects.filter(pk=self.instance.pk)
             .annotate_modules(self.user, modules_keys, outout_key="modules")
-            .values_list("modules", flat=True)
+            .values_list("modules", flat=True)[0]
         )
+
+    @ignore_method
+    def old_count(self, modules_keys: tuple[str] | None = None):
+        modules = {}
+        for name, method in type(self).modules(modules_keys):
+            # method is one modules (class method and not instance method)
+            modules[name] = method(self).count()
+        return modules
 
     @classmethod
     @ignore_method
@@ -131,10 +139,10 @@ class AbstractModules:
         )
 
 
-_modules: dict[models.Model, AbstractModules] = {}
+_modules: dict[type[models.Model], AbstractModules] = {}
 
 
-def register_module(model: models.Model):
+def register_module(model: type[models.Model]):
     """decorator to register modules assoiate on models
 
     :param model: _description_
@@ -148,6 +156,6 @@ def register_module(model: models.Model):
     return _wrap
 
 
-def get_module(model: models.Model):
+def get_module(model: type[models.Model]):
     """get regisered module"""
     return _modules[model]

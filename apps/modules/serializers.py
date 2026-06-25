@@ -39,9 +39,4 @@ class ModulesSerializers(serializers.ModelSerializer):
         if hasattr(instance, "modules") and isinstance(instance.modules, dict):
             return instance.modules
 
-        # instance.modules_by_user(request.user)
-
-        # return instance.annotate_modules(self._modules_keys)
-        return {}
-
         return instance.modules_by_user(request.user).count(self._modules_keys)

@@ -3,13 +3,13 @@ import itertools
 import traceback
 from typing import TYPE_CHECKING
 
-from apps.commons.models import GroupData
-from apps.projects.models import Project
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
+from apps.commons.models import GroupData
+from apps.projects.models import Project
 from services.mistral.query import EmbdeddingQuerySet
 
 from .exceptions import VectorSearchWrongQuerysetError

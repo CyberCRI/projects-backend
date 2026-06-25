@@ -482,9 +482,9 @@ class ProjectGroupViewSet(
             .groups()
             .annotate_modules(
                 self.request.user,
-                sanitize_modules_by(
-                    self.request.query_params.getlist("modules"),
-                    ProjectGroupSerializer.Meta.modules_keys,
+                tuple(
+                    self.request.query_params.getlist("modules")
+                    or ProjectGroupSerializer.Meta.modules_keys
                 ),
             )
             .select_related("organization")
