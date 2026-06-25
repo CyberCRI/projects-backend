@@ -387,6 +387,7 @@ SPECTACULAR_SETTINGS = {
 #  STORAGES  #
 ##############
 
+STORAGE_EXPIRATION_SECS = int(os.getenv("AZURE_URL_EXPIRATION_SECS", "3600"))
 STORAGES = {
     "default": {
         "BACKEND": os.getenv(
@@ -396,8 +397,8 @@ STORAGES = {
             "account_name": os.getenv("AZURE_ACCOUNT_NAME", "criparisdevlabprojects"),
             "account_key": os.getenv("AZURE_ACCOUNT_KEY", ""),
             "azure_container": os.getenv("AZURE_CONTAINER", "projects"),
-            "expiration_secs": int(os.getenv("AZURE_URL_EXPIRATION_SECS", "3600")),
-            "cache_control": f"private,max-age={os.getenv('AZURE_URL_EXPIRATION_SECS', '3600')},must-revalidate",
+            "expiration_secs": STORAGE_EXPIRATION_SECS,
+            "cache_control": f"private,max-age={STORAGE_EXPIRATION_SECS},must-revalidate",
         },
     },
     "staticfiles": {

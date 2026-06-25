@@ -257,17 +257,19 @@ class BaseImage(models.Model, DuplicableModel):
     @staticmethod
     def get_url(cache_key: str, field: ImageField) -> str:
         """create cache for url file"""
-        value = cache.get(cache_key)
-        if value:
-            return value
+        url = cache.get(cache_key)
+        if url:
+            return url
 
         try:
-            value = field.url
+            url = field.url
         except AttributeError:
             return ""
 
-        cache.set(cache_key, value)
-        return value
+        # expirations defined by azure/env - 60s
+        timeout = settings.STORAGE_EXPIRATION_SECS - 60
+        cache.set(cache_key, url, timeout=timeout)
+        return url
 
     @property
     def __url_key(self) -> str:
