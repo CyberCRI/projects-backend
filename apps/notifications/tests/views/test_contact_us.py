@@ -26,6 +26,7 @@ class ContactTestCase(JwtAPITestCase):
             "subject": faker.sentence(),
             "content": faker.text(),
             "email": faker.email(),
+            "recaptcha": faker.word(),
         }
         response = self.client.post(
             reverse("Contact-us", args=(self.organization.code,)), data=payload

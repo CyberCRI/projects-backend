@@ -27,6 +27,7 @@ class ReportTestCase(JwtAPITestCase):
             "message": faker.text(),
             "reported_by": faker.email(),
             "url": faker.url(),
+            "recaptcha": faker.word(),
         }
         response = self.client.post(
             reverse("Report-bug", args=(self.organization.code,)), data=payload
@@ -44,6 +45,7 @@ class ReportTestCase(JwtAPITestCase):
             "message": faker.text(),
             "reported_by": faker.email(),
             "url": faker.url(),
+            "recaptcha": faker.word(),
         }
         response = self.client.post(
             reverse("Report-abuse", args=(self.organization.code,)),

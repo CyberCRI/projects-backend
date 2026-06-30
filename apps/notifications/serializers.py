@@ -1,3 +1,4 @@
+from drf_recaptcha.fields import ReCaptchaV2Field
 from rest_framework import serializers
 
 from apps.accounts.serializers import UserLighterSerializer
@@ -14,12 +15,14 @@ class EmailReportSerializer(serializers.Serializer):
     message = serializers.CharField(required=True)
     reported_by = serializers.EmailField(required=True)
     url = serializers.URLField(required=True)
+    recaptcha = ReCaptchaV2Field()
 
 
 class ContactSerializer(serializers.Serializer):
     subject = serializers.CharField(required=True)
     content = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
+    recaptcha = ReCaptchaV2Field()
 
 
 @external_auto_translated
