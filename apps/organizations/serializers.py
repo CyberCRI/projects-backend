@@ -367,7 +367,7 @@ class OrganizationSerializer(
 
     def create(self, validated_data):
         team = validated_data.pop("team", {})
-        organization = super(OrganizationSerializer, self).create(validated_data)
+        organization = super().create(validated_data)
         OrganizationAddTeamMembersSerializer().create(
             {"organization": organization, **team}
         )
@@ -375,16 +375,13 @@ class OrganizationSerializer(
 
     def update(self, instance, validated_data):
         validated_data.pop("team", {})
-        return super(OrganizationSerializer, self).update(instance, validated_data)
+        return super().update(instance, validated_data)
 
 
 @auto_translated
 class OrganizationLightSerializer(
-    OrganizationRelatedSerializer,
-    serializers.ModelSerializer,
+    OrganizationSerializer,
 ):
-    logo_image = ImageSerializer(read_only=True)
-
     class Meta:
         model = Organization
         fields = [
@@ -398,15 +395,6 @@ class OrganizationLightSerializer(
             "logo_image",
             "is_logo_visible_on_parent_dashboard",
         ]
-
-    def get_related_organizations(self) -> Organization:
-        # We're not supposed to be here since only super admin can create
-        # organization and this function should not be called in this case.
-        # see the view and permissions associated with this serializer.
-        #
-        # We return a dummy value so that the permission process can continue
-        # and return a `False`.
-        return [SimpleNamespace(code=uuid.uuid4(), pk=uuid.uuid4())]
 
     def create(self, validated_data):
         """Create the instance's permissions and default groups."""

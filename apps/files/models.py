@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING, Any, Optional, Self
 from azure.core.exceptions import ResourceNotFoundError
 from django.apps import apps
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import models, transaction
-from django.db.models import ForeignObjectRel, Model, Q, QuerySet
+from django.db.models import ForeignObjectRel, ImageField, Model, Q, QuerySet
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 from stdimage import StdImageField
@@ -253,6 +254,57 @@ class BaseImage(models.Model, DuplicableModel):
         ordering = ("-created_at",)
         abstract = True
 
+    @staticmethod
+    def get_url(cache_key: str, field: ImageField) -> str:
+        """create cache for url file"""
+        url = cache.get(cache_key)
+        if url:
+            return url
+
+        try:
+            url = field.url
+        except AttributeError:
+            return ""
+
+        # expirations defined by azure/env - 60s
+        timeout = settings.STORAGE_EXPIRATION_SECS - 60
+        cache.set(cache_key, url, timeout=timeout)
+        return url
+
+    @property
+    def __url_key(self) -> str:
+        return f"image::url::{self.pk}"
+
+    @property
+    def __url_variations_key(self) -> dict[str, str]:
+        field = self.file.field
+
+        obj = {}
+        for name in field.variations.keys():
+            obj[name] = f"image::url::{name}::{self.pk}"
+        return obj
+
+    @property
+    def url(self) -> str:
+        """create cache for url file"""
+        return self.get_url(self.__url_key, self.file)
+
+    @property
+    def variations(self) -> dict[str, str]:
+        varias = {"original": self.url}
+
+        for name, key in self.__url_variations_key.items():
+            field = getattr(self.file, name, None)
+
+            url = ""
+            if field:
+                url = self.get_url(key, field)
+            varias[name] = url
+        return varias
+
+    def clear_cache_urls(self):
+        cache.delete_many([self.__url_key, *list(self.__url_variations_key.values())])
+
     def duplicate(self, upload_to: str = "", **fields) -> None | Self:
         with suppress(ResourceNotFoundError):
             file_path = self.file.name.split("/")
@@ -270,6 +322,10 @@ class BaseImage(models.Model, DuplicableModel):
             _upload_to = lambda instance, filename: upload_to  # noqa: E731
             return super().duplicate(_upload_to=_upload_to, file=new_file, **fields)
         return None
+
+    def save(self, *ar, **kw):
+        self.clear_cache_urls()
+        return super().save(*ar, **kw)
 
 
 class Image(BaseImage, HasOwner, ProjectRelated, OrganizationRelated):

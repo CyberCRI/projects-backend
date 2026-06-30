@@ -117,7 +117,7 @@ class ProjectViewSet(
             .prefetch_related(
                 "categories",
                 "tags",
-                "organizations",
+                "organizations__logo_image",
             )
         )
 
