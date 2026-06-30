@@ -19,6 +19,7 @@ from apps.projects.models import (
     Location,
     Project,
     ProjectMessage,
+    ProjectTab,
 )
 
 
@@ -141,3 +142,6 @@ class ProjectModules(AbstractModules):
 
     def messages(self) -> QuerySet[ProjectMessage]:
         return self.instance.messages.all()
+
+    def tabs(self) -> QuerySet[ProjectTab]:
+        return self.instance.additional_tabs.all()

@@ -1005,7 +1005,9 @@ class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.M
         return self.author == user
 
 
-class ProjectTab(HasAutoTranslatedFields, ProjectRelated, models.Model):
+class ProjectTab(
+    HasRelatedModules, HasAutoTranslatedFields, ProjectRelated, models.Model
+):
     """A tab in the project page.
 
     Attributes
@@ -1037,9 +1039,10 @@ class ProjectTab(HasAutoTranslatedFields, ProjectRelated, models.Model):
         max_length=32, choices=TabType.choices, default=TabType.TEXT
     )
     title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    icon = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True, null=True)
+    icon = models.CharField(max_length=255, blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
+    show_preview = models.BooleanField(default=True)
 
     def get_related_project(self) -> Project:
         """Return the projects related to this model."""
@@ -1072,7 +1075,7 @@ class ProjectTabItem(HasAutoTranslatedFields, ProjectRelated, models.Model):
         "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"
     )
     title = models.CharField(max_length=255)
-    content = models.TextField(blank=True)
+    content = models.TextField(blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tab_items")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
