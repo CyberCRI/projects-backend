@@ -7,7 +7,7 @@ from babel.dates import format_date, format_time
 from django.conf import settings
 from django.db import models
 from django.http import Http404
-from keycloak import KeycloakAdmin, KeycloakOpenID
+from keycloak import KeycloakAdmin
 from keycloak.exceptions import (
     KeycloakAuthenticationError,
     KeycloakDeleteError,
@@ -50,39 +50,24 @@ class KeycloakService:
         RESET_PASSWORD = "reset_password"
 
     @classmethod
-    def service(cls):
+    def service(cls, **kwargs):
         return KeycloakAdmin(
             server_url=settings.KEYCLOAK_SERVER_URL,
             realm_name=settings.KEYCLOAK_REALM,
             client_id=settings.KEYCLOAK_CLIENT_ID,
             client_secret_key=settings.KEYCLOAK_CLIENT_SECRET,
             verify=True,
+            **kwargs,
         )
 
-    @staticmethod
-    def get_token_for_user(username, password):
+    @classmethod
+    def get_token_for_user(cls, username: str, password: str):
         try:
-            service = KeycloakAdmin(
-                server_url=settings.KEYCLOAK_SERVER_URL,
-                username=username,
-                password=password,
-                realm_name=settings.KEYCLOAK_REALM,
-                user_realm_name=settings.KEYCLOAK_REALM,
-                verify=True,
-            )
+            service = cls.service(username=username, password=password)
             service.connection.get_token()
             return service.connection.token
         except KeycloakAuthenticationError as err:
             raise KeycloakApiAuthenticationError from err
-
-    @classmethod
-    def get_user_info(cls, access_token: str):
-        openid = KeycloakOpenID(
-            server_url=settings.KEYCLOAK_SERVER_URL,
-            realm_name=settings.KEYCLOAK_REALM,
-            client_id=settings.KEYCLOAK_OPENID_CLIENT_ID,
-        )
-        return openid.userinfo(access_token)
 
     @classmethod
     def get_user(cls, keycloak_id: str):
