@@ -3,16 +3,15 @@ import uuid
 from contextlib import suppress
 
 from django.conf import settings
-from django.contrib.auth.backends import ModelBackend
 from django.utils import timezone
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
+from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import AccessToken
 
 from apps.commons.mixins import HasPermissionsSetup
 from apps.invitations.models import Invitation
-from services.keycloak.interface import KeycloakService
 
 from .exceptions import (
     InactiveUserError,
@@ -43,16 +42,11 @@ class BearerToken(AccessToken):
         return token
 
 
-class AdminAuthentication(ModelBackend):
-    def authenticate(self, request, username=None, password=None):
-        token = KeycloakService.get_token_for_user(username, password)
-        BearerToken(token["access_token"])
-        user_info = KeycloakService.get_user_info(token["access_token"])
-        user_id = user_info[api_settings.USER_ID_CLAIM]
-        try:
-            return ProjectUser.objects.get(**{api_settings.USER_ID_FIELD: user_id})
-        except ProjectUser.DoesNotExist:
-            return ProjectUser.import_from_keycloak(user_id)
+class AdminAuthentication(OIDCAuthenticationBackend):
+    def create_user(self, claims: dict):
+        return ProjectUser.import_from_keycloak(
+            claims[settings.SIMPLE_JWT["USER_ID_CLAIM"]]
+        )
 
 
 class ProjectJWTAuthentication(JWTAuthentication):

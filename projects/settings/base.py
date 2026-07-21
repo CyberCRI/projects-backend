@@ -109,6 +109,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     # external
+    "mozilla_django_oidc",
     "django_opensearch_dsl",
     "corsheaders",
     "django_cleanup.apps.CleanupConfig",
@@ -167,6 +168,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "mozilla_django_oidc.middleware.SessionRefresh",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -326,9 +328,9 @@ GUARDIAN_RAISE_403 = True
 
 KEYCLOAK_ROOT_GROUP = os.getenv("KEYCLOAK_ROOT_GROUP", "projects")
 KEYCLOAK_SERVER_URL = os.getenv("KEYCLOAK_SERVER_URL", "http://keycloak:8080/")
+KEYCLOAK_PUBLIC_URL = os.getenv("KEYCLOAK_PUBLIC_URL", "http://localhost:8001/")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "lp")
 KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID", "projects-backend-local")
-KEYCLOAK_OPENID_CLIENT_ID = os.getenv("KEYCLOAK_OPENID_CLIENT_ID", "admin-cli")
 KEYCLOAK_FRONTEND_CLIENT_ID = os.getenv(
     "KEYCLOAK_FRONTEND_CLIENT_ID", "projects-frontend-local"
 )
@@ -354,6 +356,34 @@ SIMPLE_JWT = {
     "ALGORITHM": "RS256",
     "VERIFYING_KEY": KEYCLOAK_PUBLIC_KEY,
 }
+
+# Mozilla Django OIDC
+# https://mozilla-django-oidc.readthedocs.io/en/stable/index.html
+OIDC_RP_CLIENT_ID = os.getenv("KEYCLOAK_OIDC_CLIENT_ID", "django-admin")
+OIDC_RP_CLIENT_SECRET = os.getenv("KEYCLOAK_OIDC_CLIENT_SECRET", "django-admin-secret")
+OIDC_RP_SIGN_ALGO = "RS256"
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = (
+    f"{KEYCLOAK_PUBLIC_URL}realms/{KEYCLOAK_REALM}/protocol/openid-connect/auth"
+)
+OIDC_OP_LOGOUT_ENDPOINT = (
+    f"{KEYCLOAK_PUBLIC_URL}realms/{KEYCLOAK_REALM}/protocol/openid-connect/logout"
+)
+OIDC_OP_TOKEN_ENDPOINT = (
+    f"{KEYCLOAK_SERVER_URL}realms/{KEYCLOAK_REALM}/protocol/openid-connect/token"
+)
+OIDC_OP_USER_ENDPOINT = (
+    f"{KEYCLOAK_SERVER_URL}realms/{KEYCLOAK_REALM}/protocol/openid-connect/userinfo"
+)
+OIDC_OP_JWKS_ENDPOINT = (
+    f"{KEYCLOAK_SERVER_URL}realms/{KEYCLOAK_REALM}/protocol/openid-connect/certs"
+)
+
+LOGIN_REDIRECT_URL = "/admin"
+LOGOUT_REDIRECT_URL = "/admin"
+
+OIDC_RP_SCOPES = "openid profile email"
+LOGIN_URL = "oidc_authentication_init"
 
 
 # SWAGGER
