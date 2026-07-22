@@ -43,6 +43,21 @@ class BearerToken(AccessToken):
 
 
 class AdminAuthentication(OIDCAuthenticationBackend):
+
+    def describe_user_by_claims(self, claims: dict):
+        keycloak_id = claims.get(settings.SIMPLE_JWT["USER_ID_CLAIM"])
+        return "keycloak_id {}".format(keycloak_id)
+
+    def filter_users_by_claims(self, claims: dict):
+        """Return all users matching the specified keycloak_id."""
+        keycloak_id = claims.get(settings.SIMPLE_JWT["USER_ID_CLAIM"])
+        if not keycloak_id:
+            return ProjectUser.objects.none()
+        return ProjectUser.objects.filter(keycloak_account__keycloak_id=keycloak_id)
+
+    def verify_claims(self, claims: dict):
+        return True
+
     def create_user(self, claims: dict):
         return ProjectUser.import_from_keycloak(
             claims[settings.SIMPLE_JWT["USER_ID_CLAIM"]]
