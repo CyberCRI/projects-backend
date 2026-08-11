@@ -4,10 +4,13 @@ from types import SimpleNamespace
 from typing import Any
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from services.keycloak.serializers import IdentityProviderSerializer
+from services.translator.serializers import auto_translated
 
 from apps.accounts.models import ProjectUser
 from apps.commons.fields import (
@@ -27,8 +30,6 @@ from apps.skills.serializers import (
     TagClassificationMultipleIdRelatedField,
     TagRelatedField,
 )
-from services.keycloak.serializers import IdentityProviderSerializer
-from services.translator.serializers import auto_translated
 
 from .exceptions import (
     CategoryHierarchyLoopError,
@@ -44,6 +45,7 @@ from .models import (
     Organization,
     ProjectCategory,
     Template,
+    TemplateTab,
     TermsAndConditions,
 )
 
@@ -449,12 +451,24 @@ class ProjectCategoryLightSerializer(
         return [ProjectCategory.objects.get(id=self.validated_data["id"]).organization]
 
 
+class TemplateTabSerializer(StringsImagesSerializer, serializers.ModelSerializer):
+    string_images_fields: list[str] = [
+        "content",
+        "description",
+    ]
+
+    class Meta:
+        model = TemplateTab
+        fields = "__all__"
+
+
 @auto_translated
 class ProjectTemplateSerializer(
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
     project_tags = TagRelatedField(many=True, read_only=True)
+    tabs = TemplateTabSerializer(many=True)
 
     class Meta:
         model = Template
@@ -474,6 +488,7 @@ class ProjectTemplateSerializer(
             "review_title",
             "review_description",
             "comment_content",
+            "tabs",
         ]
         fields = read_only_fields
 
@@ -513,6 +528,7 @@ class TemplateSerializer(
         queryset=ProjectCategory.objects.all(),
         source="categories",
     )
+    tabs = TemplateTabSerializer(many=True)
 
     class Meta:
         model = Template
@@ -533,6 +549,7 @@ class TemplateSerializer(
             "review_description",
             "comment_content",
             "categories_ids",
+            "tabs",
         ]
 
     def get_related_organizations(self) -> list[Organization]:
@@ -547,6 +564,61 @@ class TemplateSerializer(
             "organization_code": instance.organization.code,
             "template_id": instance.id,
         }
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        tabs_data = validated_data.pop("tabs", None)
+
+        # Update du Template
+        instance = super().update(instance, validated_data)
+
+        if tabs_data is None:
+            return instance
+
+        existing_tabs = {tab.id: tab for tab in instance.tabs.all()}
+        received_ids = set()
+
+        to_create = []
+
+        for tab_data in tabs_data:
+            tab_id = tab_data.pop("id", None)
+
+            if tab_id:
+                # UPDATE
+                tab = existing_tabs.get(tab_id)
+
+                if not tab:
+                    raise serializers.ValidationError("Tabs id not exists")
+
+                for field, value in tab_data.items():
+                    setattr(tab, field, value)
+
+                tab.save()
+                received_ids.add(tab_id)
+
+            else:
+                # CREATE
+                to_create.append(TemplateTab(**{**tab_data, "template": instance}))
+
+        to_delete = [tab_id for tab_id in existing_tabs if tab_id not in received_ids]
+        TemplateTab.objects.filter(id__in=to_delete).delete()
+        TemplateTab.objects.bulk_create(to_create)
+
+        return instance
+
+    @transaction.atomic
+    def create(self, validated_data):
+        tabs_data = validated_data.pop("tabs", [])
+
+        template = super().create(validated_data)
+
+        for tab_data in tabs_data:
+            TemplateTab.objects.create(
+                template=template,
+                **tab_data,
+            )
+
+        return template
 
 
 @auto_translated

@@ -14,6 +14,7 @@ from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.analytics.models import Stat
@@ -31,7 +32,6 @@ from apps.commons.mixins import (
 from apps.commons.models import GroupData
 from apps.commons.queryset import MultipleIdsQuerySet
 from apps.commons.utils import get_write_permissions_from_subscopes
-from services.translator.mixins import HasAutoTranslatedFields
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -1023,6 +1023,8 @@ class ProjectTab(
     """
 
     auto_translated_fields: list[str] = ["title", "html:description"]
+    # uuid linked to template model
+    uuid = models.UUIDField(null=True, default=None)
 
     class TabType(models.TextChoices):
         """Type of a tab."""
