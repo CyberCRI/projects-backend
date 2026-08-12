@@ -9,8 +9,6 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from services.keycloak.serializers import IdentityProviderSerializer
-from services.translator.serializers import auto_translated
 
 from apps.accounts.models import ProjectUser
 from apps.commons.fields import (
@@ -30,6 +28,8 @@ from apps.skills.serializers import (
     TagClassificationMultipleIdRelatedField,
     TagRelatedField,
 )
+from services.keycloak.serializers import IdentityProviderSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     CategoryHierarchyLoopError,

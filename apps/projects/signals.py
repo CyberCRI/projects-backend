@@ -4,7 +4,14 @@ from django.dispatch import receiver
 from apps.announcements.models import Announcement
 from apps.feedbacks.models import Comment
 from apps.files.models import AttachmentFile, AttachmentLink
-from apps.projects.models import BlogEntry, Goal, LinkedProject, Location
+from apps.projects.models import (
+    BlogEntry,
+    Goal,
+    LinkedProject,
+    Location,
+    Project,
+)
+from apps.projects.utils import sync_project_tabs
 
 
 @receiver(post_save, sender="projects.BlogEntry")
@@ -149,3 +156,12 @@ def on_announcement_delete(
     project = instance.project
     project._change_reason = "Removed announcement"
     project.save()
+
+
+@receiver(post_save, sender="projects.Project")
+def on_edit_project(sender, instance: Project, created, **kw):
+
+    # if project have a template, update projects-tabs
+    template = instance.template
+    if template:
+        sync_project_tabs([instance], template.tabs.all())

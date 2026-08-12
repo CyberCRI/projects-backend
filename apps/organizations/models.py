@@ -5,7 +5,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q, QuerySet, UniqueConstraint
-from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords
 
 from apps.commons.enums import Language
@@ -21,6 +20,7 @@ from apps.commons.utils import (
     get_write_permissions_from_subscopes,
 )
 from apps.projects.models import ProjectTab, ProjectTabItem
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -484,9 +484,9 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
 class TemplateTab(OrganizationRelated, models.Model):
     uuid = models.UUIDField(auto_created=True)
 
-    # content
+    # tabs
     title = models.TextField(max_length=255, default="", blank=True, null=True)
-    content = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     template = models.ForeignKey(
         Template, on_delete=models.CASCADE, related_name="tabs"
     )

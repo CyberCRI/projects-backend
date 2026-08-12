@@ -923,6 +923,7 @@ class ProjectTabSerializer(
             "icon",
             "images",
             "show_preview",
+            "uuid",
         ]
 
     def validate_type(self, value: str):
