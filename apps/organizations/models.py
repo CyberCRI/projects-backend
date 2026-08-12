@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING, Any, Optional
 
 from django.contrib.auth.models import Group, Permission
@@ -482,7 +483,7 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
 
 
 class TemplateTab(OrganizationRelated, models.Model):
-    uuid = models.UUIDField(auto_created=True)
+    uuid = models.UUIDField(auto_created=True, default=uuid.uuid4)
 
     # tabs
     title = models.TextField(max_length=255, default="", blank=True, null=True)
@@ -501,6 +502,15 @@ class TemplateTab(OrganizationRelated, models.Model):
     # content
     title_item = models.TextField(max_length=255, default="", blank=True, null=True)
     content_item = models.TextField(blank=True, null=True)
+
+    class Meta:
+        # tab need to be different uuid template (to have "unique tab")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["uuid"],
+                name="unique_template_tab",
+            ),
+        ]
 
     def get_related_organizations(self) -> Organization:
         """Return the organizations related to this model."""

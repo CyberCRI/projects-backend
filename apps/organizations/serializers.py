@@ -9,6 +9,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from services.keycloak.serializers import IdentityProviderSerializer
+from services.translator.serializers import auto_translated
 
 from apps.accounts.models import ProjectUser
 from apps.commons.fields import (
@@ -28,8 +30,6 @@ from apps.skills.serializers import (
     TagClassificationMultipleIdRelatedField,
     TagRelatedField,
 )
-from services.keycloak.serializers import IdentityProviderSerializer
-from services.translator.serializers import auto_translated
 
 from .exceptions import (
     CategoryHierarchyLoopError,
@@ -457,9 +457,23 @@ class TemplateTabSerializer(StringsImagesSerializer, serializers.ModelSerializer
         "description",
     ]
 
+    id = serializers.IntegerField(required=False)
+    uuid = serializers.UUIDField(read_only=True)
+
     class Meta:
         model = TemplateTab
-        fields = "__all__"
+        fields = (
+            "id",
+            "uuid",
+            "title",
+            "description",
+            "template",
+            "type",
+            "icon",
+            "show_preview",
+            "title_item",
+            "content_item",
+        )
 
 
 @auto_translated
@@ -578,31 +592,20 @@ class TemplateSerializer(
         existing_tabs = {tab.id: tab for tab in instance.tabs.all()}
         received_ids = set()
 
-        to_create = []
-
         for tab_data in tabs_data:
             tab_id = tab_data.pop("id", None)
+            tab_data["template"] = instance
 
-            if tab_id:
-                # UPDATE
-                tab = existing_tabs.get(tab_id)
+            tab = existing_tabs.get(tab_id, TemplateTab(**tab_data))
 
-                if not tab:
-                    raise serializers.ValidationError("Tabs id not exists")
+            for field, value in tab_data.items():
+                setattr(tab, field, value)
 
-                for field, value in tab_data.items():
-                    setattr(tab, field, value)
-
-                tab.save()
-                received_ids.add(tab_id)
-
-            else:
-                # CREATE
-                to_create.append(TemplateTab(**{**tab_data, "template": instance}))
+            tab.save()
+            received_ids.add(tab.id)
 
         to_delete = [tab_id for tab_id in existing_tabs if tab_id not in received_ids]
         TemplateTab.objects.filter(id__in=to_delete).delete()
-        TemplateTab.objects.bulk_create(to_create)
 
         return instance
 
@@ -613,10 +616,9 @@ class TemplateSerializer(
         template = super().create(validated_data)
 
         for tab_data in tabs_data:
-            TemplateTab.objects.create(
-                template=template,
-                **tab_data,
-            )
+            tab_data["template"] = template
+            template = TemplateTab(**tab_data)
+            template.save()
 
         return template
 

@@ -1046,6 +1046,20 @@ class ProjectTab(
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
     show_preview = models.BooleanField(default=True)
 
+    class Meta:
+        # tab need to be different uuid by project (to have "unique tab")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["uuid", "project"],
+                name="unique_project_tab",
+                # ignore uuid if tab is create by user (not template)
+                condition=models.Q(uuid__isnull=False),
+            ),
+        ]
+
+    def __repr__(self):
+        return f"<ProjectTab ({self.uuid=!r} {self.title!r})>"
+
     def get_related_project(self) -> Project:
         """Return the projects related to this model."""
         return self.project

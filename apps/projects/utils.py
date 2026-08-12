@@ -5,9 +5,9 @@ from django.db.models import CharField, QuerySet, Value
 from django.db.models.functions import Cast
 from rest_framework import serializers
 from rest_framework.utils import model_meta
-from services.translator.serializers import prefix_fields_langs
 
 from apps.organizations.models import Organization, Template, TemplateTab
+from services.translator.serializers import prefix_fields_langs
 
 from .models import Project, ProjectTab
 
