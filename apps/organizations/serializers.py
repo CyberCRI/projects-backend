@@ -467,7 +467,6 @@ class TemplateTabSerializer(StringsImagesSerializer, serializers.ModelSerializer
             "uuid",
             "title",
             "description",
-            "template",
             "type",
             "icon",
             "show_preview",
@@ -617,8 +616,8 @@ class TemplateSerializer(
 
         for tab_data in tabs_data:
             tab_data["template"] = template
-            template = TemplateTab(**tab_data)
-            template.save()
+            tab = TemplateTab(**tab_data)
+            tab.save()
 
         return template
 
