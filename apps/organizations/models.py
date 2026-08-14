@@ -6,7 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q, QuerySet, UniqueConstraint
-from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords
 
 from apps.commons.enums import Language
@@ -22,6 +21,7 @@ from apps.commons.utils import (
     get_write_permissions_from_subscopes,
 )
 from apps.projects.models import ProjectTab, ProjectTabItem
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -476,6 +476,9 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     review_title = models.CharField(max_length=255, default="", blank=True)
     review_description = models.TextField(blank=True)
     comment_content = models.TextField(blank=True)
+
+    # options to active creation tab in project
+    enable_tab = models.BooleanField(default=True)
 
     def get_related_organizations(self) -> Organization:
         """Return the organizations related to this model."""

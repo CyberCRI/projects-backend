@@ -9,8 +9,6 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from services.keycloak.serializers import IdentityProviderSerializer
-from services.translator.serializers import auto_translated
 
 from apps.accounts.models import ProjectUser
 from apps.commons.fields import (
@@ -30,6 +28,8 @@ from apps.skills.serializers import (
     TagClassificationMultipleIdRelatedField,
     TagRelatedField,
 )
+from services.keycloak.serializers import IdentityProviderSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     CategoryHierarchyLoopError,
@@ -476,37 +476,6 @@ class TemplateTabSerializer(StringsImagesSerializer, serializers.ModelSerializer
 
 
 @auto_translated
-class ProjectTemplateSerializer(
-    OrganizationRelatedSerializer,
-    serializers.ModelSerializer,
-):
-    project_tags = TagRelatedField(many=True, read_only=True)
-    tabs = TemplateTabSerializer(many=True)
-
-    class Meta:
-        model = Template
-        read_only_fields = [
-            "id",
-            "name",
-            "description",
-            "language",
-            "project_title",
-            "project_description",
-            "project_purpose",
-            "project_tags",
-            "blogentry_title",
-            "blogentry_content",
-            "goal_title",
-            "goal_description",
-            "review_title",
-            "review_description",
-            "comment_content",
-            "tabs",
-        ]
-        fields = read_only_fields
-
-
-@auto_translated
 class TemplateSerializer(
     StringsImagesSerializer,
     OrganizationRelatedSerializer,
@@ -563,6 +532,7 @@ class TemplateSerializer(
             "comment_content",
             "categories_ids",
             "tabs",
+            "enable_tab",
         ]
 
     def get_related_organizations(self) -> list[Organization]:
@@ -620,6 +590,22 @@ class TemplateSerializer(
             tab.save()
 
         return template
+
+
+class ProjectTemplateSerializer(TemplateSerializer):
+    class Meta(TemplateSerializer.Meta):
+        # remove unused field
+        read_only_fields = [
+            field
+            for field in TemplateSerializer.Meta.fields
+            if field
+            not in (
+                "categories_ids",
+                "organization",
+                "categories",
+            )
+        ]
+        fields = read_only_fields
 
 
 @auto_translated
