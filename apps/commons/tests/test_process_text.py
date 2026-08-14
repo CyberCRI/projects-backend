@@ -62,7 +62,7 @@ class TextProcessingTestCase(JwtAPITestCase):
 
     @classmethod
     def create_base64_image_text(cls):
-        return f"<div>{cls.get_base64_image()}</div"
+        return f"<div>{cls.get_base64_image()}{cls.get_base64_pdf()}</div"
 
     @classmethod
     def create_unlinked_image_text(cls, view: str, *args):
