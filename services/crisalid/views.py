@@ -211,9 +211,9 @@ class AbstractGroupDocumentViewSet(
     NestedPeopleGroupViewMixins, AbstractDocumentViewSet
 ):
     def get_queryset(self):
-        modules_manager = self.people_group.get_related_module()
-        modules = modules_manager(self.people_group, self.request.user)
-        return getattr(modules, self.document_name)()
+        return getattr(
+            self.people_group.modules_by_user(self.request.user), self.document_name
+        )()
 
 
 class AbstractResearcherDocumentViewSet(

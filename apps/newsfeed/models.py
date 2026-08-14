@@ -3,7 +3,11 @@ from typing import TYPE_CHECKING
 from django.db import models
 
 from apps.commons.enums import Language
-from apps.commons.mixins import HasOwner, OrganizationRelated
+from apps.commons.mixins import (
+    HasOwner,
+    HasRelatedLocationContent,
+    OrganizationRelated,
+)
 from apps.projects.models import AbstractLocation
 from services.translator.mixins import HasAutoTranslatedFields
 
@@ -62,7 +66,7 @@ class Newsfeed(models.Model):
     )
 
 
-class NewsLocation(AbstractLocation):
+class NewsLocation(HasRelatedLocationContent, AbstractLocation):
     news = models.OneToOneField(
         "newsfeed.News",
         related_name="location",
@@ -70,6 +74,10 @@ class NewsLocation(AbstractLocation):
         null=True,
         blank=True,
     )
+
+    @classmethod
+    def get_related_content(cls):
+        return cls.news.field.name
 
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
@@ -199,7 +207,7 @@ class Instruction(HasAutoTranslatedFields, OrganizationRelated, HasOwner, models
         return self.owner == user
 
 
-class EventLocation(AbstractLocation):
+class EventLocation(HasRelatedLocationContent, AbstractLocation):
     event = models.OneToOneField(
         "newsfeed.Event",
         related_name="location",
@@ -207,6 +215,10 @@ class EventLocation(AbstractLocation):
         null=False,
         blank=False,
     )
+
+    @classmethod
+    def get_related_content(cls):
+        return cls.event.field.name
 
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""

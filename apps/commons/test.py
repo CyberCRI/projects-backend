@@ -3,6 +3,7 @@ import io
 import logging
 import os
 import uuid
+from typing import Any
 from unittest import skipUnless, util
 
 from django.conf import settings
@@ -255,7 +256,7 @@ class JwtAPITestCase(APITestCase):
         return image
 
     def assertApiValidationError(  # noqa: N802
-        self, response, messages: dict[str, list[str]] | None = None
+        self, response, messages: Any | None = None
     ):
         content = response.json()
         self.assertEqual(content["type"], ExceptionType.VALIDATION.value)

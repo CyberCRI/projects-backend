@@ -88,7 +88,6 @@ class InvitationViewSet(viewsets.ModelViewSet):
 
 class AccessRequestViewSet(CreateListModelViewSet):
     serializer_class = AccessRequestSerializer
-
     ordering_fields = ["status", "created_at"]
 
     filterset_class = AccessRequestFilter

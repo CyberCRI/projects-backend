@@ -112,16 +112,19 @@ class ListProjectTabItemsTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("ProjectTabItem-list", args=(project.id, tab.id))
             )
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            content = response.json()["results"]
             if publication_status in retrieved_items:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                content = response.json()["results"]
                 self.assertEqual(len(content), 2)
                 self.assertSetEqual(
                     {item["id"] for item in content}, {item.id for item in item}
                 )
                 self.assertGreater(content[0]["created_at"], content[1]["created_at"])
             else:
-                self.assertEqual(len(content), 0)
+                self.assertIn(
+                    response.status_code,
+                    (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+                )
 
 
 class UpdateProjectTabItemTestCase(JwtAPITestCase):

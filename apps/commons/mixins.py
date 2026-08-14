@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from contextlib import suppress
 from copy import copy
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, Optional, Self
 
 from django.contrib.auth.models import Group, Permission
@@ -368,7 +369,7 @@ class HasMultipleIDs:
         self._original_slug_fields_value = {
             field: getattr(self, field, "") for field in self.slugified_fields
         }
-        super(HasMultipleIDs, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         if not self.slug or any(
@@ -457,6 +458,20 @@ class HasRelatedModules:
 
         return get_module(type(self))
 
+    def modules_by_user(self, user: "ProjectUser"):
+        """return modules wrapped by user"""
+        modules_manager = self.get_related_module()
+        return modules_manager(self, user)
+
+    @cached_property
+    def modules(self):
+        """return modules from self for any user(internalAdmin models)"""
+        from apps.accounts.models import InternalAdmin
+
+        internaladmin = InternalAdmin()
+
+        return self.modules_by_user(internaladmin)
+
 
 class HasEmbedding:
     def vectorize(self):
@@ -476,3 +491,8 @@ class HasEmbedding:
                 pk=self.pk
             )
         return type(self).objects.none()
+
+
+class HasRelatedLocationContent:
+    def get_related_content(self):
+        raise NotImplementedError

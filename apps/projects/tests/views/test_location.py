@@ -106,13 +106,16 @@ class ListLocationTestCase(JwtAPITestCase):
             user = self.get_parameterized_test_user(role, instances=[project])
             self.client.force_authenticate(user)
             response = self.client.get(reverse("Location-list", args=(project.id,)))
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            content = response.json()
             if publication_status in retrieved_locations:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                content = response.json()
                 self.assertEqual(len(content), 1)
                 self.assertEqual(content[0]["id"], location.id)
             else:
-                self.assertEqual(len(content), 0)
+                self.assertIn(
+                    response.status_code,
+                    [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
+                )
 
 
 class UpdateLocationTestCase(JwtAPITestCase):

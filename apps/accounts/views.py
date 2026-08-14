@@ -46,6 +46,7 @@ from apps.commons.views import (
     MultipleIDViewsetMixin,
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
+    QuerySerializersMixin,
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -90,6 +91,7 @@ from .serializers import (
     PeopleGroupRemoveFeaturedProjectsSerializer,
     PeopleGroupRemoveTeamMembersSerializer,
     PeopleGroupSerializer,
+    PeopleGroupSuperLightSerializer,
     PrivacySettingsSerializer,
     UserAdminListSerializer,
     UserLighterSerializer,
@@ -519,7 +521,9 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 )
 
 
-class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class PeopleGroupViewSet(
+    QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     queryset = PeopleGroup.objects.all()
     serializer_class = PeopleGroupSerializer
     filterset_class = PeopleGroupFilter
@@ -531,6 +535,10 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         OrderingFilter,
     )
     multiple_lookup_fields = [(PeopleGroup, "id")]
+    query_serializers = {
+        "light": PeopleGroupLightSerializer,
+        "superlight": PeopleGroupSuperLightSerializer,
+    }
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "peoplegroup")
@@ -557,9 +565,8 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return PeopleGroup.objects.none()
 
     def get_serializer_class(self):
-        if self.action == "list":
-            return PeopleGroupLightSerializer
-        return self.serializer_class
+        query = "light" if self.action == "list" else None
+        return super().get_serializer_class(query)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -697,9 +704,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def member(self, request, *args, **kwargs):
         group = self.get_object()
 
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.members()
+        queryset = group.modules_by_user(request.user).members()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -788,9 +793,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def project(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.featured_projects()
+        queryset = group.modules_by_user(request.user).featured_projects()
 
         page = self.paginate_queryset(queryset)
         project_serializer = ProjectLightSerializer(
@@ -835,9 +838,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def subgroups(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.subgroups()
+        queryset = group.modules_by_user(request.user).subgroups()
 
         queryset_page = self.paginate_queryset(queryset)
         data = PeopleGroupLightSerializer(
@@ -854,9 +855,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def similars(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.similars()
+        queryset = group.modules_by_user(request.user).similars()
 
         queryset_page = self.paginate_queryset(queryset)
         data = PeopleGroupLightSerializer(
@@ -873,9 +872,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def locations(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.locations()
+        queryset = group.modules_by_user(request.user).locations()
 
         return Response(
             LocationSerializer(queryset, many=True, context={"request": request}).data,
@@ -891,9 +888,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def news(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.news()
+        queryset = group.modules_by_user(request.user).news()
 
         # use NewsViewSet to filter/order events
         queryset = NewsViewSet(request=self.request).filter_queryset(queryset)
@@ -913,9 +908,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def event(self, request, *args, **kwargs):
         group = self.get_object()
-        modules_manager = group.get_related_module()
-        modules = modules_manager(group, request.user)
-        queryset = modules.event()
+        queryset = group.modules_by_user(request.user).event()
 
         # use EventViewSet to filter/order events
         queryset = EventViewSet(request=self.request).filter_queryset(queryset)

@@ -7,10 +7,10 @@ from apps.commons.urls import (
     user_router_register,
 )
 from apps.files.views import (
-    AttachmentFileViewSet,
-    AttachmentLinkViewSet,
     OrganizationAttachmentFileViewSet,
     PeopleGroupGalleryViewSet,
+    ProjectAttachmentFileViewSet,
+    ProjectAttachmentLinkViewSet,
     ProjectUserAttachmentFileViewSet,
     ProjectUserAttachmentLinkViewSet,
 )
@@ -24,10 +24,10 @@ organization_router_register(
     basename="OrganizationAttachmentFile",
 )
 project_router_register(
-    router, r"file", AttachmentFileViewSet, basename="AttachmentFile"
+    router, r"file", ProjectAttachmentFileViewSet, basename="AttachmentFile"
 )
 project_router_register(
-    router, r"link", AttachmentLinkViewSet, basename="AttachmentLink"
+    router, r"link", ProjectAttachmentLinkViewSet, basename="AttachmentLink"
 )
 
 

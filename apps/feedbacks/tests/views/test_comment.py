@@ -59,7 +59,6 @@ class ListCommentTestCase(JwtAPITestCase):
             (TestRoles.ANONYMOUS, ("public",)),
             (TestRoles.DEFAULT, ("public",)),
             (TestRoles.SUPERADMIN, ("public", "org", "private")),
-            (TestRoles.OWNER, ("public", "org", "private")),
             (TestRoles.ORG_ADMIN, ("public", "org", "private")),
             (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
             (TestRoles.ORG_USER, ("public", "org")),
@@ -78,9 +77,9 @@ class ListCommentTestCase(JwtAPITestCase):
             )
             self.client.force_authenticate(user)
             response = self.client.get(reverse("Comment-list", args=(project.id,)))
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            content = response.json()["results"]
             if project_status in retrieved_comments:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                content = response.json()["results"]
                 self.assertEqual(len(content), 1)
                 self.assertEqual(content[0]["id"], self.comments[project_status].id)
                 self.assertEqual(
@@ -88,7 +87,10 @@ class ListCommentTestCase(JwtAPITestCase):
                     self.replies[project_status].id,
                 )
             else:
-                self.assertEqual(len(content), 0)
+                self.assertIn(
+                    response.status_code,
+                    (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+                )
 
 
 class CreateCommentTestCase(JwtAPITestCase):
@@ -142,7 +144,10 @@ class CreateCommentTestCase(JwtAPITestCase):
                 self.assertEqual(response.json()["content"], payload["content"])
                 self.assertEqual(response.json()["author"]["id"], user.id)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertIn(
+                    response.status_code,
+                    (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+                )
 
     def test_create_comment_anonymous(self):
         for project in self.projects.values():

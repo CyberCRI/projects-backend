@@ -348,20 +348,24 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         announcement = AnnouncementFactory(project=self.project)
         response = self.client.get(
-            reverse("Announcement-detail", args=(self.project.id, announcement.id))
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], announcement.id)
-        response = self.client.get(
-            reverse("Announcement-detail", args=(self.project.slug, announcement.id))
+            reverse(
+                "Project-Announcement-detail", args=(self.project.id, announcement.id)
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], announcement.id)
         response = self.client.get(
             reverse(
-                "Announcement-detail",
+                "Project-Announcement-detail", args=(self.project.slug, announcement.id)
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], announcement.id)
+        response = self.client.get(
+            reverse(
+                "Project-Announcement-detail",
                 args=(self.outdated_project_slug, announcement.id),
             )
         )

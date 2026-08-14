@@ -49,7 +49,7 @@ class CreateAnnouncementTestCase(JwtAPITestCase):
             "project_id": self.project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(self.project.id,)), data=payload
+            reverse("Project-Announcement-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_201_CREATED:
@@ -88,7 +88,7 @@ class UpdateAnnouncementTestCase(JwtAPITestCase):
         payload = {"description": faker.text()}
         response = self.client.patch(
             reverse(
-                "Announcement-detail",
+                "Project-Announcement-detail",
                 args=(self.project.id, self.announcement.id),
             ),
             data=payload,
@@ -124,7 +124,9 @@ class DeleteAnnouncementTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse("Announcement-detail", args=(self.project.id, announcement.id))
+            reverse(
+                "Project-Announcement-detail", args=(self.project.id, announcement.id)
+            )
         )
         self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_204_NO_CONTENT:
@@ -183,21 +185,27 @@ class ReadAndApplyToAnnouncementTestCase(JwtAPITestCase):
             )
             self.client.force_authenticate(user)
             response = self.client.get(
-                reverse("Announcement-list", args=(announcement.project.id,))
+                reverse("Project-Announcement-list", args=(announcement.project.id,))
             )
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            content = response.json()["results"]
             if visibility in retrieved_announcements:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                content = response.json()["results"]
                 self.assertEqual(len(content), 1)
                 self.assertEqual(content[0]["id"], announcement.id)
             else:
-                self.assertEqual(len(content), 0)
+                self.assertIn(
+                    response.status_code,
+                    (
+                        status.HTTP_401_UNAUTHORIZED,
+                        status.HTTP_403_FORBIDDEN,
+                    ),
+                )
 
         user = self.get_parameterized_test_user(
             role, instances=list(self.projects.values())
         )
         self.client.force_authenticate(user)
-        read_response = self.client.get(reverse("Read-announcement-list"))
+        read_response = self.client.get(reverse("Read-Announcement-list"))
         self.assertEqual(read_response.status_code, status.HTTP_200_OK)
         content = read_response.json()["results"]
         self.assertEqual(len(content), len(retrieved_announcements))
@@ -231,7 +239,7 @@ class ReadAndApplyToAnnouncementTestCase(JwtAPITestCase):
             self.client.force_authenticate(user)
             response = self.client.get(
                 reverse(
-                    "Announcement-detail",
+                    "Project-Announcement-detail",
                     args=(announcement.project.id, announcement.id),
                 )
             )
@@ -240,21 +248,33 @@ class ReadAndApplyToAnnouncementTestCase(JwtAPITestCase):
                 content = response.json()
                 self.assertEqual(content["id"], announcement.id)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertIn(
+                    response.status_code,
+                    (
+                        status.HTTP_401_UNAUTHORIZED,
+                        status.HTTP_403_FORBIDDEN,
+                    ),
+                )
 
         user = self.get_parameterized_test_user(
             role, instances=list(self.projects.values())
         )
         self.client.force_authenticate(user)
         read_response = self.client.get(
-            reverse("Read-announcement-detail", args=(announcement.id,))
+            reverse("Read-Announcement-detail", args=(announcement.id,))
         )
         if visibility in retrieved_announcements:
             self.assertEqual(read_response.status_code, status.HTTP_200_OK)
             content = read_response.json()
             self.assertEqual(content["id"], announcement.id)
         else:
-            self.assertEqual(read_response.status_code, status.HTTP_404_NOT_FOUND)
+            self.assertIn(
+                response.status_code,
+                (
+                    status.HTTP_401_UNAUTHORIZED,
+                    status.HTTP_403_FORBIDDEN,
+                ),
+            )
 
     @parameterized.expand(
         [
@@ -287,7 +307,7 @@ class ReadAndApplyToAnnouncementTestCase(JwtAPITestCase):
             }
             response = self.client.post(
                 reverse(
-                    "Announcement-apply",
+                    "Project-Announcement-apply",
                     args=(announcement.project.id, announcement.id),
                 ),
                 data=payload,
@@ -295,7 +315,13 @@ class ReadAndApplyToAnnouncementTestCase(JwtAPITestCase):
             if visibility in visible_announcements:
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertIn(
+                    response.status_code,
+                    (
+                        status.HTTP_401_UNAUTHORIZED,
+                        status.HTTP_403_FORBIDDEN,
+                    ),
+                )
 
 
 class FilterOrderAnnouncementTestCase(JwtAPITestCase):
@@ -322,7 +348,7 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
     def test_filter_from_date(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("Announcement-list", args=(self.project.id,))
+            reverse("Project-Announcement-list", args=(self.project.id,))
             + f"?from_date={self.date_2.date()}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -335,7 +361,7 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
     def test_filter_to_date(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("Announcement-list", args=(self.project.id,))
+            reverse("Project-Announcement-list", args=(self.project.id,))
             + f"?to_date={self.date_2.date()}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -348,7 +374,7 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
     def test_filter_from_date_with_null(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("Announcement-list", args=(self.project.id,))
+            reverse("Project-Announcement-list", args=(self.project.id,))
             + f"?from_date_or_none={self.date_2.date()}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -365,7 +391,7 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
     def test_filter_to_date_with_null(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("Announcement-list", args=(self.project.id,))
+            reverse("Project-Announcement-list", args=(self.project.id,))
             + f"?to_date_or_none={self.date_2.date()}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -382,7 +408,8 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
     def test_order_by_deadline(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("Announcement-list", args=(self.project.id,)) + "?ordering=deadline"
+            reverse("Project-Announcement-list", args=(self.project.id,))
+            + "?ordering=deadline"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -399,7 +426,7 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
     def test_order_by_deadline_reverse(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("Announcement-list", args=(self.project.id,))
+            reverse("Project-Announcement-list", args=(self.project.id,))
             + "?ordering=-deadline"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

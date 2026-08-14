@@ -13,7 +13,11 @@ from rest_framework.settings import api_settings
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import ListViewSet
+from apps.commons.views import (
+    ListViewSet,
+    NestedOrganizationViewMixins,
+    QuerySerializersMixin,
+)
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.permissions import HasOrganizationPermission
@@ -22,9 +26,11 @@ from apps.projects.models import Project
 from .filters import EventFilter, InstructionFilter, NewsFilter
 from .models import Event, Instruction, News, Newsfeed
 from .serializers import (
+    EventLightSerializer,
     EventSerializer,
     InstructionSerializer,
     NewsfeedSerializer,
+    NewsLightSerializer,
     NewsSerializer,
 )
 
@@ -119,7 +125,7 @@ class NewsfeedViewSet(ListViewSet):
         return self.merge_querysets(announcements, news, projects)
 
 
-class NewsViewSet(viewsets.ModelViewSet):
+class NewsViewSet(QuerySerializersMixin, viewsets.ModelViewSet):
     """Main endpoints for news."""
 
     serializer_class = NewsSerializer
@@ -128,6 +134,7 @@ class NewsViewSet(viewsets.ModelViewSet):
     ordering_fields = ("updated_at", "created_at", "publication_date")
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
+    query_serializers = {"light": NewsLightSerializer}
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "news")
@@ -236,7 +243,7 @@ class NewsImagesView(ImageStorageView):
         return None
 
 
-class InstructionViewSet(viewsets.ModelViewSet):
+class InstructionViewSet(NestedOrganizationViewMixins, viewsets.ModelViewSet):
     """Main endpoints for instructions."""
 
     serializer_class = InstructionSerializer
@@ -262,20 +269,18 @@ class InstructionViewSet(viewsets.ModelViewSet):
         Force the usage of the organization code from the url in the serializer
         """
         if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update({"organization": self.kwargs["organization_code"]})
+            self.request.data.update({"organization": self.organization.code})
         return super().get_serializer(*args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Instruction]:
-        if "organization_code" in self.kwargs:
-            return self.request.user.get_instruction_queryset().filter(
-                organization__code=self.kwargs["organization_code"]
-            )
-        return Instruction.objects.none()
+        return self.request.user.get_instruction_queryset().filter(
+            organization=self.organization
+        )
 
     def get_serializer_context(self):
         return {
             **super().get_serializer_context(),
-            "organization_code": self.kwargs.get("organization_code"),
+            "organization_code": self.organization.code,
         }
 
     def perform_create(self, serializer: InstructionSerializer):
@@ -321,7 +326,7 @@ class InstructionImagesView(ImageStorageView):
         return None
 
 
-class EventViewSet(viewsets.ModelViewSet):
+class EventViewSet(QuerySerializersMixin, viewsets.ModelViewSet):
     """Main endpoints for projects."""
 
     serializer_class = EventSerializer
@@ -330,6 +335,7 @@ class EventViewSet(viewsets.ModelViewSet):
     ordering_fields = ("start_date", "end_date", "updated_at", "created_at")
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
+    query_serializers = {"light": EventLightSerializer}
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "event")

@@ -14,9 +14,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from urllib.parse import urlencode
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.urls import include, path, reverse
 from drf_spectacular.views import (
@@ -24,6 +27,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from rest_framework.request import HttpRequest
 
 from apps.accounts.urls import router as accounts_router
 from apps.analytics.urls import router as analytics_router
@@ -42,7 +46,24 @@ from apps.skills.urls import router as skills_router
 from services.mistral.urls import mistral_router
 
 
-def redirect_to_swagger(request):
+def admin_login_redirect(request: HttpRequest):
+    next_url = request.GET.get("next", reverse("admin:index"))
+    return redirect(f"{reverse('oidc_authentication_init')}?next={next_url}")
+
+
+def full_logout(request: HttpRequest):
+    logout(request)
+    params = {
+        "post_logout_redirect_uri": request.build_absolute_uri("/admin"),
+        "client_id": settings.OIDC_RP_CLIENT_ID,
+    }
+    return redirect(f"{settings.OIDC_OP_LOGOUT_ENDPOINT}?{urlencode(params)}")
+
+
+admin.site.login = admin_login_redirect
+
+
+def redirect_to_swagger(request: HttpRequest):
     return redirect(reverse("swagger-ui"))
 
 
@@ -90,7 +111,9 @@ spectacular_urlpatterns = [
 urlpatterns = [
     path("", redirect_to_swagger, name="redirect-swagger"),
     path("v1/", include(api_urlpatterns)),
+    path("admin/logout/", full_logout, name="admin_logout_override"),
     path("admin/", admin.site.urls),
+    path("oidc/", include("mozilla_django_oidc.urls")),
     path("api/schema/", include(spectacular_urlpatterns)),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

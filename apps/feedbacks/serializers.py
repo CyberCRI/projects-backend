@@ -61,6 +61,17 @@ class FollowSerializer(
             return self.validated_data["project"]
         return None
 
+    def create(self, validated_data):
+        project = validated_data["project"]
+        follower = validated_data["follower"]
+
+        # if already follo ignore
+        follow, _ = Follow.objects.get_or_create(
+            project=project,
+            follower=follower,
+        )
+        return follow
+
 
 class UserFollowManySerializer(serializers.Serializer):
     """Used to follow several projects at once."""

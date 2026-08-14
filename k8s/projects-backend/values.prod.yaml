@@ -22,6 +22,7 @@ config:
     EMAIL_PORT: "465"
     EMAIL_USE_SSL: "True"
     KEYCLOAK_SERVER_URL: https://id.learningplanetinstitute.org/
+    KEYCLOAK_PUBLIC_URL: https://id.learningplanetinstitute.org/
     ENVIRONMENT: production
     EMAIL_CONTACT_SENDER: contact.projects@learningplanetinstitute.org
     EMAIL_REPORT_SENDER: contact.projects@learningplanetinstitute.org

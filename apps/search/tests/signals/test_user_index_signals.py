@@ -155,7 +155,7 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {GroupData.Role.MEMBERS: [self.user.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(self.project.id,)), payload
+            reverse("Project-member-add-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         mocked_update.assert_has_calls([call(self.user, "index")])
@@ -168,7 +168,7 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {"users": [self.project_remove_member.id]}
         response = self.client.post(
-            reverse("Project-remove-member", args=(self.project.id,)), payload
+            reverse("Project-member-remove-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         mocked_update.assert_has_calls([call(self.project_remove_member, "index")])

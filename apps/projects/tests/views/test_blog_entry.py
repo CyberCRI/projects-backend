@@ -100,13 +100,17 @@ class ListBlogEntryTestCase(JwtAPITestCase):
             user = self.get_parameterized_test_user(role, instances=[project])
             self.client.force_authenticate(user)
             response = self.client.get(reverse("BlogEntry-list", args=(project.id,)))
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            content = response.json()["results"]
+
             if publication_status in retrieved_blog_entries:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                content = response.json()["results"]
                 self.assertEqual(len(content), 1)
                 self.assertEqual(content[0]["id"], blog_entry.id)
             else:
-                self.assertEqual(len(content), 0)
+                self.assertIn(
+                    response.status_code,
+                    [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
+                )
 
 
 class UpdateBlogEntryTestCase(JwtAPITestCase):

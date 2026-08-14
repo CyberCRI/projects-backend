@@ -27,7 +27,6 @@ class InstructionTranslatedFieldsTestCase(JwtAPITestCase):
     def test_create_instruction(self):
         self.client.force_authenticate(self.superadmin)
         payload = {
-            "organization": self.organization.code,
             "title": faker.word(),
             "content": faker.word(),
             "publication_date": datetime.date.today().isoformat(),

@@ -2,11 +2,12 @@ import uuid
 
 from django.db import transaction
 from django.db.models import Q, QuerySet
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
@@ -14,7 +15,11 @@ from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
+from apps.commons.views import (
+    CreateListDestroyViewSet,
+    MultipleIDViewsetMixin,
+    NestedProjectViewMixins,
+)
 from apps.feedbacks.exceptions import FollowProjectPermissionDeniedError
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -23,7 +28,7 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission
 
-from .filters import ReviewFilter
+from .filters import CommentFilter, ReviewFilter
 from .models import Comment, Follow, Review
 from .permissions import IsReviewable
 from .serializers import (
@@ -36,8 +41,9 @@ from .serializers import (
 
 class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = ReviewFilter
+    ordering_fields = ("created_at", "updated_at")
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     multiple_lookup_fields = [(ProjectUser, "user_id"), (Project, "project_id")]
@@ -152,12 +158,13 @@ class ProjectFollowViewSet(FollowViewSet):
     pass
 
 
-class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class CommentViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    filter_backends = [DjangoFilterBackend]
+    filterset_class = CommentFilter
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ("created_at", "updated_at")
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "comment")
@@ -172,12 +179,9 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
-    def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(Comment.objects.all())
-        if self.request.user.is_authenticated:
-            qs = (qs | Comment.objects.filter(author=self.request.user)).distinct()
-        if "project_id" in self.kwargs:
-            qs = qs.filter(project=self.kwargs["project_id"])
+    def get_queryset(self) -> QuerySet[Comment]:
+        qs = self.project.modules_by_user(self.request.user).comments()
+
         if self.action in ["retrieve", "list"]:
             qs = qs.exclude(
                 Q(reply_on__isnull=False)
@@ -186,13 +190,6 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return qs.select_related("author", "project").prefetch_related(
             "replies", "images"
         )
-
-    def create(self, request, *args, **kwargs):
-        get_object_or_404(
-            self.request.user.get_project_queryset(),
-            id=self.kwargs["project_id"],
-        )
-        return super().create(request, *args, **kwargs)
 
     @transaction.atomic
     def perform_create(self, serializer):
@@ -204,9 +201,7 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         instance.soft_delete(self.request.user)
 
 
-class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
-    multiple_lookup_fields = [(Project, "project_id")]
-
+class CommentImagesView(NestedProjectViewMixins, ImageStorageView):
     def get_permissions(self):
         """
         Permissions are handled differently here because contrary to other
@@ -225,24 +220,12 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
             ]
         return super().get_permissions()
 
-    def get_queryset(self):
-        if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(comments__project=self.kwargs["project_id"]),
-                project_related_name="comments__project",
-            )
-            # Retrieve images before comment is posted
-            if self.request.user.is_authenticated:
-                qs = qs | Image.objects.filter(owner=self.request.user)
-            return qs.distinct()
-        return Image.objects.none()
-
-    def create(self, request, *args, **kwargs):
-        get_object_or_404(
-            self.request.user.get_project_queryset(),
-            id=self.kwargs["project_id"],
-        )
-        return super().create(request, *args, **kwargs)
+    def get_queryset(self) -> QuerySet[Image]:
+        comments_qs = self.project.modules_by_user(self.request.user).comments()
+        qs = Image.objects.filter(comments__in=comments_qs)
+        if self.request.user.is_authenticated:
+            qs = qs | Image.objects.filter(owner=self.request.user)
+        return qs.distinct()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -253,6 +236,4 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return redirect(image.file.url)
 
     def add_image_to_model(self, image, *args, **kwargs):
-        if "project_id" in self.kwargs:
-            return f"/v1/project/{self.kwargs['project_id']}/comment-image/{image.id}"
-        return None
+        return f"/v1/project/{self.project.id}/comment-image/{image.id}"

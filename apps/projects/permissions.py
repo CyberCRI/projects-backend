@@ -99,24 +99,18 @@ class ProjectIsNotLocked(permissions.BasePermission, ProjectRelatedPermission):
         )
 
     def has_permission(self, request: Request, view: GenericViewSet) -> bool:
-        project = self.get_related_project(request, view)
-        if (
-            project
-            and view.action == "create"
-            and project.is_locked
-            and not self.user_can_modify_locked_project(project, request.user)
-        ):
-            raise LockedProjectError
-        return True
+        return self.has_object_permission(request, view, None)
 
     def has_object_permission(
         self, request: Request, view: GenericViewSet, obj: ProjectRelated
     ) -> bool:
         project = self.get_related_project(request, view, obj)
+
         if (
             project
             and view.action
             in [
+                "create",
                 "update",
                 "partial_update",
                 "destroy",

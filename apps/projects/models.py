@@ -20,12 +20,16 @@ from apps.analytics.models import Stat
 from apps.commons.enums import SDG, Language
 from apps.commons.mixins import (
     DuplicableModel,
+    HasEmbedding,
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
+    HasRelatedLocationContent,
+    HasRelatedModules,
     ProjectRelated,
 )
 from apps.commons.models import GroupData
+from apps.commons.queryset import MultipleIdsQuerySet
 from apps.commons.utils import get_write_permissions_from_subscopes
 from services.translator.mixins import HasAutoTranslatedFields
 
@@ -46,7 +50,7 @@ def uuid_generator() -> str:
     return shortuuid.ShortUUID().random(length=8)
 
 
-class SoftDeleteManager(models.Manager):
+class SoftDeleteManager(models.manager.BaseManager.from_queryset(MultipleIdsQuerySet)):
     """Exclude by default soft-deleted Projects."""
 
     def get_queryset(self):
@@ -65,7 +69,9 @@ class SoftDeleteManager(models.Manager):
 
 
 class Project(
+    HasEmbedding,
     HasMultipleIDs,
+    HasRelatedModules,
     HasAutoTranslatedFields,
     HasPermissionsSetup,
     ProjectRelated,
@@ -285,7 +291,7 @@ class Project(
     def hard_delete(self):
         """Hard-delete the project."""
         self.groups.all().delete()
-        super(Project, self).delete()
+        super().delete()
 
     def restore(self):
         """Restore a soft-deleted project."""
@@ -896,7 +902,7 @@ class AbstractLocation(HasAutoTranslatedFields, DuplicableModel, models.Model):
 
 
 # TODO(remi): rename to ProjectLocation ?
-class Location(ProjectRelated, AbstractLocation):
+class Location(ProjectRelated, HasRelatedLocationContent, AbstractLocation):
     """A project location on Earth.
 
     Attributes
@@ -911,6 +917,10 @@ class Location(ProjectRelated, AbstractLocation):
         Project, on_delete=models.CASCADE, related_name="locations"
     )
 
+    @classmethod
+    def get_related_content(cls):
+        return cls.project.field.name
+
     def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         return self.project
@@ -922,7 +932,7 @@ class Location(ProjectRelated, AbstractLocation):
 
 class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.Model):
     """
-    A message in a project.
+    A message in a project (private-exchange)
 
     Attributes
     ----------
@@ -995,7 +1005,9 @@ class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.M
         return self.author == user
 
 
-class ProjectTab(HasAutoTranslatedFields, ProjectRelated, models.Model):
+class ProjectTab(
+    HasRelatedModules, HasAutoTranslatedFields, ProjectRelated, models.Model
+):
     """A tab in the project page.
 
     Attributes
@@ -1027,9 +1039,10 @@ class ProjectTab(HasAutoTranslatedFields, ProjectRelated, models.Model):
         max_length=32, choices=TabType.choices, default=TabType.TEXT
     )
     title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    icon = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True, null=True)
+    icon = models.CharField(max_length=255, blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
+    show_preview = models.BooleanField(default=True)
 
     def get_related_project(self) -> Project:
         """Return the projects related to this model."""
@@ -1062,7 +1075,7 @@ class ProjectTabItem(HasAutoTranslatedFields, ProjectRelated, models.Model):
         "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"
     )
     title = models.CharField(max_length=255)
-    content = models.TextField(blank=True)
+    content = models.TextField(blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tab_items")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

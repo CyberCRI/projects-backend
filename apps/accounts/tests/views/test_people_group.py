@@ -317,17 +317,18 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
             "description": faker.text(),
             "email": faker.email(),
             "parent": parent.id,
-            "team": {
-                "members": [m.id for m in members],
-                "managers": [r.id for r in managers],
-                "leaders": [r.id for r in leaders],
-            },
-            "featured_projects": [p.pk for p in projects],
             "locations": locations,
         }
         response = self.client.post(
             reverse("PeopleGroup-list", args=(organization.code,)), payload
         )
+        team = {
+            "members": [m.id for m in members],
+            "managers": [r.id for r in managers],
+            "leaders": [r.id for r in leaders],
+        }
+        featured_projects = {"featured_projects": [p.pk for p in projects]}
+
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             self.assertEqual(response.data["name"], payload["name"])
@@ -336,6 +337,24 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
             self.assertEqual(response.data["organization"], organization.code)
             self.assertEqual(response.data["hierarchy"][0]["id"], parent.id)
             self.assertEqual(response.data["hierarchy"][0]["slug"], parent.slug)
+
+            rsp2 = self.client.post(
+                reverse(
+                    "PeopleGroup-add-member",
+                    args=(organization.code, response.data["id"]),
+                ),
+                team,
+            )
+            self.assertEqual(rsp2.status_code, status.HTTP_204_NO_CONTENT)
+            rsp3 = self.client.post(
+                reverse(
+                    "PeopleGroup-add-featured-project",
+                    args=(organization.code, response.data["id"]),
+                ),
+                featured_projects,
+            )
+            self.assertEqual(rsp3.status_code, status.HTTP_204_NO_CONTENT)
+
             people_group = PeopleGroup.objects.get(id=response.json()["id"])
             for member in members:
                 self.assertIn(member, people_group.members.all())
@@ -749,7 +768,7 @@ class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
         people_group.leaders.add(self.user_3)
         payload = {project_role: [people_group.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(self.project.id,)), payload
+            reverse("Project-member-add-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.project.refresh_from_db()
@@ -757,7 +776,7 @@ class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
             self.assertIn(user, getattr(self.project, f"{project_role}_users").all())
         payload = {"people_groups": [people_group.id]}
         response = self.client.post(
-            reverse("Project-remove-member", args=(self.project.id,)), payload
+            reverse("Project-member-remove-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.project.refresh_from_db()
@@ -1039,19 +1058,21 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
+    def members_by_role(self, members: list, role: GroupData.Role):
+        return [member["id"] for member in members if member["role"] == role.value]
+
     def test_annotate_members(self):
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=self.organization,
         )
-        leaders_managers = UserFactory.create_batch(2)
+        leaders = UserFactory.create_batch(2)
         managers = UserFactory.create_batch(2)
-        leaders_members = UserFactory.create_batch(2)
         members = UserFactory.create_batch(2)
 
-        people_group.managers.add(*managers, *leaders_managers)
-        people_group.members.add(*members, *leaders_members)
-        people_group.leaders.add(*leaders_managers, *leaders_members)
+        people_group.managers.set(managers)
+        people_group.members.set(members)
+        people_group.leaders.set(leaders)
 
         response = self.client.get(
             reverse(
@@ -1064,33 +1085,20 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         content = response.json()
         results = content["results"]
 
-        batch_1 = results[:2]
-        batch_1_ids = [user["id"] for user in batch_1]
-        leaders_managers_ids = [user.id for user in leaders_managers]
-        self.assertEqual(leaders_managers_ids.sort(), batch_1_ids.sort())
-        self.assertTrue(all(user["is_manager"] is True for user in batch_1))
-        self.assertTrue(all(user["is_leader"] is True for user in batch_1))
+        self.assertListEqual(
+            sorted(self.members_by_role(results, GroupData.Role.MANAGERS)),
+            sorted([user.id for user in managers]),
+        )
 
-        batch_2 = results[2:4]
-        batch_2_ids = [user["id"] for user in batch_2]
-        leaders_members_ids = [user.id for user in leaders_members]
-        self.assertEqual(leaders_members_ids.sort(), batch_2_ids.sort())
-        self.assertTrue(all(user["is_manager"] is False for user in batch_2))
-        self.assertTrue(all(user["is_leader"] is True for user in batch_2))
+        self.assertListEqual(
+            sorted(self.members_by_role(results, GroupData.Role.LEADERS)),
+            sorted([user.id for user in leaders]),
+        )
 
-        batch_3 = results[4:6]
-        batch_3_ids = [user["id"] for user in batch_3]
-        managers_ids = [user.id for user in managers]
-        self.assertEqual(managers_ids.sort(), batch_3_ids.sort())
-        self.assertTrue(all(user["is_manager"] is True for user in batch_3))
-        self.assertTrue(all(user["is_leader"] is False for user in batch_3))
-
-        batch_4 = results[6:]
-        batch_4_ids = [user["id"] for user in batch_4]
-        members_ids = [user.id for user in members]
-        self.assertEqual(members_ids.sort(), batch_4_ids.sort())
-        self.assertTrue(all(user["is_manager"] is False for user in batch_4))
-        self.assertTrue(all(user["is_leader"] is False for user in batch_4))
+        self.assertListEqual(
+            sorted(self.members_by_role(results, GroupData.Role.MEMBERS)),
+            sorted([user.id for user in members]),
+        )
 
     def test_root_group_creation(self):
         organization = OrganizationFactory()

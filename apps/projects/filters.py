@@ -10,7 +10,7 @@ from apps.commons.filters import (
 )
 from apps.organizations.utils import get_below_hierarchy_codes
 
-from .models import Location, Project
+from .models import Location, Project, ProjectTab, ProjectTabItem
 
 
 class ProjectFilterMixin(filters.FilterSet):
@@ -102,3 +102,44 @@ class LocationFilter(filters.FilterSet):
         return queryset.filter(
             project__organizations__code__in=get_below_hierarchy_codes(value)
         ).distinct()
+
+
+class ProjectMembersFilter(filters.FilterSet):
+    role = MultiValueCharFilter()
+
+    class Meta:
+        model = ProjectUser
+        fields = ("role",)
+
+
+class ProjectGroupsFilter(filters.FilterSet):
+    role = MultiValueCharFilter()
+
+    class Meta:
+        model = PeopleGroup
+        fields = ("role",)
+
+
+class ProjectTabFilter(filters.FilterSet):
+    type = filters.CharFilter()  # noqa: A003
+    show_preview = filters.BooleanFilter()
+
+    class Meta:
+        model = ProjectTab
+        fields = ("type", "show_preview")
+
+
+class ProjectTabItemFilter(filters.FilterSet):
+    from_date = filters.CharFilter(method="range_filter_from", label="form_date")
+    to_date = filters.CharFilter(method="range_filter_to", label="to_date")
+
+    class Meta:
+        model = ProjectTabItem
+        fields = ("from_date", "to_date")
+
+    def range_filter_from(self, queryset, name, value):
+        return queryset.filter(created_at__gte=value)
+
+    def range_filter_to(self, queryset, name, value):
+        # same above but with start_date
+        return queryset.filter(created_at__lte=value)
