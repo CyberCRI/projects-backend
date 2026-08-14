@@ -1,4 +1,4 @@
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
@@ -52,14 +52,12 @@ class CommentTranslatedFieldsTestCase(MockTranslateTestCase):
         comment = Comment.objects.get(id=content["id"])
         mock_translate.assert_has_calls(
             [
-                call(
-                    body=[
-                        getattr(
-                            comment,
-                            field.split(":", 1)[1] if ":" in field else field,
-                        )
-                    ],
-                    to_language=({str(lang) for lang in self.organization.languages}),
+                self.translate_call(
+                    text=getattr(
+                        comment,
+                        field.split(":", 1)[1] if ":" in field else field,
+                    ),
+                    languages={str(lang) for lang in self.organization.languages},
                     text_type=(field.split(":", 1)[0] if ":" in field else "plain"),
                 )
                 for field in Comment.auto_translated_fields
@@ -106,14 +104,12 @@ class CommentTranslatedFieldsTestCase(MockTranslateTestCase):
         comment.refresh_from_db()
         mock_translate.assert_has_calls(
             [
-                call(
-                    body=[
-                        getattr(
-                            comment,
-                            field.split(":", 1)[1] if ":" in field else field,
-                        )
-                    ],
-                    to_language=({str(lang) for lang in self.organization.languages}),
+                self.translate_call(
+                    text=getattr(
+                        comment,
+                        field.split(":", 1)[1] if ":" in field else field,
+                    ),
+                    languages={str(lang) for lang in self.organization.languages},
                     text_type=(field.split(":", 1)[0] if ":" in field else "plain"),
                 )
                 for field in Comment.auto_translated_fields
