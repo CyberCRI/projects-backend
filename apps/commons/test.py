@@ -248,6 +248,12 @@ class JwtAPITestCase(APITestCase):
         return f'<img src="data:image/png;base64,{base64.b64encode(cls.get_test_image_file().read()).decode()}" alt=""/>'
 
     @classmethod
+    def get_base64_pdf(cls) -> str:
+        pdf_content = b"%PDF-1.7\n%dummy pdf content for tests"
+        encoded = base64.b64encode(pdf_content).decode()
+        return f'<img alt="" class="custom-image-original" src="data:application/pdf;base64,{encoded}"/>'
+
+    @classmethod
     def get_oversized_test_image(cls) -> Image:
         """Return an Image instance."""
         image = Image(name=str(uuid.uuid4()), file=cls.get_oversized_test_image_file())
