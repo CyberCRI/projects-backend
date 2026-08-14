@@ -1,12 +1,12 @@
 FROM python:3.13-slim AS builder
 
-ARG EXPORT_FLAG="--with dev"
+ARG EXPORT_FLAG="--all-groups"
 
-RUN pip install --upgrade pip poetry poetry-plugin-export
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY pyproject.toml poetry.toml poetry.lock ./
+COPY pyproject.toml uv.lock ./
 
-RUN poetry export -f requirements.txt $EXPORT_FLAG --without-hashes --output /tmp/requirements.txt
+RUN uv export ${EXPORT_FLAG:+$EXPORT_FLAG} --no-hashes --no-emit-project --output-file /tmp/requirements.txt
 
 
 FROM python:3.13-slim

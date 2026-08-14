@@ -54,7 +54,7 @@ class LazySerializer(serializers.Serializer):
     are passed down to the serializer.
     """
 
-    def __init__(self, ref, *args, **kwargs):  # noqa
+    def __init__(self, ref, *args, **kwargs):
         self._args = args
         self._kwargs = kwargs
         self._reference_as_string = ref

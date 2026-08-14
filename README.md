@@ -7,6 +7,7 @@
 
 ## Requirements
 - Docker Compose V2
+- uv
 
 ## Usage
 
@@ -15,6 +16,11 @@
 ```bash
 git clone --recurse-submodules git@github.com:CyberCRI/projects-backend.git 
 cd projects-backend
+```
+
+### Install dependencies
+```bash
+uv sync
 ```
 
 ### Set up your environment variables
@@ -114,18 +120,9 @@ You can check locally that the CI will validate your pull request by running the
 make format
 ```
 
-This will automatically update your files
-
-2. Respect lint rules:
-
-```bash
-# inside the container
-make lint
-```
-
 This will return errors that you need to fix manually. If there are some, fix them then repeat step 1.
 
-3. Keep translations up to date:
+2. Keep translations up to date:
 
 ```bash
 # inside the container
@@ -136,14 +133,14 @@ This will detect changes in translated messages. Even if you didn't add, remove 
 
 If there are new messages, be sure to add the translation after running this command.
 
-4. Create migrations if needed:
+3. Create migrations if needed:
 
 ```bash
 # inside the container
 python manage.py makemigrations
 ```
 
-5. Be sure that all tests pass
+4. Be sure that all tests pass
 
 ```bash
 # inside the container

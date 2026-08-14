@@ -33,10 +33,7 @@ class MultipleIdsQuerySet(models.QuerySet):
         final_query = models.Q()
         for field, values in query.items():
             field_cls = self._get_related_field(self.model, field)
-            if isinstance(field_cls, ArrayField):
-                lookup = "__contains"
-            else:
-                lookup = "__in"
+            lookup = "__contains" if isinstance(field_cls, ArrayField) else "__in"
 
             final_query |= models.Q(**{f"{field}{lookup}": list(values)})
 

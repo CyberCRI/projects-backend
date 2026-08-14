@@ -42,6 +42,14 @@ class Follow(HasOwner, ProjectRelated, models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     history = HistoricalRecords()
 
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["project", "follower"], name="unique_follow"
+            )
+        ]
+
     def __str__(self):
         return f"{self.project} - {self.follower}"
 
@@ -74,14 +82,6 @@ class Follow(HasOwner, ProjectRelated, models.Model):
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
-
-    class Meta:
-        ordering = ["-created_at"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["project", "follower"], name="unique_follow"
-            )
-        ]
 
 
 class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
@@ -142,6 +142,9 @@ class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
     images = models.ManyToManyField("files.Image", related_name="comments")
     history = HistoricalRecords()
 
+    class Meta:
+        ordering = ["-created_at"]
+
     def __str__(self):
         return str(self.content)
 
@@ -176,9 +179,6 @@ class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
-
-    class Meta:
-        ordering = ["-created_at"]
 
 
 class Review(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):

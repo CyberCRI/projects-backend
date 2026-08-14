@@ -83,9 +83,7 @@ class CreateProjectTestCase(JwtAPITestCase):
             "is_shareable": faker.boolean(),
             "purpose": faker.sentence(),
             "language": random.choice(Language.values),  # nosec
-            "publication_status": random.choice(
-                Project.PublicationStatus.values
-            ),  # nosec
+            "publication_status": random.choice(Project.PublicationStatus.values),  # nosec
             "life_status": random.choice(Project.LifeStatus.values),  # nosec
             "sdgs": random.choices(SDG.values, k=3),  # nosec
             "project_categories_ids": [self.category.id],
@@ -95,7 +93,6 @@ class CreateProjectTestCase(JwtAPITestCase):
         response = self.client.post(reverse("Project-list"), data=payload)
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-
             content = response.json()
 
             self.assertEqual(content["title"], payload["title"])
@@ -163,9 +160,7 @@ class UpdateProjectTestCase(JwtAPITestCase):
             "is_shareable": faker.boolean(),
             "purpose": faker.sentence(),
             "language": random.choice(Language.values),  # nosec
-            "publication_status": random.choice(
-                Project.PublicationStatus.values
-            ),  # nosec
+            "publication_status": random.choice(Project.PublicationStatus.values),  # nosec
             "life_status": random.choice(Project.LifeStatus.values),  # nosec
             "sdgs": random.choices(SDG.values, k=3),  # nosec
             "tags": [random.choice(self.tags).id],  # nosec

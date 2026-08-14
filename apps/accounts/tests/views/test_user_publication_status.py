@@ -159,7 +159,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             {user["id"] for user in members},
             {
                 self.users[user_type].id
-                for user_type in self.users.keys()
+                for user_type in self.users
                 if user_type in expected_users
             },
         )
@@ -192,7 +192,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             {user["id"] for user in content},
             {
                 self.users[user_type].id
-                for user_type in self.users.keys()
+                for user_type in self.users
                 if user_type in expected_users
             },
         )
@@ -224,7 +224,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                     if user_type in expected_users
                     else (None, self.comments[user_type].id)
                 )
-                for user_type in self.users.keys()
+                for user_type in self.users
             },
         )
 
@@ -255,7 +255,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                     if user_type in expected_users
                     else (None, self.follows[user_type].id)
                 )
-                for user_type in self.users.keys()
+                for user_type in self.users
             },
         )
 
@@ -286,7 +286,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                     if user_type in expected_users
                     else (None, self.reviews[user_type].id)
                 )
-                for user_type in self.users.keys()
+                for user_type in self.users
             },
         )
 
@@ -319,7 +319,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                     if user_type in expected_users
                     else (None, self.invitations[user_type].id)
                 )
-                for user_type in self.users.keys()
+                for user_type in self.users
             },
         )
 
@@ -344,7 +344,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                 project=self.project,
                 organization=organization,
             )
-            for user_type in self.users.keys()
+            for user_type in self.users
         }
         response = self.client.get(
             reverse("Notification-list", args=(organization.code,))
@@ -363,7 +363,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                     if user_type in expected_users
                     else (None, notifications[user_type].id)
                 )
-                for user_type in self.users.keys()
+                for user_type in self.users
             },
         )
 

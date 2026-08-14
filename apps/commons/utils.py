@@ -137,9 +137,9 @@ def process_text(
         The processed text and the images to link to the instance.
     """
 
-    assert all(
-        (instance, upload_to, view)
-    ), "instance, upload_to and view parameters are required."
+    assert all((instance, upload_to, view)), (
+        "instance, upload_to and view parameters are required."
+    )
 
     soup = BeautifulSoupProjects(text)
 
@@ -273,10 +273,7 @@ def process_unlinked_images(
     List[Image]
         The images to link to the instance.
     """
-    if isinstance(text, str):
-        soup = BeautifulSoupProjects(text)
-    else:
-        soup = text
+    soup = BeautifulSoupProjects(text) if isinstance(text, str) else text
 
     images_ids = []
     for image_tag in soup.find_all("img"):

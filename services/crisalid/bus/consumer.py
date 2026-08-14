@@ -29,9 +29,9 @@ class CrisalidConsumer:
         crisalid_event: CrisalidEventEnum,
         callback: Callable,
     ):
-        assert (
-            crisalid_event.value not in self._consumers[crisalid_type.value]
-        ), f"Event {crisalid_type}::{crisalid_event}, is already set"
+        assert crisalid_event.value not in self._consumers[crisalid_type.value], (
+            f"Event {crisalid_type}::{crisalid_event}, is already set"
+        )
 
         # add callback
         self._consumers[crisalid_type.value][crisalid_event.value] = callback

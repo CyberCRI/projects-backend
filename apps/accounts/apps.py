@@ -7,4 +7,4 @@ class AccountConfig(AppConfig):
 
     def ready(self):
         """Register signals once the apps are loaded."""
-        import apps.accounts.signals  # noqa
+        import apps.accounts.signals  # noqa: F401

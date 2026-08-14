@@ -93,8 +93,6 @@ jobs:
     steps:
     - name: Check the code formatting
       run: make format-check
-    - name: Run the linter
-      run: make lint
     - name: Check that migrations are up-to-date
       run: make migrations-check
     - name: Check that translations are up-to-date
