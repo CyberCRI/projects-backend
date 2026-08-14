@@ -30,7 +30,9 @@ class AzureTranslatorService:
                 TranslateInputItem(
                     text=content,
                     text_type=field_type.lower(),
-                    targets=[TranslationTarget(language=lang) for lang in set(languages)],
+                    targets=[
+                        TranslationTarget(language=lang) for lang in set(languages)
+                    ],
                 )
             ],
         )
