@@ -1,4 +1,4 @@
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -347,14 +347,12 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
         # Check that the mock was called with the expected parameters
         mock_translate.assert_has_calls(
             [
-                call(
-                    body=[
-                        getattr(
-                            instance,
-                            field.split(":", 1)[1] if ":" in field else field,
-                        )
-                    ],
-                    to_language=(
+                self.translate_call(
+                    text=getattr(
+                        instance,
+                        field.split(":", 1)[1] if ":" in field else field,
+                    ),
+                    languages=(
                         {str(lang) for lang in self.organization_1.languages}
                         if not instance.auto_translate_all_languages
                         else {str(lang) for lang in settings.REQUIRED_LANGUAGES}
@@ -462,15 +460,15 @@ class MiscTranslationTestCase(MockTranslateTestCase):
         field.update_translation()
         mock_translate.assert_has_calls(
             [
-                call(
-                    body=[str(description[0])],
-                    to_language={str(lang) for lang in self.organization.languages},
+                self.translate_call(
+                    text=str(description[0]),
+                    languages={str(lang) for lang in self.organization.languages},
                     text_type="html",
                 ),
                 *[
-                    call(
-                        body=[str(description[2])],
-                        to_language={str(lang)},
+                    self.translate_call(
+                        text=str(description[2]),
+                        languages={str(lang)},
                         text_type="html",
                     )
                     for lang in self.organization.languages
