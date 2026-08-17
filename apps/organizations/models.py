@@ -20,7 +20,7 @@ from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
-from apps.projects.models import ProjectTab, ProjectTabItem
+from apps.projects.models import ProjectTab
 from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
