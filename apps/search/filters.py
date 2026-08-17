@@ -98,7 +98,6 @@ class AbstractOpensearch(SearchFilter):
 
 
 class MultiMatchSearchFieldsFilter(AbstractOpensearch):
-
     def opensearch(
         self, queryset: QuerySet, query: str, limit: int, offset: int
     ) -> Response:

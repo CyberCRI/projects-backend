@@ -134,7 +134,7 @@ class GoogleGroup(models.Model):
             self.people_group.save()
         except GoogleGroupEmailUnavailable as e:
             raise e
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_GROUP, e)
             return self, e
         else:
@@ -145,7 +145,7 @@ class GoogleGroup(models.Model):
     def update(self, is_retry: bool = False):
         try:
             GoogleService.update_group(self)
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.UPDATE_GROUP, e)
         else:
             if is_retry:
@@ -154,7 +154,7 @@ class GoogleGroup(models.Model):
     def create_alias(self, is_retry: bool = False):
         try:
             GoogleService.add_group_alias(self)
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS, e)
         else:
             if is_retry:
@@ -179,7 +179,7 @@ class GoogleGroup(models.Model):
             for user_to_add in users_to_add:
                 self.add_member(user_to_add, is_retry=is_retry)
 
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e)
         else:
             if is_retry:
@@ -188,7 +188,7 @@ class GoogleGroup(models.Model):
     def add_member(self, google_user: "GoogleAccount", is_retry: bool = False):
         try:
             GoogleService.add_user_to_group(google_user, self)
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e)
         else:
             if is_retry:
@@ -197,7 +197,7 @@ class GoogleGroup(models.Model):
     def remove_member(self, google_user: "GoogleAccount", is_retry: bool = False):
         try:
             GoogleService.remove_user_from_group(google_user, self)
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e)
         else:
             if is_retry:
@@ -270,7 +270,7 @@ class GoogleAccount(models.Model):
             self.user.personal_email = self.user.email
             self.user.email = google_user["primaryEmail"]
             self.user.save()
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_USER, e)
             return self, e
         if is_retry:
@@ -280,7 +280,7 @@ class GoogleAccount(models.Model):
     def update(self, is_retry: bool = False):
         try:
             GoogleService.update_user(self)
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.UPDATE_USER, e)
         else:
             if is_retry:
@@ -289,7 +289,7 @@ class GoogleAccount(models.Model):
     def suspend(self, is_retry: bool = False):
         try:
             GoogleService.suspend_user(self)
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SUSPEND_USER, e)
         else:
             if is_retry:
@@ -298,7 +298,7 @@ class GoogleAccount(models.Model):
     def create_alias(self, is_retry: bool = False):
         try:
             GoogleService.add_user_alias(self)
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.USER_ALIAS, e)
         else:
             if is_retry:
@@ -324,7 +324,7 @@ class GoogleAccount(models.Model):
             for group_to_add in groups_to_add:
                 self.add_group(group_to_add, is_retry=is_retry)
 
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e)
 
         else:
@@ -334,7 +334,7 @@ class GoogleAccount(models.Model):
     def add_group(self, google_group: "GoogleGroup", is_retry: bool = False):
         try:
             GoogleService.add_user_to_group(self, google_group)
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e)
         else:
             if is_retry:
@@ -343,7 +343,7 @@ class GoogleAccount(models.Model):
     def remove_group(self, google_group: "GoogleGroup", is_retry: bool = False):
         try:
             GoogleService.remove_user_from_group(self, google_group)
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e)
         else:
             if is_retry:

@@ -753,7 +753,6 @@ class ProjectMessageViewSet(NestedProjectViewMixins, viewsets.ModelViewSet):
 
 
 class ProjectMessageImagesView(NestedProjectViewMixins, ImageStorageView):
-
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectmessage")
         if codename:

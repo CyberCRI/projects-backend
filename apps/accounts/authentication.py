@@ -43,7 +43,6 @@ class BearerToken(AccessToken):
 
 
 class AdminAuthentication(OIDCAuthenticationBackend):
-
     def describe_user_by_claims(self, claims: dict):
         keycloak_id = claims.get(settings.SIMPLE_JWT["USER_ID_CLAIM"])
         return "keycloak_id {}".format(keycloak_id)

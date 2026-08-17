@@ -254,6 +254,10 @@ class BaseImage(models.Model, DuplicableModel):
         ordering = ("-created_at",)
         abstract = True
 
+    def save(self, *ar, **kw):
+        self.clear_cache_urls()
+        return super().save(*ar, **kw)
+
     @staticmethod
     def get_url(cache_key: str, field: ImageField) -> str:
         """create cache for url file"""
@@ -280,7 +284,7 @@ class BaseImage(models.Model, DuplicableModel):
         field = self.file.field
 
         obj = {}
-        for name in field.variations.keys():
+        for name in field.variations:
             obj[name] = f"image::url::{name}::{self.pk}"
         return obj
 
@@ -322,10 +326,6 @@ class BaseImage(models.Model, DuplicableModel):
             _upload_to = lambda instance, filename: upload_to  # noqa: E731
             return super().duplicate(_upload_to=_upload_to, file=new_file, **fields)
         return None
-
-    def save(self, *ar, **kw):
-        self.clear_cache_urls()
-        return super().save(*ar, **kw)
 
 
 class Image(BaseImage, HasOwner, ProjectRelated, OrganizationRelated):

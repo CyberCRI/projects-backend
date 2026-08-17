@@ -652,6 +652,14 @@ class CategoryFollow(HasOwner, OrganizationRelated, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["category", "follower"], name="unique_category_follow"
+            )
+        ]
+
     def __str__(self):
         return f"Follow: {self.category} - {self.follower}"
 
@@ -666,14 +674,6 @@ class CategoryFollow(HasOwner, OrganizationRelated, models.Model):
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.category.get_related_organizations()
-
-    class Meta:
-        ordering = ["-created_at"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["category", "follower"], name="unique_category_follow"
-            )
-        ]
 
 
 class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Model):
@@ -695,9 +695,6 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
     is_default = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def get_related_organizations(self) -> list["Organization"]:
-        return [self.organization]
-
     class Meta:
         constraints = [
             UniqueConstraint(
@@ -706,3 +703,6 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
                 name="unique_default_terms_and_conditions",
             )
         ]
+
+    def get_related_organizations(self) -> list["Organization"]:
+        return [self.organization]

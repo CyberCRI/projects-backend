@@ -65,7 +65,7 @@ def fetch_image(url):
         if "image" not in response.headers["Content-Type"]:
             return None
         return response.content
-    except Exception:  # noqa: PIE786
+    except Exception:
         return None
 
 

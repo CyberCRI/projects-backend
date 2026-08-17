@@ -1,4 +1,4 @@
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -54,14 +54,12 @@ class TermsAndConditionsTranslatedFieldsTestCase(MockTranslateTestCase):
         terms_and_conditions.refresh_from_db()
         mock_translate.assert_has_calls(
             [
-                call(
-                    body=[
-                        getattr(
-                            terms_and_conditions,
-                            field.split(":", 1)[1] if ":" in field else field,
-                        )
-                    ],
-                    to_language=({str(lang) for lang in settings.REQUIRED_LANGUAGES}),
+                self.translate_call(
+                    text=getattr(
+                        terms_and_conditions,
+                        field.split(":", 1)[1] if ":" in field else field,
+                    ),
+                    languages={str(lang) for lang in settings.REQUIRED_LANGUAGES},
                     text_type=(field.split(":", 1)[0] if ":" in field else "plain"),
                 )
                 for field in TermsAndConditions.auto_translated_fields

@@ -70,6 +70,24 @@ def iter_img_b64(soup: BeautifulSoup):
             yield img
 
 
+def iter_pdf_b64(soup: BeautifulSoup):
+    for img in soup.find_all("img"):
+        src = img.get("src", "")
+        if src.startswith("data:application/pdf") and ";base64," in src:
+            yield img
+
+
+def remove_base64_pdf(soup: BeautifulSoupProjects) -> None:
+    """Remove img tags embedding a base64-encoded PDF.
+
+    Some users drag and drop PDF files into the rich text editor, which
+    inserts them as an <img> tag with a `data:application/pdf;base64,` src.
+    These are not valid images and must be stripped out.
+    """
+    for img in iter_pdf_b64(soup):
+        img.decompose()
+
+
 def remove_images_text(text: str, unescape=True) -> str:
     """Process rich text sent by the frontend.
     Some texts can contain images
@@ -90,6 +108,7 @@ def remove_images_text(text: str, unescape=True) -> str:
 
     for img in iter_img_b64(soup):
         img.decompose()
+    remove_base64_pdf(soup)
 
     if unescape:
         return html.unescape(str(soup))
@@ -137,11 +156,12 @@ def process_text(
         The processed text and the images to link to the instance.
     """
 
-    assert all(
-        (instance, upload_to, view)
-    ), "instance, upload_to and view parameters are required."
+    assert all((instance, upload_to, view)), (
+        "instance, upload_to and view parameters are required."
+    )
 
     soup = BeautifulSoupProjects(text)
+    remove_base64_pdf(soup)
 
     if process_template:
         soup, template_images = process_template_images(
@@ -273,10 +293,7 @@ def process_unlinked_images(
     List[Image]
         The images to link to the instance.
     """
-    if isinstance(text, str):
-        soup = BeautifulSoupProjects(text)
-    else:
-        soup = text
+    soup = BeautifulSoupProjects(text) if isinstance(text, str) else text
 
     images_ids = []
     for image_tag in soup.find_all("img"):
