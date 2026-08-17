@@ -290,6 +290,7 @@ class PeopleGroup(
 
 
 class ProjectUser(
+    HasRelatedModules,
     HasAutoTranslatedFields,
     HasMultipleIDs,
     HasOwner,

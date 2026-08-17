@@ -83,10 +83,10 @@ class AbstractModules:
         )
 
 
-_modules: dict[models.Model, AbstractModules] = {}
+_modules: dict[type[models.Model], AbstractModules] = {}
 
 
-def register_module(model: models.Model):
+def register_module(model: type[models.Model]):
     """decorator to register modules assoiate on models
 
     :param model: _description_
@@ -99,6 +99,6 @@ def register_module(model: models.Model):
     return _wrap
 
 
-def get_module(model: models.Model):
+def get_module(model: type[models.Model]) -> AbstractModules:
     """get regisered module"""
     return _modules[model]
