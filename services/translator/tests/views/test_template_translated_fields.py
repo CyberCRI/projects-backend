@@ -36,6 +36,7 @@ class TemplateTranslatedFieldsTestCase(JwtAPITestCase):
             "review_title": faker.word(),
             "review_description": faker.word(),
             "comment_content": faker.word(),
+            "tabs": [],
         }
         response = self.client.post(
             reverse("Template-list", args=(self.organization.code,)),
