@@ -7,7 +7,8 @@ from rest_framework import mixins, serializers, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from apps.accounts.permissions import ProjectNestedPermission
+from apps.accounts.models import ProjectUser
+from apps.accounts.permissions import ProjectNestedPermission, UserNestedPermission
 from apps.organizations.models import Organization
 from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.models import Project, ProjectTab
@@ -207,6 +208,22 @@ class NestedPeopleGroupViewMixins:
         )
 
         super().initial(request, *args, **kwargs)
+
+
+class NestedUserViewMixins(MultipleIDViewsetMixin):
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
+    user: ProjectUser
+
+    def initial(self, request, *args, **kwargs):
+        self.user = get_object_or_404(
+            request.user.get_user_queryset().slug_or_id(kwargs["user_id"]),
+        )
+
+        super().initial(request, *args, **kwargs)
+
+    def get_permissions(self):
+        """add check nested project"""
+        return [UserNestedPermission(), *super().get_permissions()]
 
 
 class QuerySerializersMixin:

@@ -21,6 +21,7 @@ router.register(r"privacy-settings", PrivacySettingsViewSet, basename="PrivacySe
 
 user_router_register(router, r"follow", UserFollowViewSet, basename="Follower")
 user_router_register(router, r"review", ReviewViewSet, basename="Reviewer")
+
 user_router_register(
     router,
     r"profile-picture",

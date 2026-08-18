@@ -46,6 +46,7 @@ from apps.commons.views import (
     MultipleIDViewsetMixin,
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
+    NestedUserViewMixins,
     QuerySerializersMixin,
 )
 from apps.files.models import Image
@@ -106,8 +107,13 @@ from .utils import (
 )
 
 
-class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = UserSerializer
+    query_serializers = {
+        "light": UserLightSerializer,
+        "superlight": UserLighterSerializer,
+    }
+
     lookup_field = "id"
     lookup_value_regex = (
         "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9_-]{1,}"
@@ -222,7 +228,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             return UserLightSerializer
         if self.action == "admin_list":
             return UserAdminListSerializer
-        return self.serializer_class
+        return super().get_serializer_class()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -1046,7 +1052,7 @@ class DeleteCookieView(views.APIView):
         return response
 
 
-class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
+class UserProfilePictureView(NestedUserViewMixins, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -1055,29 +1061,24 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
-    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
-        if "user_id" in self.kwargs:
-            return Image.objects.filter(user=self.kwargs["user_id"])
-        return Image.objects.none()
+        return self.user.images.all()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"account/profile/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "user_id" in self.kwargs:
-            user = ProjectUser.objects.get(id=self.kwargs["user_id"])
-            user.profile_picture = image
-            user.save()
-            image.owner = user
-            image.save()
-            return f"/v1/user/{self.kwargs['user_id']}/profile-picture/{image.id}"
-        return None
+        user = ProjectUser.objects.get(id=self.kwargs["user_id"])
+        user.profile_picture = image
+        user.save()
+        image.owner = user
+        image.save()
+        return f"/v1/user/{self.kwargs['user_id']}/profile-picture/{image.id}"
 
 
-class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
+class PrivacySettingsViewSet(NestedUserViewMixins, RetrieveUpdateModelViewSet):
     """Allows getting or modifying a user's privacy settings."""
 
     permission_classes = [
@@ -1090,15 +1091,9 @@ class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet)
     serializer_class = PrivacySettingsSerializer
     lookup_field = "user_id"
     lookup_url_kwarg = "user_id"
-    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
-        if "user_id" in self.kwargs:
-            qs = self.request.user.get_user_related_queryset(
-                PrivacySettings.objects.all()
-            )
-            return qs.filter(user__id=self.kwargs["user_id"])
-        return PrivacySettings.objects.none()
+        return PrivacySettings.objects.filter(user=self.user)
 
 
 class AccessTokenView(APIView):
