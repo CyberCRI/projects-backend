@@ -1,4 +1,5 @@
 import uuid
+from functools import cached_property
 
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
@@ -22,11 +23,9 @@ from apps.commons.serializers import (
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.modules.serializers import ModulesSerializers
-from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from apps.skills.models import Skill
-from apps.skills.serializers import SkillLightSerializer, TagRelatedField
+from apps.skills.serializers import TagRelatedField
 from services.crisalid.serializers import ResearcherSerializerLight
 from services.translator.serializers import auto_translated
 
@@ -109,9 +108,6 @@ class UserSerializer(
 
     # Read only fields
     permissions = serializers.SerializerMethodField()
-    people_groups = serializers.SerializerMethodField()
-    notifications = serializers.SerializerMethodField()
-    privacy_settings = PrivacySettingsSerializer(read_only=True)
 
     # Privacy protected fields
     email = PrivacySettingProtectedEmailField(
@@ -120,12 +116,10 @@ class UserSerializer(
     personal_email = PrivacySettingProtectedEmailField(
         privacy_field="email", required=False, allow_blank=True
     )
-    skills = PrivacySettingProtectedMethodField(
-        privacy_field="skills", default_value=[]
-    )
     profile_picture = PrivacySettingProtectedMethodField(
         privacy_field="profile_picture"
     )
+
     mobile_phone = PrivacySettingProtectedCharField(
         privacy_field="mobile_phone", required=False, allow_blank=True
     )
@@ -151,29 +145,9 @@ class UserSerializer(
         privacy_field="socials", required=False, allow_blank=True
     )
 
-    # Write only profile picture fields
-    profile_picture_file = serializers.ImageField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_scale_x = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_scale_y = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_left = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_top = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_natural_ratio = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
     researcher = ResearcherSerializerLight(
         read_only=True, required=False, allow_null=True
     )
-    resources = serializers.SerializerMethodField()
 
     class Meta:
         model = ProjectUser
@@ -182,7 +156,6 @@ class UserSerializer(
             "slug",
             "created_at",
             "researcher",
-            "resources",
             "modules",
         ]
         fields = read_only_fields + [
@@ -191,10 +164,6 @@ class UserSerializer(
             "roles_to_remove",
             "permissions",
             "is_superuser",
-            "people_groups",
-            "notifications",
-            "privacy_settings",
-            "skills",
             "profile_picture",
             "id",
             "language",
@@ -221,21 +190,20 @@ class UserSerializer(
             "skype",
             "landline_phone",
             "twitter",
-            "profile_picture_file",
-            "profile_picture_scale_x",
-            "profile_picture_scale_y",
-            "profile_picture_left",
-            "profile_picture_top",
-            "profile_picture_natural_ratio",
         ]
 
-    def to_representation(self, instance):
+    @cached_property
+    def _user_acces(self):
         request = self.context.get("request")
+        if request:
+            return request.user.get_user_queryset().values_list("pk", flat=True)
+        return []
+
+    def to_representation(self, instance: ProjectUser):
         force_display = self.context.get("force_display", False)
-        if force_display or (
-            request and request.user.get_user_queryset().filter(id=instance.id).exists()
-        ):
+        if force_display or instance.pk in self._user_acces:
             return super().to_representation(instance)
+
         return {
             **AnonymousUser.serialize(with_permissions=False),
             "current_org_role": None,
@@ -330,39 +298,15 @@ class UserSerializer(
         )
 
     def get_permissions(self, user: ProjectUser) -> list[str]:
+        request = self.context.get("request")
+        if request and request.user.pk != user.pk:
+            return []
         return user.get_instance_permissions_representations()
-
-    def get_skills(self, user: ProjectUser) -> list[dict]:
-        return SkillLightSerializer(user.skills.all(), many=True).data
 
     def get_profile_picture(self, user: ProjectUser) -> dict | None:
         if user.profile_picture is None:
             return None
         return ImageSerializer(user.profile_picture).data
-
-    def get_people_groups(self, user: ProjectUser) -> list:
-        request_user = getattr(self.context.get("request"), "user", AnonymousUser())
-        organization = self.context.get("organization")
-        queryset = (
-            request_user.get_people_group_queryset()
-            .filter(groups__users=user, is_root=False)
-            .distinct()
-        )
-        if organization:
-            queryset = queryset.filter(organization=organization).distinct()
-        return PeopleGroupLightSerializer(
-            queryset, many=True, context=self.context
-        ).data
-
-    def get_notifications(self, user: ProjectUser) -> int:
-        organization = self.context.get("organization")
-        queryset = Notification.objects.filter(is_viewed=False, receiver=user)
-        if organization:
-            queryset = queryset.filter(organization=organization)
-        return queryset.count()
-
-    def get_resources(self, user: ProjectUser) -> dict:
-        return {"files": user.files.count(), "links": user.links.count()}
 
     def create(self, validated_data):
         profile_picture = {
@@ -439,8 +383,6 @@ class UserSerializer(
 @auto_translated
 class UserLightSerializer(UserSerializer):
     current_org_role = serializers.CharField(required=False, read_only=True)
-    needs_mentor_on = serializers.SerializerMethodField()
-    can_mentor_on = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         read_only_fields = [
@@ -456,28 +398,12 @@ class UserLightSerializer(UserSerializer):
             "profile_picture",
             "current_org_role",
             "last_login",
-            "people_groups",
             "created_at",
-            "skills",
-            "needs_mentor_on",
-            "can_mentor_on",
             "modules",
         ]
         fields = read_only_fields
         # for light serializer, default is "skill/groups/mentor/mentoree"
         modules_keys = ("groups", "skills", "mentor", "mentoree")
-
-    def get_needs_mentor_on(self, user: ProjectUser) -> list[dict]:
-        if getattr(user, "needs_mentor_on", None):
-            skills = Skill.objects.filter(id__in=user.needs_mentor_on)
-            return SkillLightSerializer(skills, many=True).data
-        return []
-
-    def get_can_mentor_on(self, user: ProjectUser) -> list[dict]:
-        if getattr(user, "can_mentor_on", None):
-            skills = Skill.objects.filter(id__in=user.can_mentor_on)
-            return SkillLightSerializer(skills, many=True).data
-        return []
 
 
 @auto_translated

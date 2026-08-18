@@ -7,6 +7,7 @@ from django.db.models import (
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.files.models import ProjectUserAttachmentFile, ProjectUserAttachmentLink
 from apps.modules.base import AbstractModules, register_module
+from apps.notifications.models import Notification
 from apps.organizations.models import CategoryFollow
 from apps.projects.models import Project
 from apps.skills.models import Mentoring, Skill
@@ -53,6 +54,9 @@ class UserModules(AbstractModules):
             .filter(groups__users=self.instance)
             .distinct()
         )
+
+    def notifications(self) -> QuerySet[Notification]:
+        return self.instance.notifications_received.filter(is_viewed=False)
 
     @cached_property
     def _researcher(self) -> Researcher | None:
