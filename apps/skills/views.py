@@ -26,7 +26,6 @@ from apps.commons.views import (
     NestedUserViewMixins,
     PaginatedViewSet,
     ReadDestroyModelViewSet,
-    WriteOnlyModelViewSet,
 )
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
@@ -60,8 +59,7 @@ from .utils import (
 )
 
 
-class SkillViewSet(NestedUserViewMixins, WriteOnlyModelViewSet):
-    queryset = Skill.objects.all()
+class SkillViewSet(NestedUserViewMixins, viewsets.ModelViewSet):
     serializer_class = SkillSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly,

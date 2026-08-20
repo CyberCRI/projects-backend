@@ -389,6 +389,8 @@ class ProjectUser(
     landline_phone = models.CharField(blank=True, max_length=255)
     twitter = models.URLField(blank=True)
 
+    objects = MultipleIdsQuerySet.as_manager()
+
     def __str__(self):
         return self.get_full_name()
 
