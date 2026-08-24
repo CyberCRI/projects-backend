@@ -5,8 +5,9 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.commons.factories import language_factory
 from apps.commons.utils import get_test_image
+from apps.projects.models import ProjectTab
 
-from .models import CategoryFollow, Organization, ProjectCategory, Template
+from .models import CategoryFollow, Organization, ProjectCategory, Template, TemplateTab
 
 faker = Faker()
 
@@ -66,6 +67,20 @@ class TemplateFactory(factory.django.DjangoModelFactory):
     def categories(self, create, extracted, **kwargs):
         if create and extracted and len(extracted) > 0:
             self.categories.add(*extracted)
+
+
+class TemplateTabFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = TemplateTab
+
+    uuid = factory.Faker("uuid4")
+    title = factory.Faker("text")
+    description = factory.Faker("sentence")
+    type = ProjectTab.TabType.TEXT
+    icon = factory.Faker("text")
+    show_preview = True
+    title_item = factory.Faker("text")
+    content_item = factory.Faker("sentence")
 
 
 class ProjectCategoryFactory(factory.django.DjangoModelFactory):

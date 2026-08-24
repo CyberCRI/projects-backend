@@ -556,6 +556,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "review_title": faker.sentence(),
             "review_description": texts[5],
             "comment_content": texts[6],
+            "tabs": [],
         }
         response = self.client.post(
             reverse("Template-list", args=(self.organization.code,)),
