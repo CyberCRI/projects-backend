@@ -5,8 +5,13 @@ from import_export.admin import ExportActionMixin  # type: ignore
 from apps.commons.admin import RoleBasedAccessAdmin, TranslateObjectAdminMixin
 from apps.organizations.models import Organization
 
-from .exports import BlogEntryResource, ProjectResource
-from .models import BlogEntry, Project
+from .exports import (
+    BlogEntryResource,
+    ProjectResource,
+    ProjectTabItemResource,
+    ProjectTabResource,
+)
+from .models import BlogEntry, Project, ProjectTab, ProjectTabItem
 
 
 @admin.register(Project)
@@ -51,3 +56,46 @@ class BlogEntryAdmin(
         "created_at",
         "updated_at",
     )
+
+
+@admin.register(ProjectTab)
+class ProjectTabAdmin(
+    TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin
+):
+    resource_classes = [ProjectTabResource]
+
+    def get_queryset_for_organizations(
+        self,
+        queryset: QuerySet[ProjectTab],
+        organizations: QuerySet[Organization],
+    ) -> QuerySet[ProjectTab]:
+        return queryset.filter(project__organizations__in=organizations).distinct()
+
+    list_display = ("id", "title", "project", "type", "updated_at")
+    search_fields = ("id", "title", "description", "type")
+    list_filter = (
+        ("project__organizations", admin.RelatedOnlyFieldListFilter),
+        "type",
+        "show_preview",
+    )
+
+
+@admin.register(ProjectTabItem)
+class ProjectTabItemAdmin(
+    TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin
+):
+    resource_classes = [ProjectTabItemResource]
+
+    def get_queryset_for_organizations(
+        self,
+        queryset: QuerySet[ProjectTab],
+        organizations: QuerySet[Organization],
+    ) -> QuerySet[ProjectTab]:
+        return queryset.filter(project__organizations__in=organizations).distinct()
+
+    list_display = (
+        "id",
+        "title",
+        "tab",
+    )
+    search_fields = ("id", "title", "tab__title")
