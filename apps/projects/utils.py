@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Iterable
 from typing import Any, TypeVar
 
@@ -100,26 +101,34 @@ def annotate_queryset_location(*querysets: QuerySet) -> QuerySet:
 
 def sync_project_tabs(projects: Iterable[Project], tabs: Iterable[TemplateTab]):
     """Update only projects/tabs (used in signal)"""
-    new_tabs = [
-        ProjectTab(
-            uuid=tab.uuid,
-            project=project,
-            title=tab.title,
-            description=tab.description,
-            type=tab.type,
-            icon=tab.icon,
-            show_preview=tab.show_preview,
-        )
-        for tab in tabs
-        for project in projects
-    ]
 
-    ProjectTab.objects.bulk_create(
-        new_tabs,
-        update_conflicts=False,
-        ignore_conflicts=True,
-        unique_fields=["uuid", "project"],
-    )
+    all_uuids = [tab.uuid for tab in tabs]
+    exists_tabs = defaultdict(set)
+
+    for uuid, project_id in ProjectTab.objects.filter(
+        uuid__in=all_uuids, project__in=projects
+    ).values_list("uuid", "project"):
+        exists_tabs[project_id].add(uuid)
+
+    for project in projects:
+        tabs_exists = exists_tabs[project.id]
+        for tab in tabs:
+            # tab already exists
+            if tab.uuid in tabs_exists:
+                continue
+
+            # TODO: we use .save() to generate slug
+            # we need to change that to use bulk_create, and generate slug in db
+            tab = ProjectTab(
+                uuid=tab.uuid,
+                project=project,
+                title=tab.title,
+                description=tab.description,
+                type=tab.type,
+                icon=tab.icon,
+                show_preview=tab.show_preview,
+            )
+            tab.save()
 
 
 def sync_project_template():
