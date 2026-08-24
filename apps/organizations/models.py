@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING, Any, Optional
 
 from django.contrib.auth.models import Group, Permission
@@ -19,6 +20,7 @@ from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
+from apps.projects.models import ProjectTab
 from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
@@ -475,9 +477,49 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     review_description = models.TextField(blank=True)
     comment_content = models.TextField(blank=True)
 
+    # options to active creation tab in project
+    enable_tab = models.BooleanField(default=True)
+
     def get_related_organizations(self) -> Organization:
         """Return the organizations related to this model."""
         return [self.organization]
+
+
+class TemplateTab(OrganizationRelated, models.Model):
+    uuid = models.UUIDField(auto_created=True, default=uuid.uuid4)
+
+    # tabs
+    # title is required
+    title = models.TextField(max_length=255)
+
+    description = models.TextField(blank=True, null=True)
+    template = models.ForeignKey(
+        Template, on_delete=models.CASCADE, related_name="tabs"
+    )
+    type = models.CharField(
+        max_length=32,
+        choices=ProjectTab.TabType.choices,
+        default=ProjectTab.TabType.TEXT,
+    )
+    icon = models.CharField(max_length=255, blank=True, null=True)
+    show_preview = models.BooleanField(default=True)
+
+    # content is all optional
+    title_item = models.TextField(max_length=255, default="", blank=True, null=True)
+    content_item = models.TextField(blank=True, null=True)
+
+    class Meta:
+        # tab need to be different uuid template (to have "unique tab")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["uuid"],
+                name="unique_template_tab",
+            ),
+        ]
+
+    def get_related_organizations(self) -> Organization:
+        """Return the organizations related to this model."""
+        return self.template.get_related_organizations()
 
 
 class ProjectCategory(

@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from typing import Any
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -44,6 +45,7 @@ from .models import (
     Organization,
     ProjectCategory,
     Template,
+    TemplateTab,
     TermsAndConditions,
 )
 
@@ -449,33 +451,28 @@ class ProjectCategoryLightSerializer(
         return [ProjectCategory.objects.get(id=self.validated_data["id"]).organization]
 
 
-@auto_translated
-class ProjectTemplateSerializer(
-    OrganizationRelatedSerializer,
-    serializers.ModelSerializer,
-):
-    project_tags = TagRelatedField(many=True, read_only=True)
+class TemplateTabSerializer(StringsImagesSerializer, serializers.ModelSerializer):
+    string_images_fields: list[str] = [
+        "content",
+        "description",
+    ]
+
+    id = serializers.IntegerField(required=False)
+    uuid = serializers.UUIDField(read_only=True)
 
     class Meta:
-        model = Template
-        read_only_fields = [
+        model = TemplateTab
+        fields = (
             "id",
-            "name",
+            "uuid",
+            "title",
             "description",
-            "language",
-            "project_title",
-            "project_description",
-            "project_purpose",
-            "project_tags",
-            "blogentry_title",
-            "blogentry_content",
-            "goal_title",
-            "goal_description",
-            "review_title",
-            "review_description",
-            "comment_content",
-        ]
-        fields = read_only_fields
+            "type",
+            "icon",
+            "show_preview",
+            "title_item",
+            "content_item",
+        )
 
 
 @auto_translated
@@ -513,6 +510,7 @@ class TemplateSerializer(
         queryset=ProjectCategory.objects.all(),
         source="categories",
     )
+    tabs = TemplateTabSerializer(many=True)
 
     class Meta:
         model = Template
@@ -533,6 +531,8 @@ class TemplateSerializer(
             "review_description",
             "comment_content",
             "categories_ids",
+            "tabs",
+            "enable_tab",
         ]
 
     def get_related_organizations(self) -> list[Organization]:
@@ -547,6 +547,65 @@ class TemplateSerializer(
             "organization_code": instance.organization.code,
             "template_id": instance.id,
         }
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        tabs_data = validated_data.pop("tabs", None)
+
+        # Update du Template
+        instance = super().update(instance, validated_data)
+
+        if tabs_data is None:
+            return instance
+
+        existing_tabs = {tab.id: tab for tab in instance.tabs.all()}
+        received_ids = set()
+
+        for tab_data in tabs_data:
+            tab_id = tab_data.pop("id", None)
+            tab_data["template"] = instance
+
+            tab = existing_tabs.get(tab_id, TemplateTab(**tab_data))
+
+            for field, value in tab_data.items():
+                setattr(tab, field, value)
+
+            tab.save()
+            received_ids.add(tab.id)
+
+        to_delete = [tab_id for tab_id in existing_tabs if tab_id not in received_ids]
+        TemplateTab.objects.filter(id__in=to_delete).delete()
+
+        return instance
+
+    @transaction.atomic
+    def create(self, validated_data):
+        tabs_data = validated_data.pop("tabs", [])
+
+        template = super().create(validated_data)
+
+        for tab_data in tabs_data:
+            tab_data["template"] = template
+            tab = TemplateTab(**tab_data)
+            tab.save()
+
+        return template
+
+
+class ProjectTemplateSerializer(TemplateSerializer):
+    class Meta(TemplateSerializer.Meta):
+        # remove unused field
+        read_only_fields = [
+            field
+            for field in TemplateSerializer.Meta.fields
+            if field
+            not in (
+                "categories_ids",
+                "organization",
+                "categories",
+            )
+        ]
+        fields = read_only_fields
 
 
 @auto_translated

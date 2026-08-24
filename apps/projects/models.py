@@ -1006,7 +1006,11 @@ class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.M
 
 
 class ProjectTab(
-    HasRelatedModules, HasAutoTranslatedFields, ProjectRelated, models.Model
+    HasRelatedModules,
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    HasMultipleIDs,
+    models.Model,
 ):
     """A tab in the project page.
 
@@ -1022,7 +1026,14 @@ class ProjectTab(
         Description of the tab.
     """
 
+    slugified_fields: list[str] = ["title"]
+
+    slug = models.SlugField(unique=True)
+    outdated_slugs = ArrayField(models.SlugField(), default=list)
+
     auto_translated_fields: list[str] = ["title", "html:description"]
+    # uuid linked to template model
+    uuid = models.UUIDField(null=True, default=None)
 
     class TabType(models.TextChoices):
         """Type of a tab."""
@@ -1044,6 +1055,22 @@ class ProjectTab(
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
     show_preview = models.BooleanField(default=True)
 
+    objects = MultipleIdsQuerySet.as_manager()
+
+    class Meta:
+        # tab need to be different uuid by project (to have "unique tab")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["uuid", "project"],
+                name="unique_project_tab",
+                # ignore uuid if tab is create by user (not template)
+                condition=models.Q(uuid__isnull=False),
+            ),
+        ]
+
+    def __repr__(self):
+        return f"<ProjectTab ({self.uuid=!r} {self.title!r})>"
+
     def get_related_project(self) -> Project:
         """Return the projects related to this model."""
         return self.project
@@ -1051,6 +1078,15 @@ class ProjectTab(
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
+
+    @classmethod
+    def get_id_field_name(cls, object_id: Any) -> str:
+        """Get the name of the field which contains the given ID."""
+        try:
+            int(object_id)
+            return "id"
+        except ValueError:
+            return "slug"
 
 
 class ProjectTabItem(HasAutoTranslatedFields, ProjectRelated, models.Model):

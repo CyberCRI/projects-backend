@@ -213,21 +213,19 @@ class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
         serializer.save(follower=follower)
 
 
-class TemplateViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class TemplateViewSet(
+    NestedOrganizationViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     serializer_class = TemplateSerializer
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
 
-    def get_queryset(self):
-        if "organization_code" in self.kwargs:
-            return (
-                Template.objects.filter(
-                    organization__code=self.kwargs["organization_code"]
-                )
-                .select_related("organization")
-                .prefetch_related("project_tags")
-            )
-        return Template.objects.none()
+    def get_queryset(self) -> QuerySet[Template]:
+        return (
+            self.organization.templates.all()
+            .select_related("organization")
+            .prefetch_related("project_tags")
+        )
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "template")
@@ -241,10 +239,7 @@ class TemplateViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer):
-        organization = get_object_or_404(
-            Organization, code=self.kwargs["organization_code"]
-        )
-        serializer.save(organization=organization)
+        serializer.save(organization=self.organization)
 
 
 class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):

@@ -193,7 +193,9 @@ class NestedProjectTabViewMixins:
     def initial(self, request, *args, **kwargs):
 
         self.tab = get_object_or_404(
-            self.project.modules_by_user(request.user).tabs(), pk=kwargs["tab_id"]
+            self.project.modules_by_user(request.user)
+            .tabs()
+            .slug_or_id(kwargs["tab_id"]),
         )
 
         super().initial(request, *args, **kwargs)

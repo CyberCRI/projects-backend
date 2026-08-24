@@ -8,7 +8,11 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.organizations.factories import OrganizationFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    TemplateFactory,
+    TemplateTabFactory,
+)
 from apps.projects.factories import ProjectFactory, ProjectTabFactory
 from apps.projects.models import Project, ProjectTab
 
@@ -232,3 +236,51 @@ class ValidateProjectTabTestCase(JwtAPITestCase):
             response,
             {"type": ["You cannot change the type of a project's tab"]},
         )
+
+
+class ProjectTabTemplate(JwtAPITestCase):
+    """test update/create project tab from templates"""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.organization = OrganizationFactory()
+
+        cls.template = TemplateFactory(
+            organization=cls.organization,
+        )
+
+        cls.template_tab = TemplateTabFactory(
+            template=cls.template,
+        )
+
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.client.force_authenticate(self.superadmin)
+
+    def test_update_project_creates_project_tabs_from_template(self):
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
+
+        self.assertEqual(project.modules.tabs().count(), 0)
+
+        project.template = self.template
+        project.save()
+
+        self.assertEqual(project.modules.tabs().count(), 1)
+
+        project_tab = ProjectTab.objects.get(
+            project=project,
+            uuid=self.template_tab.uuid,
+        )
+
+        self.assertEqual(project_tab.title, self.template_tab.title)
+        self.assertEqual(project_tab.description, self.template_tab.description)
+        self.assertEqual(project_tab.type, self.template_tab.type)
+        self.assertEqual(project_tab.icon, self.template_tab.icon)
+        self.assertEqual(project_tab.show_preview, self.template_tab.show_preview)

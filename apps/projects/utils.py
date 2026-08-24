@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Any, TypeVar
 
 from django.db.models import CharField, QuerySet, Value
@@ -5,10 +6,10 @@ from django.db.models.functions import Cast
 from rest_framework import serializers
 from rest_framework.utils import model_meta
 
-from apps.organizations.models import Organization
+from apps.organizations.models import Organization, Template, TemplateTab
 from services.translator.serializers import prefix_fields_langs
 
-from .models import Project
+from .models import Project, ProjectTab
 
 T = TypeVar("T")
 
@@ -95,3 +96,36 @@ def annotate_queryset_location(*querysets: QuerySet) -> QuerySet:
         all_qs = qs if all_qs is None else all_qs.union(qs)
 
     return all_qs
+
+
+def sync_project_tabs(projects: Iterable[Project], tabs: Iterable[TemplateTab]):
+    """Update only projects/tabs (used in signal)"""
+    new_tabs = [
+        ProjectTab(
+            uuid=tab.uuid,
+            project=project,
+            title=tab.title,
+            description=tab.description,
+            type=tab.type,
+            icon=tab.icon,
+            show_preview=tab.show_preview,
+        )
+        for tab in tabs
+        for project in projects
+    ]
+
+    ProjectTab.objects.bulk_create(
+        new_tabs,
+        update_conflicts=False,
+        ignore_conflicts=True,
+        unique_fields=["uuid", "project"],
+    )
+
+
+def sync_project_template():
+    """Sync all projects tabs templates"""
+
+    for template in Template.objects.prefetch_related("tabs").all():
+        sync_project_tabs(
+            Project.objects.filter(template=template), template.tabs.all()
+        )

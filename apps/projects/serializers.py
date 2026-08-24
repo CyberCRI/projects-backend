@@ -915,7 +915,7 @@ class ProjectTabSerializer(
 
     class Meta:
         model = ProjectTab
-        read_only_fields = ["id", "modules"]
+        read_only_fields = ["id", "slug", "modules"]
         fields = read_only_fields + [
             "type",
             "title",
@@ -923,6 +923,7 @@ class ProjectTabSerializer(
             "icon",
             "images",
             "show_preview",
+            "uuid",
         ]
 
     def validate_type(self, value: str):

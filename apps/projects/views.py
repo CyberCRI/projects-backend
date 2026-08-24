@@ -803,6 +803,10 @@ class ProjectTabViewset(NestedProjectViewMixins, viewsets.ModelViewSet):
         | HasProjectPermission("change_project"),
     ]
 
+    multiple_lookup_fields = NestedProjectViewMixins.multiple_lookup_fields + [
+        (ProjectTab, "id")
+    ]
+
     def get_queryset(self) -> QuerySet[ProjectTab]:
         return self.project.modules_by_user(self.request.user).tabs()
 
