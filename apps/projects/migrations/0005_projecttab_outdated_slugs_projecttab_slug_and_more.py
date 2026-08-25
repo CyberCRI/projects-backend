@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="projecttab",
             name="slug",
-            field=models.SlugField(default=None, null=False, unique=True),
+            field=models.SlugField(unique=True),
         ),
         migrations.AddField(
             model_name="projecttab",
