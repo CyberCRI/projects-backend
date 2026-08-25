@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="projecttab",
             name="slug",
-            field=models.SlugField(default=None, null=True, unique=False),
+            field=models.SlugField(default=None, db_index=False, unique=False),
             preserve_default=False,
         ),
         migrations.RunPython(generate_tab_slug),
