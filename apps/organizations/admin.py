@@ -9,7 +9,13 @@ from apps.commons.admin import RoleBasedAccessAdmin, TranslateObjectAdminMixin
 from services.keycloak.interface import KeycloakService
 
 from .exports import ProjectTemplateExportMixin
-from .models import Organization, ProjectCategory, Template, TemplateCategories
+from .models import (
+    Organization,
+    ProjectCategory,
+    Template,
+    TemplateCategories,
+    TemplateTab,
+)
 
 
 @admin.register(Organization)
@@ -52,7 +58,10 @@ class TemplateAdmin(
     class TemplateCategoriesInline(admin.StackedInline):
         model = TemplateCategories
 
-    inlines = (TemplateCategoriesInline,)
+    class TemplateTabInline(admin.StackedInline):
+        model = TemplateTab
+
+    inlines = (TemplateCategoriesInline, TemplateTabInline)
 
     def get_queryset(self, request) -> QuerySet:
         return (

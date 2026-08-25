@@ -3,6 +3,18 @@
 import django.contrib.postgres.fields
 from django.db import migrations, models
 
+def generate_tab_slug(apps, schema_editor):
+    ProjectTab = apps.get_model("projects", "ProjectTab")
+    conn_alias = schema_editor.connection.alias
+
+    for tab in ProjectTab.objects.using(conn_alias).filter(slug__isnull=True):
+        slug = tab.generate_slug()
+        tab.slug = slug
+        index = 0
+        while ProjectTab.objects.slug_or_id(tab.slug).exists():
+            index += 1
+            tab.slug = f"{slug}-{index}"
+        tab.save(update_fields=["slug"], using=conn_alias)
 
 class Migration(migrations.Migration):
 
@@ -25,8 +37,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="projecttab",
             name="slug",
-            field=models.SlugField(default=None, unique=True),
+            field=models.SlugField(default=None, null=True),
             preserve_default=False,
+        ),
+        migrations.RunPython(generate_tab_slug, atomic=True),
+        migrations.AlterField(
+            model_name="projecttab",
+            name="slug",
+            field=models.SlugField(default=None, null=False, unique=True),
         ),
         migrations.AddField(
             model_name="projecttab",
