@@ -1,6 +1,6 @@
 from import_export import fields, resources  # type: ignore
 
-from .models import BlogEntry, Project
+from .models import BlogEntry, Project, ProjectTab, ProjectTabItem
 
 
 class ProjectResource(resources.ModelResource):
@@ -61,3 +61,27 @@ class BlogEntryResource(resources.ModelResource):
             "updated_at",
             "project__id",
         ]
+
+
+class ProjectTabResource(resources.ModelResource):
+    """Resource for exporting project tab."""
+
+    class Meta:
+        model = ProjectTab
+        fields = [
+            "id",
+            "type",
+            "title",
+            "description",
+            "icon",
+            "show_preview",
+            "project__id",
+        ]
+
+
+class ProjectTabItemResource(resources.ModelResource):
+    """Resource for exporting project tab item."""
+
+    class Meta:
+        model = ProjectTabItem
+        fields = ["id", "title", "content", "tab__id"]

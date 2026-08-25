@@ -427,26 +427,33 @@ class HasMultipleIDs:
             Q(slug=slug) | Q(outdated_slugs__contains=[slug])
         ).exists()
 
-    def get_slug(self) -> str:
+    def generate_slug(self) -> str:
         raw_slug = [getattr(self, field) for field in self.slugified_fields]
         raw_slug = slugify("-".join(raw_slug)[0:46])
         if not raw_slug or raw_slug == "-":
             raw_slug = self.slug_prefix
+
         # If there is a potential clash with another identifier, add the prefix
         while self.get_id_field_name(raw_slug) != "slug":
             raw_slug = f"{self.slug_prefix}-{raw_slug}"
+        return raw_slug
+
+    def get_slug(self) -> str:
+        raw_slug = slug = self.generate_slug()
         same_slug_count = 0
-        slug = raw_slug
+
         while self.slug_exists(slug) or slug in [
             self.slug_prefix,
             *self.reserved_slugs,
         ]:
             if slug in self.outdated_slugs or slug == self.slug:
                 return slug
+
             same_slug_count += 1
             slug = f"{raw_slug}-{same_slug_count}"
             if self.get_id_field_name(slug) != "slug":
                 slug = f"{self.slug_prefix}-{slug}"
+
         return slug
 
 
