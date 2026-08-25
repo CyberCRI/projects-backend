@@ -38,14 +38,14 @@ class Migration(migrations.Migration):
             model_name="projecttab",
             name="slug",
             # don't create index in db to avoid error in migrations
-            field=models.SlugField(default=None, db_index=False, unique=False),
+            field=models.SlugField(default=None, null=True, db_index=False, unique=False),
             preserve_default=False,
         ),
         migrations.RunPython(generate_tab_slug, atomic=True),
         migrations.AlterField(
             model_name="projecttab",
             name="slug",
-            field=models.SlugField(unique=True),
+            field=models.SlugField(unique=True, null=False, db_index=True),
         ),
         migrations.AddField(
             model_name="projecttab",
