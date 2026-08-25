@@ -14,8 +14,6 @@ def generate_tab_slug(apps, schema_editor):
         while ProjectTab.objects.using(conn_alias).slug_or_id(tab.slug).exists():
             index += 1
             tab.slug = f"{slug}-{index}"
-        
-        ProjectTab.objects.using(conn_alias)
         tab.save(update_fields=["slug"], using=conn_alias)
 
 class Migration(migrations.Migration):
@@ -39,10 +37,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="projecttab",
             name="slug",
+            # don't create index in db to avoid error in migrations
             field=models.SlugField(default=None, db_index=False, unique=False),
             preserve_default=False,
         ),
-        migrations.RunPython(generate_tab_slug),
+        migrations.RunPython(generate_tab_slug, atomic=True),
         migrations.AlterField(
             model_name="projecttab",
             name="slug",
