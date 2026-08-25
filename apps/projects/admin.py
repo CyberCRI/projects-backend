@@ -71,7 +71,7 @@ class ProjectTabAdmin(
     ) -> QuerySet[ProjectTab]:
         return queryset.filter(project__organizations__in=organizations).distinct()
 
-    list_display = ("id", "title", "project", "type", "updated_at")
+    list_display = ("id", "title", "project", "type")
     search_fields = ("id", "title", "description", "type")
     list_filter = (
         ("project__organizations", admin.RelatedOnlyFieldListFilter),
