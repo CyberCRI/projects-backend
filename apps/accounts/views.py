@@ -348,6 +348,44 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
                 return Response({"result": True}, status=status.HTTP_200_OK)
         return Response({"result": False}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="limit",
+                description="Number of results to return per page.",
+                required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name="offset",
+                description="The initial index from which to return the results.",
+                required=False,
+                type=int,
+            ),
+        ]
+    )
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="groups",
+        permission_classes=[ReadOnly],
+    )
+    def groups(self, request, *args, **kwargs):
+        user = self.get_object()
+        queryset = user.modules_by_user(request.user).groups()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = PeopleGroupLightSerializer(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = PeopleGroupLightSerializer(
+            queryset, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
     def google_sync(self, instance, data, created):
         create_in_google = data.get("create_in_google", False)
         organizational_unit = data.get(
