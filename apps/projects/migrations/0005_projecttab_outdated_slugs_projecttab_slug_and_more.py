@@ -2,16 +2,19 @@
 
 import django.contrib.postgres.fields
 from django.db import migrations, models
+from django.db.models import Q
+
+from django.utils.text import slugify
 
 def generate_tab_slug(apps, schema_editor):
     ProjectTab = apps.get_model("projects", "ProjectTab")
     conn_alias = schema_editor.connection.alias
 
     for tab in ProjectTab.objects.using(conn_alias).filter(slug__isnull=True):
-        slug = tab.generate_slug()
+        slug = slugify("-".join(tab.title)[0:46])
         tab.slug = slug
         index = 0
-        while ProjectTab.objects.using(conn_alias).slug_or_id(tab.slug).exists():
+        while ProjectTab.objects.using(conn_alias).filter(Q(slug=tab.slug) | Q(outdated_slugs__contains=[tab.slug]) ).exists():
             index += 1
             tab.slug = f"{slug}-{index}"
         tab.save(update_fields=["slug"], using=conn_alias)
