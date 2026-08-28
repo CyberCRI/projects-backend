@@ -442,9 +442,12 @@ class ProjectUser(
     ) -> Any:
         try:
             return super().get_main_id(object_id, returned_field)
-        except Http404:
-            user = cls.import_from_keycloak(object_id)
-            return getattr(user, returned_field)
+        except Http404 as e:
+            try:
+                user = cls.import_from_keycloak(object_id)
+                return getattr(user, returned_field)
+            except (KeycloakGetError, RemoteKeycloakAccountNotFound):
+                raise Http404 from e
 
     @classmethod
     @transaction.atomic
@@ -497,10 +500,14 @@ class ProjectUser(
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         if self._related_organizations is None:
-            self._related_organizations = list(
-                Organization.objects.filter(groups__users=self).distinct()
-            )
+            self._related_organizations = list(self.get_organizations_queryset())
         return self._related_organizations
+
+    def get_organizations_queryset(self) -> QuerySet["Organization"]:
+        qs = Organization.objects.filter(groups__users=self).distinct()
+        if self.is_superuser:
+            return Organization.objects.all()
+        return qs
 
     def get_full_name(self) -> str:
         """Return the first_name plus the last_name, with a space in between."""

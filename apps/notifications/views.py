@@ -4,23 +4,26 @@ from urllib.request import Request
 from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import IsOwner, ReadOnly
-from apps.commons.serializers import RetrieveUpdateModelViewSet
-from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
+from apps.commons.views import (
+    ListViewSet,
+    NestedOrganizationUserViewMixins,
+)
 from apps.emailing.tasks import send_email_task
 from apps.emailing.utils import render_message
+from apps.notifications.filters import NotificationFilter
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 
-from .models import Notification, NotificationSettings
 from .serializers import (
     ContactSerializer,
     EmailReportSerializer,
@@ -31,40 +34,35 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 
-class NotificationsViewSet(ListViewSet):
+class NotificationsViewSet(NestedOrganizationUserViewMixins, ListViewSet):
     """Allows getting or modifying a user's notification."""
 
     permission_classes = [ReadOnly]
     serializer_class = NotificationsSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ("is_viewed", "created", "type")
+    ordering = ("-created",)
+    filterset_class = NotificationFilter
 
     def get_queryset(self):
-        queryset = Notification.objects.filter(receiver=self.request.user)
-        if "organization_code" in self.kwargs:
-            organization = get_object_or_404(
-                Organization, code=self.kwargs["organization_code"]
-            )
-            queryset = queryset.filter(organization=organization)
-        return queryset.order_by("-created").select_related(
-            "sender", "project", "organization"
+        return (
+            self.user.modules_by_organization(self.organization)
+            .notifications()
+            .select_related("sender", "project", "organization")
         )
 
     @transaction.atomic
     def list(self, request, *args, **kwargs):
-        response = super(NotificationsViewSet, self).list(request, *args, **kwargs)
-        organization_code = self.kwargs.get("organization_code")
-        mark_viewed = Notification.objects.filter(receiver=self.request.user)
-        if organization_code:
-            mark_viewed = mark_viewed.filter(organization__code=organization_code)
-        mark_viewed.update(is_viewed=True)
+        response = super().list(request, *args, **kwargs)
+        # update notifications
+        self.get_queryset().filter(is_viewed=False).update(is_viewed=True)
         return response
 
 
-class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
+class NotificationSettingsViewSet(NestedOrganizationUserViewMixins, viewsets.ViewSet):
     """Allows getting or modifying a user's notification settings."""
 
     serializer_class = NotificationSettingsSerializer
-    lookup_field = "user_id"
-    lookup_url_kwarg = "user_id"
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -72,15 +70,25 @@ class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelVie
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
-    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
-    def get_queryset(self):
-        if "user_id" in self.kwargs:
-            qs = self.request.user.get_user_related_queryset(
-                NotificationSettings.objects.all()
-            )
-            return qs.filter(user__id=self.kwargs["user_id"])
-        return NotificationSettings.objects.none()
+    def list(self, request, *args, **kwargs):
+        instance = self.user.notification_settings
+
+        serializer = self.serializer_class(instance)
+        return Response(serializer.data)
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.user.notification_settings
+
+        serializer = self.serializer_class(
+            instance,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
 
 
 class ReportViewSet(viewsets.GenericViewSet):
