@@ -54,8 +54,10 @@ from apps.files.views import ImageStorageView
 from apps.modules.group import PeopleGroupModules
 from apps.newsfeed.serializers import EventSerializer, NewsSerializer
 from apps.newsfeed.views import EventViewSet, NewsViewSet
-from apps.organizations.models import Organization
+from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
+from apps.organizations.serializers import ProjectCategoryLightSerializer
+from apps.projects.models import Project
 from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
 from apps.skills.models import Skill
 from services.google.models import GoogleAccount, GoogleGroup
@@ -1132,6 +1134,75 @@ class PrivacySettingsViewSet(NestedUserViewMixins, RetrieveUpdateModelViewSet):
 
     def get_queryset(self):
         return PrivacySettings.objects.filter(user=self.user)
+
+
+class UserMemberProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectLightSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["updated_at", "created_at"]
+    ordering = ["-updated_at"]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            self.request.user.get_project_queryset()
+            .filter(groups__users=self.user)
+            .distinct()
+            .select_related("header_image")
+            .prefetch_related("categories", "tags", "organizations__logo_image")
+        )
+
+
+class UserReviewerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectLightSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["updated_at", "created_at"]
+    ordering = ["-updated_at"]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            self.request.user.get_project_queryset()
+            .filter(
+                groups__data__role=GroupData.Role.REVIEWERS,
+                groups__users=self.user,
+            )
+            .distinct()
+            .select_related("header_image")
+            .prefetch_related("categories", "tags", "organizations__logo_image")
+        )
+
+
+class UserFollowerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectLightSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["updated_at", "created_at"]
+    ordering = ["-updated_at"]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            self.request.user.get_project_queryset()
+            .filter(follows__follower=self.user)
+            .distinct()
+            .select_related("header_image")
+            .prefetch_related("categories", "tags", "organizations__logo_image")
+        )
+
+
+class UserFollowerCategoryViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectCategoryLightSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["name"]
+    ordering = ["name"]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            ProjectCategory.objects.filter(follows__follower=self.user)
+            .distinct()
+            .select_related("organization")
+        )
 
 
 class AccessTokenView(APIView):
