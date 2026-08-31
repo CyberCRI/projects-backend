@@ -12,7 +12,7 @@ def generate_tab_slug(apps, schema_editor):
         slug = f"{slugify(tab.title)}-{tab.project.id}"
         tab.slug = slug
         index = 0
-        while ProjectTab.objects.using(conn_alias).slug_or_id(tab.slug).exists():
+        while ProjectTab.objects.using(conn_alias).filter(slug=tab.slug).exists():
             index += 1
             tab.slug = f"{slug}-{index}"
         tab.save(update_fields=["slug"], using=conn_alias)
