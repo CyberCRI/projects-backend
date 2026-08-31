@@ -2,7 +2,7 @@
 
 import django.contrib.postgres.fields
 from django.db import migrations, models
-from slugify import slugify
+from django.utils.text import slugify
 
 def generate_tab_slug(apps, schema_editor):
     ProjectTab = apps.get_model("projects", "ProjectTab")
