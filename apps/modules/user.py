@@ -6,7 +6,7 @@ from django.db.models import (
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.files.models import ProjectUserAttachmentFile, ProjectUserAttachmentLink
-from apps.modules.base import AbstractModules, register_module
+from apps.modules.base import AbstractModules, organization_related, register_module
 from apps.notifications.models import Notification
 from apps.organizations.models import CategoryFollow
 from apps.projects.models import Project
@@ -21,12 +21,15 @@ class UserModules(AbstractModules):
     def skills(self) -> QuerySet[Skill]:
         return self.instance.skills.all()
 
+    @organization_related
     def mentor(self) -> QuerySet[Mentoring]:
         return self.instance.mentor_mentorings.all()
 
+    @organization_related
     def mentoree(self) -> QuerySet[Mentoring]:
         return self.instance.mentoree_mentorings.all()
 
+    @organization_related
     def follows_projects(self) -> QuerySet[Project]:
         qs = self.user.get_project_queryset()
         follows_projects = self.instance.follows.all()
@@ -41,6 +44,7 @@ class UserModules(AbstractModules):
     def links(self) -> QuerySet[ProjectUserAttachmentLink]:
         return self.instance.links.all()
 
+    @organization_related
     def groups(self) -> QuerySet[PeopleGroup]:
         return (
             self.user.get_people_group_queryset()
@@ -48,6 +52,7 @@ class UserModules(AbstractModules):
             .distinct()
         )
 
+    @organization_related
     def projects(self) -> QuerySet[Project]:
         return (
             self.user.get_project_queryset()
@@ -55,6 +60,7 @@ class UserModules(AbstractModules):
             .distinct()
         )
 
+    @organization_related
     def notifications(self) -> QuerySet[Notification]:
         return self.instance.notifications_received.filter(is_viewed=False)
 

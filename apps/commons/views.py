@@ -1,6 +1,7 @@
 from functools import cached_property
 
 from django.db.models import QuerySet
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter as _OpenApiParameter
 from rest_framework import mixins, serializers, viewsets
@@ -169,6 +170,11 @@ class NestedOrganizationViewMixins:
         organizations_code = get_below_hierarchy_codes((self.organization.code,))
         return Organization.objects.filter(code__in=organizations_code)
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"organization": self.organization})
+        return context
+
 
 class NestedProjectViewMixins(MultipleIDViewsetMixin):
     multiple_lookup_fields = [(Project, "project_id")]
@@ -226,6 +232,21 @@ class NestedUserViewMixins(MultipleIDViewsetMixin):
     def get_permissions(self):
         """add check nested project"""
         return [UserNestedPermission(), *super().get_permissions()]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"user": self.user})
+        return context
+
+
+class NestedOrganizationUserViewMixins(
+    NestedOrganizationViewMixins, NestedUserViewMixins
+):
+    def initial(self, request, *ar, **kw):
+        super().initial(request, *ar, **kw)
+        # check if user is in organizations
+        if not self.user.get_organizations_queryset().contains(self.organization):
+            raise Http404
 
 
 class QuerySerializersMixin:

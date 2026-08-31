@@ -29,5 +29,8 @@ class ModulesSerializers(serializers.ModelSerializer):
 
     def get_modules(self, instance):
         request = self.context.get("request")
+        organization = self.context.get("organization")
 
-        return instance.modules_by_user(request.user).count(self.__modules_keys)
+        return instance.modules_by_user(request.user, organization=organization).count(
+            self.__modules_keys
+        )

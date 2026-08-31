@@ -2,13 +2,13 @@ from typing import TYPE_CHECKING
 
 from django.db import models
 
-from apps.commons.mixins import HasOwner
+from apps.commons.mixins import HasOwner, OrganizationRelated
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
 
 
-class Notification(models.Model, HasOwner):
+class Notification(models.Model, OrganizationRelated, HasOwner):
     class Types(models.TextChoices):
         """Different types of notifications."""
 
@@ -35,13 +35,6 @@ class Notification(models.Model, HasOwner):
         ACCESS_REQUEST = "access_request"
         PENDING_ACCESS_REQUESTS = "pending_access_requests"
         NEW_INSTRUCTION = "new_instruction"
-
-    class ExpirationTypes(models.TextChoices):
-        """Different dates of expiration."""
-
-        DEFAULT = ""
-        WEEK = "week"
-        TODAY = "today"
 
     sender = models.ForeignKey(
         "accounts.ProjectUser",
