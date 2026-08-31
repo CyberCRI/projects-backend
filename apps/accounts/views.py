@@ -57,7 +57,6 @@ from apps.newsfeed.views import EventViewSet, NewsViewSet
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.serializers import ProjectCategoryLightSerializer
-from apps.projects.models import Project
 from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
 from apps.skills.models import Skill
 from services.google.models import GoogleAccount, GoogleGroup
