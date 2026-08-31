@@ -2,13 +2,14 @@
 
 import django.contrib.postgres.fields
 from django.db import migrations, models
+from django.utils.text import slugify
 
 def generate_tab_slug(apps, schema_editor):
     ProjectTab = apps.get_model("projects", "ProjectTab")
     conn_alias = schema_editor.connection.alias
 
-    for tab in ProjectTab.objects.using(conn_alias).filter(slug__isnull=True):
-        slug = tab.generate_slug()
+    for tab in ProjectTab.objects.using(conn_alias).select_related("project").filter(slug__isnull=True):
+        slug = f"{slugify(tab.title)}-{tab.project.id}"
         tab.slug = slug
         index = 0
         while ProjectTab.objects.using(conn_alias).slug_or_id(tab.slug).exists():
