@@ -19,10 +19,8 @@ class Command(BaseCommand):
             instance.images.add(*images)
             BlogEntry.objects.filter(id=instance.id).update(updated_at=updated_at)
         for instance in Template.objects.all():
-            images1 = process_unlinked_images(
-                instance, instance.description_placeholder
-            )
-            images2 = process_unlinked_images(instance, instance.blogentry_placeholder)
+            images1 = process_unlinked_images(instance, instance.project_description)
+            images2 = process_unlinked_images(instance, instance.blogentry_content)
             instance.images.add(*(images1 + images2))
         for instance in Comment.objects.all():
             updated_at = instance.updated_at
