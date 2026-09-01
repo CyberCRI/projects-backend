@@ -1267,3 +1267,31 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         keycloak_groups = KeycloakService.get_user_groups(user.keycloak_account)
         self.assertIn(organization_group, [group["id"] for group in keycloak_groups])
+
+
+class UserGroupsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.user = UserFactory()
+        cls.people_groups = PeopleGroupFactory.create_batch(
+            2, organization=cls.organization
+        )
+        for people_group in cls.people_groups:
+            people_group.setup_permissions()
+            people_group.members.add(cls.user)
+
+    def test_list_user_groups(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(reverse("ProjectUser-groups", args=(self.user.id,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(
+            {people_group["id"] for people_group in content},
+            {people_group.id for people_group in self.people_groups},
+        )
+
+    def test_list_user_groups_anonymous(self):
+        response = self.client.get(reverse("ProjectUser-groups", args=(self.user.id,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

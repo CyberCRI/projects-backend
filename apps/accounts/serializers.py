@@ -1,5 +1,5 @@
 import uuid
-from typing import Any
+from functools import cached_property
 
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
@@ -23,11 +23,9 @@ from apps.commons.serializers import (
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.modules.serializers import ModulesSerializers
-from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from apps.skills.models import Skill
-from apps.skills.serializers import SkillLightSerializer, TagRelatedField
+from apps.skills.serializers import TagRelatedField
 from services.crisalid.serializers import ResearcherSerializerLight
 from services.translator.serializers import auto_translated
 
@@ -50,6 +48,8 @@ from .models import (
 )
 from .utils import get_default_group, get_instance_from_group
 
+# USER
+
 
 class PrivacySettingsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -63,6 +63,373 @@ class PrivacySettingsSerializer(serializers.ModelSerializer):
             "email",
             "socials",
         ]
+
+
+@extend_schema_serializer(exclude_fields=("roles",))
+@auto_translated
+class UserSerializer(
+    ModulesSerializers,
+    StringsImagesSerializer,
+    serializers.ModelSerializer,
+):
+    string_images_forbid_fields: list[str] = [
+        "description",
+        "short_description",
+        "job",
+    ]
+
+    sdgs = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=17),
+        required=False,
+    )
+    roles = serializers.SlugRelatedField(
+        many=True,
+        queryset=Group.objects.all(),
+        slug_field="name",
+        required=False,
+        source="groups",
+    )
+    roles_to_add = serializers.SlugRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Group.objects.all(),
+        slug_field="name",
+        required=False,
+        source="groups",
+    )
+    roles_to_remove = serializers.SlugRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Group.objects.all(),
+        slug_field="name",
+        required=False,
+        source="groups",
+    )
+
+    # Read only fields
+    permissions = serializers.SerializerMethodField()
+
+    # Privacy protected fields
+    email = PrivacySettingProtectedEmailField(
+        privacy_field="email", required=False, allow_blank=True
+    )
+    personal_email = PrivacySettingProtectedEmailField(
+        privacy_field="email", required=False, allow_blank=True
+    )
+    profile_picture = PrivacySettingProtectedMethodField(
+        privacy_field="profile_picture"
+    )
+
+    mobile_phone = PrivacySettingProtectedCharField(
+        privacy_field="mobile_phone", required=False, allow_blank=True
+    )
+    facebook = PrivacySettingProtectedCharField(
+        privacy_field="socials", required=False, allow_blank=True
+    )
+    linkedin = PrivacySettingProtectedCharField(
+        privacy_field="socials", required=False, allow_blank=True
+    )
+    medium = PrivacySettingProtectedCharField(
+        privacy_field="socials", required=False, allow_blank=True
+    )
+    website = PrivacySettingProtectedCharField(
+        privacy_field="socials", required=False, allow_blank=True
+    )
+    skype = PrivacySettingProtectedCharField(
+        privacy_field="socials", required=False, allow_blank=True
+    )
+    landline_phone = PrivacySettingProtectedCharField(
+        privacy_field="socials", required=False, allow_blank=True
+    )
+    twitter = PrivacySettingProtectedCharField(
+        privacy_field="socials", required=False, allow_blank=True
+    )
+
+    researcher = ResearcherSerializerLight(
+        read_only=True, required=False, allow_null=True
+    )
+
+    class Meta:
+        model = ProjectUser
+        read_only_fields = [
+            "id",
+            "slug",
+            "created_at",
+            "researcher",
+            "modules",
+        ]
+        fields = read_only_fields + [
+            "roles",
+            "roles_to_add",
+            "roles_to_remove",
+            "permissions",
+            "is_superuser",
+            "profile_picture",
+            "id",
+            "language",
+            "onboarding_status",
+            "signed_terms_and_conditions",
+            "keycloak_id",
+            "people_id",
+            "email",
+            "given_name",
+            "family_name",
+            "birthdate",
+            "pronouns",
+            "short_description",
+            "description",
+            "location",
+            "job",
+            "mobile_phone",
+            "personal_email",
+            "sdgs",
+            "facebook",
+            "linkedin",
+            "medium",
+            "website",
+            "skype",
+            "landline_phone",
+            "twitter",
+        ]
+
+    @cached_property
+    def _user_acces(self):
+        request = self.context.get("request")
+        if request:
+            return request.user.get_user_queryset().values_list("pk", flat=True)
+        return []
+
+    def to_representation(self, instance: ProjectUser):
+        force_display = self.context.get("force_display", False)
+        if force_display or instance.pk in self._user_acces:
+            return super().to_representation(instance)
+
+        return {
+            **AnonymousUser.serialize(with_permissions=False),
+            "current_org_role": None,
+        }
+
+    def _validate_role(
+        self,
+        group: Group,
+        request_user: ProjectUser,
+        instance: HasPermissionsSetup | None = None,
+    ):
+        instance = instance or get_instance_from_group(group)
+        if not instance or (
+            isinstance(instance, Project) and group.people_groups.exists()
+        ):
+            raise UserRoleAssignmentError(group.name)
+        content_type = ContentType.objects.get_for_model(instance)
+        if not any(
+            [
+                request_user.has_perm(
+                    f"{content_type.app_label}.change_{content_type.model}"
+                ),
+                request_user.has_perm(
+                    f"{content_type.app_label}.change_{content_type.model}",
+                    instance,
+                ),
+                *[
+                    request_user.has_perm(
+                        f"organizations.change_{content_type.model}",
+                        organization,
+                    )
+                    for organization in instance.get_related_organizations()
+                ],
+            ]
+        ):
+            raise UserRolePermissionDeniedError(group.name)
+
+    def validate_roles(self, groups: list[Group]) -> list[Group]:
+        request = self.context.get("request")
+        user = request.user
+        groups_to_add = (
+            [group for group in groups if group not in self.instance.groups.all()]
+            if self.instance
+            else groups
+        )
+        groups_to_remove = (
+            [group for group in self.instance.groups.all() if group not in groups]
+            if self.instance
+            else []
+        )
+        additional_groups_to_add = []
+        additional_groups_to_remove = []
+        for group in groups_to_add:
+            instance = get_instance_from_group(group)
+            self._validate_role(group, user, instance)
+            if isinstance(instance, PeopleGroup):
+                group_projects = Project.objects.filter(groups__people_groups=instance)
+                group_projects_roles = Group.objects.filter(
+                    projects__in=group_projects, people_groups=instance
+                ).distinct()
+                additional_groups_to_add += list(group_projects_roles)
+            if self.instance and isinstance(instance, Organization):
+                self.instance.add_to_keycloak_group(instance)
+        for group in groups_to_remove:
+            instance = get_instance_from_group(group)
+            self._validate_role(group, user, instance)
+            if isinstance(instance, PeopleGroup):
+                group_projects = Project.objects.filter(groups__people_groups=instance)
+                group_projects_roles = Group.objects.filter(
+                    projects__in=group_projects, people_groups=instance
+                ).distinct()
+                additional_groups_to_remove += list(group_projects_roles)
+            if (
+                self.instance
+                and isinstance(instance, Organization)
+                and (
+                    not self.instance.groups.filter(organizations=instance)
+                    .exclude(id=group.id)
+                    .exists()
+                )
+            ):
+                self.instance.remove_from_keycloak_group(instance)
+        default_group = get_default_group()
+        if default_group not in groups:
+            groups.append(default_group)
+        return list(
+            {
+                group
+                for group in groups + additional_groups_to_add
+                if group not in additional_groups_to_remove
+            }
+        )
+
+    def get_permissions(self, user: ProjectUser) -> list[str]:
+        request = self.context.get("request")
+        if request and request.user.pk != user.pk:
+            return []
+        return user.get_instance_permissions_representations()
+
+    def get_profile_picture(self, user: ProjectUser) -> dict | None:
+        if user.profile_picture is None:
+            return None
+        return ImageSerializer(user.profile_picture).data
+
+    def create(self, validated_data):
+        profile_picture = {
+            field: validated_data.pop(f"profile_picture_{field}", None)
+            for field in [
+                "file",
+                "scale_x",
+                "scale_y",
+                "left",
+                "top",
+                "natural_ratio",
+            ]
+        }
+        instance = super().create(validated_data)
+        if profile_picture["file"]:
+            image = Image(
+                name=profile_picture["file"].name,
+                owner=instance,
+                **profile_picture,
+            )
+            upload_to = f"account/profile/{uuid.uuid4()}#{image.name}"
+            image._upload_to = lambda _, __: upload_to
+            image.save()
+            instance.profile_picture = image
+            instance.save()
+        return instance
+
+    def to_internal_value(self, data):
+        """
+        Overriding this method to handle roles_to_add and roles_to_remove.
+
+        Because UserViewSet needs to handle formdata and json, we use a custom parser
+        located in apps/accounts/parsers.py. Otherwise this method would cause an
+        error when trying to process data from a formdata.
+        """
+
+        # Put the profile_picture_file in the data dict
+        data["profile_picture_file"] = data.pop("profile_picture_file", [None])[0]
+
+        # Handle roles_to_add and roles_to_remove
+        groups_to_add = data.pop("roles_to_add", [])
+        groups_to_remove = data.pop("roles_to_remove", [])
+        if self.instance:
+            groups = self.instance.groups.exclude(name__in=groups_to_remove)
+            for group in groups_to_add:
+                group = Group.objects.get(name=group)
+                group_instance = get_instance_from_group(group)
+                if group_instance:
+                    groups = groups.exclude(
+                        name__in=group_instance.groups.values_list("name", flat=True)
+                    )
+                groups = Group.objects.filter(
+                    name__in=[
+                        group.name,
+                        *groups.values_list("name", flat=True),
+                    ]
+                )
+            data["roles"] = groups
+        else:
+            data["roles"] = Group.objects.filter(name__in=groups_to_add)
+
+        # Get default language from organization if not provided
+        organization_groups = Group.objects.filter(
+            organizations__isnull=False, name__in=groups_to_add
+        )
+        if organization_groups.exists() and "language" not in data:
+            group = organization_groups.first()
+            organization = group.organizations.first()
+            data["language"] = organization.language
+
+        return super().to_internal_value(data)
+
+
+@auto_translated
+class UserLightSerializer(UserSerializer):
+    current_org_role = serializers.CharField(required=False, read_only=True)
+
+    class Meta(UserSerializer.Meta):
+        read_only_fields = [
+            "id",
+            "slug",
+            "keycloak_id",
+            "people_id",
+            "email",
+            "given_name",
+            "family_name",
+            "pronouns",
+            "job",
+            "profile_picture",
+            "current_org_role",
+            "last_login",
+            "created_at",
+            "modules",
+        ]
+        fields = read_only_fields
+        # for light serializer, default is "skill/groups/mentor/mentoree"
+        modules_keys = ("groups", "skills", "mentor", "mentoree")
+
+
+@auto_translated
+class UserLighterSerializer(UserLightSerializer):
+    role = serializers.CharField(required=False, read_only=True)
+
+    class Meta(UserLightSerializer.Meta):
+        read_only_fields = [
+            "id",
+            "slug",
+            "keycloak_id",
+            "email",
+            "given_name",
+            "family_name",
+            "pronouns",
+            "job",
+            "profile_picture",
+            "role",
+            "modules",
+        ]
+        fields = read_only_fields
+        # for lighter serializer, default is no modules
+        modules_keys = ()
+
+
+# OTHER
 
 
 @auto_translated
@@ -101,137 +468,6 @@ class UserAdminListSerializer(serializers.ModelSerializer):
         return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
         ).data
-
-
-@auto_translated
-class UserLighterSerializer(serializers.ModelSerializer):
-    email = PrivacySettingProtectedEmailField(
-        privacy_field="email", required=False, allow_blank=True
-    )
-    profile_picture = PrivacySettingProtectedMethodField(
-        privacy_field="profile_picture"
-    )
-    role = serializers.CharField(required=False, read_only=True)
-
-    class Meta:
-        model = ProjectUser
-        read_only_fields = [
-            "id",
-            "slug",
-            "keycloak_id",
-            "email",
-            "given_name",
-            "family_name",
-            "pronouns",
-            "job",
-            "profile_picture",
-            "role",
-        ]
-        fields = read_only_fields
-
-    def get_profile_picture(self, instance: ProjectUser) -> dict[str, Any] | None:
-        image = instance.profile_picture
-        return ImageSerializer(image).data if image else None
-
-    def to_representation(self, instance: ProjectUser) -> dict[str, Any]:
-        request = self.context.get("request")
-        force_display = self.context.get("force_display", False)
-        if force_display or (
-            request and request.user.get_user_queryset().filter(id=instance.id).exists()
-        ):
-            return super().to_representation(instance)
-        return {
-            **AnonymousUser.serialize(with_permissions=False),
-            "role": None,
-        }
-
-
-@auto_translated
-class UserLightSerializer(serializers.ModelSerializer):
-    email = PrivacySettingProtectedEmailField(
-        privacy_field="email", required=False, allow_blank=True
-    )
-    pronouns = serializers.CharField(required=False)
-    profile_picture = PrivacySettingProtectedMethodField(
-        privacy_field="profile_picture"
-    )
-    current_org_role = serializers.CharField(required=False, read_only=True)
-    people_groups = serializers.SerializerMethodField()
-    skills = PrivacySettingProtectedMethodField(
-        privacy_field="skills", default_value=[]
-    )
-    needs_mentor_on = serializers.SerializerMethodField()
-    can_mentor_on = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ProjectUser
-        read_only_fields = [
-            "id",
-            "slug",
-            "keycloak_id",
-            "people_id",
-            "email",
-            "given_name",
-            "family_name",
-            "pronouns",
-            "job",
-            "profile_picture",
-            "current_org_role",
-            "last_login",
-            "people_groups",
-            "created_at",
-            "skills",
-            "needs_mentor_on",
-            "can_mentor_on",
-        ]
-        fields = read_only_fields
-
-    def to_representation(self, instance):
-        request = self.context.get("request")
-        force_display = self.context.get("force_display", False)
-        if force_display or (
-            request and request.user.get_user_queryset().filter(id=instance.id).exists()
-        ):
-            return super().to_representation(instance)
-        return {
-            **AnonymousUser.serialize(with_permissions=False),
-            "current_org_role": None,
-        }
-
-    def get_profile_picture(self, user: ProjectUser) -> dict | str:
-        if user.profile_picture is None:
-            return None
-        return ImageSerializer(user.profile_picture).data
-
-    def get_people_groups(self, user: ProjectUser) -> list:
-        request_user = getattr(self.context.get("request"), "user", AnonymousUser())
-        organization = self.context.get("organization")
-        queryset = (
-            request_user.get_people_group_queryset()
-            .filter(groups__users=user, is_root=False)
-            .select_related("organization")
-            .distinct()
-        )
-        if organization:
-            queryset = queryset.filter(organization=organization).distinct()
-        return PeopleGroupSuperLightSerializer(
-            queryset, many=True, context=self.context
-        ).data
-
-    def get_skills(self, user: ProjectUser) -> list[dict]:
-        return SkillLightSerializer(user.skills.all(), many=True).data
-
-    def get_needs_mentor_on(self, user: ProjectUser) -> list[dict]:
-        if getattr(user, "needs_mentor_on", None):
-            skills = Skill.objects.filter(id__in=user.needs_mentor_on)
-            return SkillLightSerializer(skills, many=True).data
-        return []
-
-    def get_can_mentor_on(self, user: ProjectUser) -> list[dict]:
-        if getattr(user, "can_mentor_on", None):
-            skills = Skill.objects.filter(id__in=user.can_mentor_on)
-            return SkillLightSerializer(skills, many=True).data
-        return []
 
 
 @auto_translated
@@ -621,374 +857,6 @@ class PeopleGroupSerializer(
             "locations",
             "publication_status",
         ]
-
-
-@extend_schema_serializer(exclude_fields=("roles",))
-@auto_translated
-class UserSerializer(
-    StringsImagesSerializer,
-    serializers.ModelSerializer,
-):
-    string_images_forbid_fields: list[str] = [
-        "description",
-        "short_description",
-        "job",
-    ]
-
-    sdgs = serializers.ListField(
-        child=serializers.IntegerField(min_value=1, max_value=17),
-        required=False,
-    )
-    roles = serializers.SlugRelatedField(
-        many=True,
-        queryset=Group.objects.all(),
-        slug_field="name",
-        required=False,
-        source="groups",
-    )
-    roles_to_add = serializers.SlugRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Group.objects.all(),
-        slug_field="name",
-        required=False,
-        source="groups",
-    )
-    roles_to_remove = serializers.SlugRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Group.objects.all(),
-        slug_field="name",
-        required=False,
-        source="groups",
-    )
-
-    # Read only fields
-    permissions = serializers.SerializerMethodField()
-    people_groups = serializers.SerializerMethodField()
-    notifications = serializers.SerializerMethodField()
-    privacy_settings = PrivacySettingsSerializer(read_only=True)
-
-    # Privacy protected fields
-    email = PrivacySettingProtectedEmailField(
-        privacy_field="email", required=False, allow_blank=True
-    )
-    personal_email = PrivacySettingProtectedEmailField(
-        privacy_field="email", required=False, allow_blank=True
-    )
-    skills = PrivacySettingProtectedMethodField(
-        privacy_field="skills", default_value=[]
-    )
-    profile_picture = PrivacySettingProtectedMethodField(
-        privacy_field="profile_picture"
-    )
-    mobile_phone = PrivacySettingProtectedCharField(
-        privacy_field="mobile_phone", required=False, allow_blank=True
-    )
-    facebook = PrivacySettingProtectedCharField(
-        privacy_field="socials", required=False, allow_blank=True
-    )
-    linkedin = PrivacySettingProtectedCharField(
-        privacy_field="socials", required=False, allow_blank=True
-    )
-    medium = PrivacySettingProtectedCharField(
-        privacy_field="socials", required=False, allow_blank=True
-    )
-    website = PrivacySettingProtectedCharField(
-        privacy_field="socials", required=False, allow_blank=True
-    )
-    skype = PrivacySettingProtectedCharField(
-        privacy_field="socials", required=False, allow_blank=True
-    )
-    landline_phone = PrivacySettingProtectedCharField(
-        privacy_field="socials", required=False, allow_blank=True
-    )
-    twitter = PrivacySettingProtectedCharField(
-        privacy_field="socials", required=False, allow_blank=True
-    )
-
-    # Write only profile picture fields
-    profile_picture_file = serializers.ImageField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_scale_x = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_scale_y = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_left = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_top = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
-    profile_picture_natural_ratio = serializers.FloatField(
-        write_only=True, required=False, allow_null=True
-    )
-    researcher = ResearcherSerializerLight(
-        read_only=True, required=False, allow_null=True
-    )
-    resources = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ProjectUser
-        read_only_fields = [
-            "id",
-            "slug",
-            "created_at",
-            "researcher",
-            "resources",
-        ]
-        fields = read_only_fields + [
-            "roles",
-            "roles_to_add",
-            "roles_to_remove",
-            "permissions",
-            "is_superuser",
-            "people_groups",
-            "notifications",
-            "privacy_settings",
-            "skills",
-            "profile_picture",
-            "id",
-            "language",
-            "onboarding_status",
-            "signed_terms_and_conditions",
-            "keycloak_id",
-            "people_id",
-            "email",
-            "given_name",
-            "family_name",
-            "birthdate",
-            "pronouns",
-            "short_description",
-            "description",
-            "location",
-            "job",
-            "mobile_phone",
-            "personal_email",
-            "sdgs",
-            "facebook",
-            "linkedin",
-            "medium",
-            "website",
-            "skype",
-            "landline_phone",
-            "twitter",
-            "profile_picture_file",
-            "profile_picture_scale_x",
-            "profile_picture_scale_y",
-            "profile_picture_left",
-            "profile_picture_top",
-            "profile_picture_natural_ratio",
-        ]
-
-    def to_representation(self, instance):
-        request = self.context.get("request")
-        force_display = self.context.get("force_display", False)
-        if force_display or (
-            request and request.user.get_user_queryset().filter(id=instance.id).exists()
-        ):
-            return super().to_representation(instance)
-        return {
-            **AnonymousUser.serialize(with_permissions=False),
-            "current_org_role": None,
-        }
-
-    def _validate_role(
-        self,
-        group: Group,
-        request_user: ProjectUser,
-        instance: HasPermissionsSetup | None = None,
-    ):
-        instance = instance or get_instance_from_group(group)
-        if not instance or (
-            isinstance(instance, Project) and group.people_groups.exists()
-        ):
-            raise UserRoleAssignmentError(group.name)
-        content_type = ContentType.objects.get_for_model(instance)
-        if not any(
-            [
-                request_user.has_perm(
-                    f"{content_type.app_label}.change_{content_type.model}"
-                ),
-                request_user.has_perm(
-                    f"{content_type.app_label}.change_{content_type.model}",
-                    instance,
-                ),
-                *[
-                    request_user.has_perm(
-                        f"organizations.change_{content_type.model}",
-                        organization,
-                    )
-                    for organization in instance.get_related_organizations()
-                ],
-            ]
-        ):
-            raise UserRolePermissionDeniedError(group.name)
-
-    def validate_roles(self, groups: list[Group]) -> list[Group]:
-        request = self.context.get("request")
-        user = request.user
-        groups_to_add = (
-            [group for group in groups if group not in self.instance.groups.all()]
-            if self.instance
-            else groups
-        )
-        groups_to_remove = (
-            [group for group in self.instance.groups.all() if group not in groups]
-            if self.instance
-            else []
-        )
-        additional_groups_to_add = []
-        additional_groups_to_remove = []
-        for group in groups_to_add:
-            instance = get_instance_from_group(group)
-            self._validate_role(group, user, instance)
-            if isinstance(instance, PeopleGroup):
-                group_projects = Project.objects.filter(groups__people_groups=instance)
-                group_projects_roles = Group.objects.filter(
-                    projects__in=group_projects, people_groups=instance
-                ).distinct()
-                additional_groups_to_add += list(group_projects_roles)
-            if self.instance and isinstance(instance, Organization):
-                self.instance.add_to_keycloak_group(instance)
-        for group in groups_to_remove:
-            instance = get_instance_from_group(group)
-            self._validate_role(group, user, instance)
-            if isinstance(instance, PeopleGroup):
-                group_projects = Project.objects.filter(groups__people_groups=instance)
-                group_projects_roles = Group.objects.filter(
-                    projects__in=group_projects, people_groups=instance
-                ).distinct()
-                additional_groups_to_remove += list(group_projects_roles)
-            if (
-                self.instance
-                and isinstance(instance, Organization)
-                and (
-                    not self.instance.groups.filter(organizations=instance)
-                    .exclude(id=group.id)
-                    .exists()
-                )
-            ):
-                self.instance.remove_from_keycloak_group(instance)
-        default_group = get_default_group()
-        if default_group not in groups:
-            groups.append(default_group)
-        return list(
-            {
-                group
-                for group in groups + additional_groups_to_add
-                if group not in additional_groups_to_remove
-            }
-        )
-
-    def get_permissions(self, user: ProjectUser) -> list[str]:
-        return user.get_instance_permissions_representations()
-
-    def get_skills(self, user: ProjectUser) -> list[dict]:
-        return SkillLightSerializer(user.skills.all(), many=True).data
-
-    def get_profile_picture(self, user: ProjectUser) -> dict | None:
-        if user.profile_picture is None:
-            return None
-        return ImageSerializer(user.profile_picture).data
-
-    def get_people_groups(self, user: ProjectUser) -> list:
-        request_user = getattr(self.context.get("request"), "user", AnonymousUser())
-        organization = self.context.get("organization")
-        queryset = (
-            request_user.get_people_group_queryset()
-            .filter(groups__users=user, is_root=False)
-            .distinct()
-        )
-        if organization:
-            queryset = queryset.filter(organization=organization).distinct()
-        return PeopleGroupLightSerializer(
-            queryset, many=True, context=self.context
-        ).data
-
-    def get_notifications(self, user: ProjectUser) -> int:
-        organization = self.context.get("organization")
-        queryset = Notification.objects.filter(is_viewed=False, receiver=user)
-        if organization:
-            queryset = queryset.filter(organization=organization)
-        return queryset.count()
-
-    def get_resources(self, user: ProjectUser) -> dict:
-        return {"files": user.files.count(), "links": user.links.count()}
-
-    def create(self, validated_data):
-        profile_picture = {
-            field: validated_data.pop(f"profile_picture_{field}", None)
-            for field in [
-                "file",
-                "scale_x",
-                "scale_y",
-                "left",
-                "top",
-                "natural_ratio",
-            ]
-        }
-        instance = super().create(validated_data)
-        if profile_picture["file"]:
-            image = Image(
-                name=profile_picture["file"].name,
-                owner=instance,
-                **profile_picture,
-            )
-            upload_to = f"account/profile/{uuid.uuid4()}#{image.name}"
-            image._upload_to = lambda _, __: upload_to
-            image.save()
-            instance.profile_picture = image
-            instance.save()
-        return instance
-
-    def to_internal_value(self, data):
-        """
-        Overriding this method to handle roles_to_add and roles_to_remove.
-
-        Because UserViewSet needs to handle formdata and json, we use a custom parser
-        located in apps/accounts/parsers.py. Otherwise this method would cause an
-        error when trying to process data from a formdata.
-        """
-
-        # Put the profile_picture_file in the data dict
-        data["profile_picture_file"] = data.pop("profile_picture_file", [None])[0]
-
-        # Handle roles_to_add and roles_to_remove
-        groups_to_add = data.pop("roles_to_add", [])
-        groups_to_remove = data.pop("roles_to_remove", [])
-        if self.instance:
-            groups = self.instance.groups.exclude(name__in=groups_to_remove)
-            for group in groups_to_add:
-                group = Group.objects.get(name=group)
-                group_instance = get_instance_from_group(group)
-                if group_instance:
-                    groups = groups.exclude(
-                        name__in=group_instance.groups.values_list("name", flat=True)
-                    )
-                groups = Group.objects.filter(
-                    name__in=[
-                        group.name,
-                        *groups.values_list("name", flat=True),
-                    ]
-                )
-            data["roles"] = groups
-        else:
-            data["roles"] = Group.objects.filter(name__in=groups_to_add)
-
-        # Get default language from organization if not provided
-        organization_groups = Group.objects.filter(
-            organizations__isnull=False, name__in=groups_to_add
-        )
-        if organization_groups.exists() and "language" not in data:
-            group = organization_groups.first()
-            organization = group.organizations.first()
-            data["language"] = organization.language
-
-        return super().to_internal_value(data)
 
 
 class EmptyPayloadResponseSerializer(serializers.Serializer):

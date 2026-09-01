@@ -1,6 +1,9 @@
 from rest_framework.routers import DefaultRouter
 
-from apps.commons.urls import organization_router_register
+from apps.commons.urls import (
+    organization_router_register,
+    organization_user_router_register,
+)
 
 from .views import (
     ContactViewSet,
@@ -11,12 +14,13 @@ from .views import (
 
 router = DefaultRouter()
 
-router.register(
-    r"notifications-setting",
+organization_user_router_register(
+    router,
+    "notifications-setting",
     NotificationSettingsViewSet,
     basename="NotificationSettings",
 )
-organization_router_register(
+organization_user_router_register(
     router, r"notification", NotificationsViewSet, basename="Notification"
 )
 organization_router_register(router, r"report", ReportViewSet, basename="Report")
