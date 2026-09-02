@@ -434,6 +434,8 @@ class ProjectCategoryLightSerializer(
 ):
     organization = SlugRelatedField(read_only=True, slug_field="code")
 
+    is_followed = serializers.SerializerMethodField()
+
     class Meta:
         model = ProjectCategory
         fields = [
@@ -444,7 +446,18 @@ class ProjectCategoryLightSerializer(
             "foreground_color",
             "organization",
             "is_reviewable",
+            "is_followed",
         ]
+
+    def get_is_followed(self, category: ProjectCategory) -> dict[str, Any]:
+        if "request" in self.context:
+            user = self.context["request"].user
+            if not user.is_anonymous:
+                follow = CategoryFollow.objects.filter(follower=user, category=category)
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
+        return {"is_followed": False, "follow_id": None}
 
     def get_related_organizations(self) -> list[Organization]:
         self.is_valid(raise_exception=True)
@@ -616,6 +629,8 @@ class ProjectCategoryHierarchySerializer(
     children = serializers.SerializerMethodField()
     background_image = ImageSerializer(read_only=True)
 
+    is_followed = serializers.SerializerMethodField()
+
     class Meta:
         model = ProjectCategory
         read_only_fields = [
@@ -626,8 +641,19 @@ class ProjectCategoryHierarchySerializer(
             "foreground_color",
             "background_image",
             "children",
+            "is_followed",
         ]
         fields = read_only_fields
+
+    def get_is_followed(self, category: ProjectCategory) -> dict[str, Any]:
+        if "request" in self.context:
+            user = self.context["request"].user
+            if not user.is_anonymous:
+                follow = CategoryFollow.objects.filter(follower=user, category=category)
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
+        return {"is_followed": False, "follow_id": None}
 
     def get_children(self, category: ProjectCategory) -> list[dict[str, str | int]]:
         context = self.context
@@ -690,6 +716,8 @@ class ProjectCategorySerializer(
         source="templates",
     )
 
+    is_followed = serializers.SerializerMethodField()
+
     class Meta:
         model = ProjectCategory
         read_only_fields = [
@@ -697,6 +725,7 @@ class ProjectCategorySerializer(
             "organization",
             "background_image",
             "templates",
+            "is_followed",
         ]
         fields = read_only_fields + [
             "id",
@@ -716,6 +745,16 @@ class ProjectCategorySerializer(
             "background_image_id",
             "templates_ids",
         ]
+
+    def get_is_followed(self, category: ProjectCategory) -> dict[str, Any]:
+        if "request" in self.context:
+            user = self.context["request"].user
+            if not user.is_anonymous:
+                follow = CategoryFollow.objects.filter(follower=user, category=category)
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
+        return {"is_followed": False, "follow_id": None}
 
     def get_hierarchy(self, obj: ProjectCategory) -> list[dict[str, str | int]]:
         hierarchy = []
