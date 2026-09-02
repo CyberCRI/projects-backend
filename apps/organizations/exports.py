@@ -14,7 +14,7 @@ from .models import Template
 
 class ProjectTemplateExportMixin:
     """
-    This extract checks the structure of the Template's description_placeholder and
+    This extract checks the structure of the Template's project_description and
     extracts the headers from the <h3> tags. It then creates a CSV file for each
     template, showing what these projects show in their description under each header.
 
@@ -36,7 +36,7 @@ class ProjectTemplateExportMixin:
 
     def _get_template_headers(self, template: Template) -> list[str]:
         headers = []
-        soup = BeautifulSoup(template.description_placeholder, "html.parser")
+        soup = BeautifulSoup(template.project_description, "html.parser")
         for h3_tag in soup.find_all("h3"):
             headers.append(h3_tag.get_text(strip=True))
         return headers
