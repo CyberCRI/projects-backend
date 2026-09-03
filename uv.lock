@@ -1753,7 +1753,7 @@ requires-dist = [
     { name = "django-redis", specifier = ">=6.0.0,<7" },
     { name = "django-simple-history", specifier = ">=3.11.0,<4" },
     { name = "django-stdimage", specifier = ">=6.0.2,<7" },
-    { name = "django-storages", extras = ["azure"], specifier = ">=1.11.1,<2" },
+    { name = "django-storages", extras = ["azure"], specifier = ">=1.14.6,<2" },
     { name = "djangorestframework", specifier = ">=3.17.2,<4" },
     { name = "djangorestframework-guardian", specifier = ">=0.4.0,<0.5" },
     { name = "djangorestframework-simplejwt", specifier = ">=5.5.1,<6" },
