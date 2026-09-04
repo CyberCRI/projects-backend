@@ -119,7 +119,9 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self) -> QuerySet[Document]:
         return (
             Document.objects.filter(document_type__in=self.document_types)
-            .prefetch_related("identifiers", "contributors__user")
+            .prefetch_related(
+                "identifiers", "contributors__user", "contributors__identifiers"
+            )
             .order_by("-publication_date")
         )
 

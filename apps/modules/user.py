@@ -5,6 +5,7 @@ from django.db.models import (
 )
 
 from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.commons.models import GroupData
 from apps.files.models import ProjectUserAttachmentFile, ProjectUserAttachmentLink
 from apps.modules.base import AbstractModules, organization_related, register_module
 from apps.notifications.models import Notification
@@ -58,6 +59,13 @@ class UserModules(AbstractModules):
             self.user.get_project_queryset()
             .filter(groups__users=self.instance)
             .distinct()
+        )
+
+    @organization_related
+    def reviews_projects(self) -> QuerySet[Project]:
+        return self.user.get_project_queryset().filter(
+            groups__data__role=GroupData.Role.REVIEWERS,
+            groups__users=self.instance,
         )
 
     @organization_related
