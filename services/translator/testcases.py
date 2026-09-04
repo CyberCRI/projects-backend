@@ -1,8 +1,7 @@
 from types import SimpleNamespace
 from unittest.mock import _Call, call
 
-from azure.ai.translation.text.models import TranslateInputItem, TranslationTarget
-
+# from azure.ai.translation.text.models import TranslateInputItem, TranslationTarget
 from apps.commons.test import JwtAPITestCase
 
 
