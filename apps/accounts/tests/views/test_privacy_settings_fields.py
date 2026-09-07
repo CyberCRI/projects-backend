@@ -32,7 +32,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         user.privacy_settings.email = privacy
         user.privacy_settings.save()
 
-    def assert_fields_visible(self, user, data):
+    def assert_fields_visible(self, user, data, skills):
         self.assertEqual(data["facebook"], user.facebook)
         self.assertEqual(data["twitter"], user.twitter)
         self.assertEqual(data["skype"], user.skype)
@@ -45,11 +45,11 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         self.assertEqual(data["website"], user.website)
         self.assertEqual(data["profile_picture"]["id"], user.profile_picture.id)
         self.assertEqual(
-            {skill["id"] for skill in data["skills"]},
+            {skill["id"] for skill in skills},
             {skill.id for skill in user.skills.all()},
         )
 
-    def assert_fields_hidden(self, data):
+    def assert_fields_hidden(self, data, skills):
         self.assertIsNone(data["facebook"])
         self.assertIsNone(data["twitter"])
         self.assertIsNone(data["skype"])
@@ -61,7 +61,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         self.assertIsNone(data["medium"])
         self.assertIsNone(data["website"])
         self.assertIsNone(data["profile_picture"])
-        self.assertEqual(data["skills"], [])
+        self.assertEqual(skills, [])
 
     @parameterized.expand(
         [
@@ -108,10 +108,14 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectUser-detail", args=(instance.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        skills = self.client.get(reverse("Skill-list", args=(instance.id,))).json()[
+            "results"
+        ]
         if fields_visible:
-            self.assert_fields_visible(instance, response.data)
+            self.assert_fields_visible(instance, response.data, skills)
         else:
-            self.assert_fields_hidden(response.data)
+            self.assert_fields_hidden(response.data, skills)
 
     @parameterized.expand(
         [

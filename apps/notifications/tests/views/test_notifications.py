@@ -21,7 +21,10 @@ class NotificationsTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(notification.receiver)
         response = self.client.get(
-            reverse("Notification-list", args=(self.organization.code,))
+            reverse(
+                "Notification-list",
+                args=(self.organization.code, notification.receiver.pk),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -49,7 +52,7 @@ class NotificationsTestCase(JwtAPITestCase):
         ]
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Notification-list", args=(self.organization.code,))
+            reverse("Notification-list", args=(self.organization.code, user.pk))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for notification in notifications:

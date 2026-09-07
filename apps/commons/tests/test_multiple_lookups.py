@@ -229,25 +229,49 @@ class MultipleLookupsTestCase(JwtAPITestCase):
     def test_user_notification_settings_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("NotificationSettings-detail", args=(self.user.id,))
+            reverse(
+                "NotificationSettings-list",
+                args=(
+                    self.organization.code,
+                    self.user.id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.user.notification_settings.id)
         response = self.client.get(
-            reverse("NotificationSettings-detail", args=(self.user.slug,))
+            reverse(
+                "NotificationSettings-list",
+                args=(
+                    self.organization.code,
+                    self.user.slug,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.user.notification_settings.id)
         response = self.client.get(
-            reverse("NotificationSettings-detail", args=(self.user.keycloak_id,))
+            reverse(
+                "NotificationSettings-list",
+                args=(
+                    self.organization.code,
+                    self.user.keycloak_id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.user.notification_settings.id)
         response = self.client.get(
-            reverse("NotificationSettings-detail", args=(self.outdated_user_slug,))
+            reverse(
+                "NotificationSettings-list",
+                args=(
+                    self.organization.code,
+                    self.outdated_user_slug,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
