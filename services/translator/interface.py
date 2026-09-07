@@ -1,6 +1,5 @@
 from azure.ai.translation.text import TextTranslationClient
-
-# from azure.ai.translation.text.models import TranslateInputItem, TranslationTarget
+from azure.ai.translation.text.models import TranslateInputItem, TranslationTarget
 from azure.core.credentials import AzureKeyCredential
 from django.conf import settings
 
