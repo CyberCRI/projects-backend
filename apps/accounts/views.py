@@ -153,11 +153,11 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
 
     @cached_property
     def organization(self):
-        return get_object_or_404(
-            Organization.objects.filter(
-                pk=self.request.query_params.get("current_org_pk")
-            )
-        )
+        current_org_pk = self.request.query_params.get("current_org_pk")
+        if not current_org_pk:
+            return None
+
+        return get_object_or_404(Organization.objects.filter(pk=current_org_pk))
 
     def annotate_organization_role(
         self, queryset: QuerySet, organization: Organization
@@ -200,8 +200,7 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
 
     def get_queryset(self):
         queryset = self.request.user.get_user_queryset()
-        organization_pk = self.request.query_params.get("current_org_pk")
-        if organization_pk is not None:
+        if self.organization is not None:
             queryset = self.annotate_organization_role(queryset, self.organization)
 
         if self.action == "admin_list":
@@ -259,10 +258,8 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
     )
     def get_by_email(self, request, *args, **kwargs):
         queryset = ProjectUser.objects.all()
-        current_org_pk = request.query_params.get("current_org_pk")
-        if current_org_pk is not None:
-            organization = Organization.objects.get(pk=current_org_pk)
-            queryset = self.annotate_organization_role(queryset, organization)
+        if self.organization is not None:
+            queryset = self.annotate_organization_role(queryset, self.organization)
         user = queryset.filter(
             Q(email=kwargs.get("email")) | Q(personal_email=kwargs.get("email"))
         ).distinct()
