@@ -1099,17 +1099,16 @@ class UserProfilePictureView(NestedUserViewMixins, ImageStorageView):
     ]
 
     def get_queryset(self):
-        return self.user.images.all()
+        return Image.objects.filter(user=self.user)
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"account/profile/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        user = ProjectUser.objects.get(id=self.kwargs["user_id"])
-        user.profile_picture = image
-        user.save()
-        image.owner = user
+        self.user.profile_picture = image
+        self.user.save()
+        image.owner = self.user
         image.save()
         return f"/v1/user/{self.kwargs['user_id']}/profile-picture/{image.id}"
 

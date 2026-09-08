@@ -35,15 +35,17 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
-        cls.user = UserFactory(profile_picture=cls.get_test_image())
-        cls.outdated_user_slug = faker.word()
-        cls.user.outdated_slugs = [cls.outdated_user_slug]
-        cls.user.save()
-
         cls.organization = OrganizationFactory()
         cls.outdated_organization_slug = faker.word()
         cls.organization.outdated_slugs = [cls.outdated_organization_slug]
         cls.organization.save()
+
+        cls.user = UserFactory(
+            profile_picture=cls.get_test_image(), groups=[cls.organization.get_users()]
+        )
+        cls.outdated_user_slug = faker.word()
+        cls.user.outdated_slugs = [cls.outdated_user_slug]
+        cls.user.save()
 
         cls.project = ProjectFactory(
             organizations=[cls.organization], header_image=cls.get_test_image()
