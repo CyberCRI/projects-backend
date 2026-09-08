@@ -1,4 +1,5 @@
 import uuid
+from functools import cached_property
 
 from django.conf import settings
 from django.db import transaction
