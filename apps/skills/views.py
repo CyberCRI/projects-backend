@@ -23,9 +23,9 @@ from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     MultipleIDViewsetMixin,
+    NestedUserViewMixins,
     PaginatedViewSet,
     ReadDestroyModelViewSet,
-    WriteOnlyModelViewSet,
 )
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
@@ -39,7 +39,6 @@ from .exceptions import (
     SkillAlreadyAddedError,
     UserCannotMentorError,
     UserDoesNotNeedMentorError,
-    UserIDIsNotProvidedError,
     WikipediaTagSearchLimitError,
 )
 from .filters import TagFilter
@@ -60,8 +59,7 @@ from .utils import (
 )
 
 
-class SkillViewSet(MultipleIDViewsetMixin, WriteOnlyModelViewSet):
-    queryset = Skill.objects.all()
+class SkillViewSet(NestedUserViewMixins, viewsets.ModelViewSet):
     serializer_class = SkillSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly,
@@ -71,12 +69,9 @@ class SkillViewSet(MultipleIDViewsetMixin, WriteOnlyModelViewSet):
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
-    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
-        if "user_id" in self.kwargs:
-            return self.queryset.filter(user_id=self.kwargs["user_id"])
-        return self.queryset.none()
+        return self.user.modules_by_user(self.request.user).skills()
 
     def create(self, request, *args, **kwargs):
         try:
@@ -85,11 +80,7 @@ class SkillViewSet(MultipleIDViewsetMixin, WriteOnlyModelViewSet):
             raise SkillAlreadyAddedError from err
 
     def perform_create(self, serializer):
-        if "user_id" in self.kwargs:
-            user = get_object_or_404(ProjectUser, id=self.kwargs["user_id"])
-            serializer.save(user=user)
-        else:
-            raise UserIDIsNotProvidedError
+        serializer.save(user=self.user)
 
 
 class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):

@@ -46,6 +46,7 @@ from apps.commons.views import (
     MultipleIDViewsetMixin,
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
+    NestedUserViewMixins,
     QuerySerializersMixin,
 )
 from apps.files.models import Image
@@ -53,8 +54,9 @@ from apps.files.views import ImageStorageView
 from apps.modules.group import PeopleGroupModules
 from apps.newsfeed.serializers import EventSerializer, NewsSerializer
 from apps.newsfeed.views import EventViewSet, NewsViewSet
-from apps.organizations.models import Organization
+from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
+from apps.organizations.serializers import ProjectCategoryLightSerializer
 from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
 from apps.skills.models import Skill
 from services.google.models import GoogleAccount, GoogleGroup
@@ -106,8 +108,13 @@ from .utils import (
 )
 
 
-class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = UserSerializer
+    query_serializers = {
+        "light": UserLightSerializer,
+        "superlight": UserLighterSerializer,
+    }
+
     lookup_field = "id"
     lookup_value_regex = (
         "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9_-]{1,}"
@@ -222,7 +229,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             return UserLightSerializer
         if self.action == "admin_list":
             return UserAdminListSerializer
-        return self.serializer_class
+        return super().get_serializer_class()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -341,6 +348,44 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             if not instance and user.has_perm(codename):
                 return Response({"result": True}, status=status.HTTP_200_OK)
         return Response({"result": False}, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="limit",
+                description="Number of results to return per page.",
+                required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name="offset",
+                description="The initial index from which to return the results.",
+                required=False,
+                type=int,
+            ),
+        ]
+    )
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="groups",
+        permission_classes=[ReadOnly],
+    )
+    def groups(self, request, *args, **kwargs):
+        user = self.get_object()
+        queryset = user.modules_by_user(request.user).groups()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = PeopleGroupLightSerializer(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = PeopleGroupLightSerializer(
+            queryset, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
 
     def google_sync(self, instance, data, created):
         create_in_google = data.get("create_in_google", False)
@@ -1046,7 +1091,7 @@ class DeleteCookieView(views.APIView):
         return response
 
 
-class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
+class UserProfilePictureView(NestedUserViewMixins, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -1055,29 +1100,24 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
-    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
-        if "user_id" in self.kwargs:
-            return Image.objects.filter(user=self.kwargs["user_id"])
-        return Image.objects.none()
+        return self.user.images.all()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"account/profile/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "user_id" in self.kwargs:
-            user = ProjectUser.objects.get(id=self.kwargs["user_id"])
-            user.profile_picture = image
-            user.save()
-            image.owner = user
-            image.save()
-            return f"/v1/user/{self.kwargs['user_id']}/profile-picture/{image.id}"
-        return None
+        user = ProjectUser.objects.get(id=self.kwargs["user_id"])
+        user.profile_picture = image
+        user.save()
+        image.owner = user
+        image.save()
+        return f"/v1/user/{self.kwargs['user_id']}/profile-picture/{image.id}"
 
 
-class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
+class PrivacySettingsViewSet(NestedUserViewMixins, RetrieveUpdateModelViewSet):
     """Allows getting or modifying a user's privacy settings."""
 
     permission_classes = [
@@ -1090,15 +1130,78 @@ class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet)
     serializer_class = PrivacySettingsSerializer
     lookup_field = "user_id"
     lookup_url_kwarg = "user_id"
-    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
-        if "user_id" in self.kwargs:
-            qs = self.request.user.get_user_related_queryset(
-                PrivacySettings.objects.all()
+        return PrivacySettings.objects.filter(user=self.user)
+
+
+class UserMemberProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectLightSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["updated_at", "created_at"]
+    ordering = ["-updated_at"]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            self.request.user.get_project_queryset()
+            .filter(groups__users=self.user)
+            .distinct()
+            .select_related("header_image")
+            .prefetch_related("categories", "tags", "organizations__logo_image")
+        )
+
+
+class UserReviewerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectLightSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["updated_at", "created_at"]
+    ordering = ["-updated_at"]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            self.request.user.get_project_queryset()
+            .filter(
+                groups__data__role=GroupData.Role.REVIEWERS,
+                groups__users=self.user,
             )
-            return qs.filter(user__id=self.kwargs["user_id"])
-        return PrivacySettings.objects.none()
+            .distinct()
+            .select_related("header_image")
+            .prefetch_related("categories", "tags", "organizations__logo_image")
+        )
+
+
+class UserFollowerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectLightSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["updated_at", "created_at"]
+    ordering = ["-updated_at"]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            self.request.user.get_project_queryset()
+            .filter(follows__follower=self.user)
+            .distinct()
+            .select_related("header_image")
+            .prefetch_related("categories", "tags", "organizations__logo_image")
+        )
+
+
+class UserFollowerCategoryViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectCategoryLightSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["name"]
+    ordering = ["name"]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            ProjectCategory.objects.filter(follows__follower=self.user)
+            .distinct()
+            .select_related("organization")
+        )
 
 
 class AccessTokenView(APIView):

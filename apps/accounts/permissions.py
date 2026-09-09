@@ -13,6 +13,12 @@ class ProjectNestedPermission(permissions.BasePermission):
         return request.user.get_project_queryset().contains(view.project)
 
 
+class UserNestedPermission(permissions.BasePermission):
+    def has_permission(self, request: Request, view: GenericViewSet) -> bool:
+        """check "user" from NestedUserMixins"""
+        return request.user.get_user_queryset().contains(view.user)
+
+
 def HasBasePermission(  # noqa: N802
     codename: str, app: str = ""
 ) -> permissions.BasePermission:

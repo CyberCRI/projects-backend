@@ -1,11 +1,14 @@
 import inspect
 from collections.abc import Callable
-from functools import cache
+from functools import cache, wraps
+from typing import Any
 
 from django.db import models
 from drf_spectacular.utils import OpenApiParameter
 
 from apps.accounts.models import ProjectUser
+from apps.commons.mixins import OrganizationRelated
+from apps.organizations.models import Organization
 
 IGNORE_MODULES_FUNCTION = "IGNORE_MODULES_FUNCTION"
 
@@ -19,9 +22,19 @@ def ignore_method(method):
 class AbstractModules:
     """abstract class for modules/queryset declarations"""
 
-    def __init__(self, instance, /, user: ProjectUser, **kw):
+    def __init__(
+        self,
+        instance,
+        /,
+        user: ProjectUser,
+        organization: Organization | None = None,
+        **kw,
+    ):
         self.instance = instance
+        # user instance needed to filter by user
         self.user = user
+        # organization instance to filter elements by organization (optional)
+        self.organization = organization
 
     @classmethod
     @ignore_method
@@ -83,10 +96,10 @@ class AbstractModules:
         )
 
 
-_modules: dict[models.Model, AbstractModules] = {}
+_modules: dict[type[models.Model], AbstractModules] = {}
 
 
-def register_module(model: models.Model):
+def register_module(model: type[models.Model]):
     """decorator to register modules assoiate on models
 
     :param model: _description_
@@ -99,6 +112,26 @@ def register_module(model: models.Model):
     return _wrap
 
 
-def get_module(model: models.Model):
+def get_module(model: type[models.Model]) -> AbstractModules:
     """get regisered module"""
     return _modules[model]
+
+
+def organization_related(func):
+    """wraps method modules to filter by organization if organization is set"""
+
+    @wraps(func)
+    def _wrapped(_self: AbstractModules, *ar, **kw):
+        qs: models.QuerySet[Any] = func(_self, *ar, **kw)
+        model = qs.model
+
+        assert issubclass(model, OrganizationRelated), (
+            f"the decorator @organization_related need a queryset model extended by OrganizationRelated: model={model}"
+        )
+
+        # if organization is set in AbstractModule, filter by organizaton
+        if _self.organization:
+            return qs.filter(model.organization_query("", _self.organization))
+        return qs
+
+    return _wrapped

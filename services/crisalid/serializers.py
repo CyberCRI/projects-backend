@@ -43,13 +43,8 @@ class ResearcherSerializer(serializers.ModelSerializer):
 
 
 class ResearcherSerializerLight(ResearcherSerializer):
-    documents = serializers.SerializerMethodField()
-
     class Meta(ResearcherSerializer.Meta):
-        fields = ("id", "display_name", "documents", "identifiers")
-
-    def get_documents(self, instance):
-        return instance.documents.group_count()
+        fields = ("id", "display_name", "identifiers")
 
 
 class ResearcherDocumentsSerializer(ResearcherSerializer):

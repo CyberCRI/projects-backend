@@ -230,25 +230,6 @@ class TagRelatedField(serializers.RelatedField):
         return Tag.objects.get(id=tag_id)
 
 
-class SkillLightSerializer(serializers.ModelSerializer):
-    tag = TagSerializer(read_only=True)
-
-    class Meta:
-        model = Skill
-        read_only_fields = [
-            "id",
-            "tag",
-            "level",
-            "level_to_reach",
-            "category",
-            "type",
-            "can_mentor",
-            "needs_mentor",
-            "comment",
-        ]
-        fields = read_only_fields
-
-
 class SkillSerializer(serializers.ModelSerializer):
     user = UserMultipleIdRelatedField(read_only=True)
     tag = TagRelatedField()
@@ -267,6 +248,17 @@ class SkillSerializer(serializers.ModelSerializer):
             "needs_mentor",
             "comment",
         ]
+
+
+class SkillLightSerializer(SkillSerializer):
+    tag = TagSerializer(read_only=True)
+
+    class Meta(SkillSerializer.Meta):
+        # remove user field
+        read_only_fields = [
+            field for field in SkillSerializer.Meta.fields if field not in ("user",)
+        ]
+        fields = read_only_fields
 
 
 class MentoringContactSerializer(serializers.Serializer):

@@ -465,10 +465,20 @@ class HasRelatedModules:
 
         return get_module(type(self))
 
-    def modules_by_user(self, user: "ProjectUser"):
-        """return modules wrapped by user"""
+    def modules_by_user(
+        self, user: "ProjectUser", organization: Optional["Organization"] = None
+    ):
+        """return modules wrapped by user and organization if set"""
         modules_manager = self.get_related_module()
-        return modules_manager(self, user)
+        return modules_manager(self, user, organization=organization)
+
+    def modules_by_organization(self, organization: "Organization"):
+        """return modules Wrapped by organization"""
+        from apps.accounts.models import InternalAdmin
+
+        internaladmin = InternalAdmin()
+
+        return self.modules_by_user(internaladmin, organization=organization)
 
     @cached_property
     def modules(self):

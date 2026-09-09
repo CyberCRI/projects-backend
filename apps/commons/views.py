@@ -1,13 +1,15 @@
 from functools import cached_property
 
 from django.db.models import QuerySet
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter as _OpenApiParameter
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from apps.accounts.permissions import ProjectNestedPermission
+from apps.accounts.models import ProjectUser
+from apps.accounts.permissions import ProjectNestedPermission, UserNestedPermission
 from apps.organizations.models import Organization
 from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.models import Project, ProjectTab
@@ -168,6 +170,11 @@ class NestedOrganizationViewMixins:
         organizations_code = get_below_hierarchy_codes((self.organization.code,))
         return Organization.objects.filter(code__in=organizations_code)
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"organization": self.organization})
+        return context
+
 
 class NestedProjectViewMixins(MultipleIDViewsetMixin):
     multiple_lookup_fields = [(Project, "project_id")]
@@ -209,6 +216,37 @@ class NestedPeopleGroupViewMixins:
         )
 
         super().initial(request, *args, **kwargs)
+
+
+class NestedUserViewMixins(MultipleIDViewsetMixin):
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
+    user: ProjectUser
+
+    def initial(self, request, *args, **kwargs):
+        self.user = get_object_or_404(
+            request.user.get_user_queryset().slug_or_id(kwargs["user_id"]),
+        )
+
+        super().initial(request, *args, **kwargs)
+
+    def get_permissions(self):
+        """add check nested project"""
+        return [UserNestedPermission(), *super().get_permissions()]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"user": self.user})
+        return context
+
+
+class NestedOrganizationUserViewMixins(
+    NestedOrganizationViewMixins, NestedUserViewMixins
+):
+    def initial(self, request, *ar, **kw):
+        super().initial(request, *ar, **kw)
+        # check if user is in organizations
+        if not self.user.get_organizations_queryset().contains(self.organization):
+            raise Http404
 
 
 class QuerySerializersMixin:
