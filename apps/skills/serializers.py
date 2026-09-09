@@ -335,14 +335,18 @@ class UserSkillLightSerializer(serializers.Serializer):
     def get_user(self, instance: ProjectUser):
         from apps.accounts.serializers import UserLighterSerializer
 
-        return UserLighterSerializer(instance).data
+        return UserLighterSerializer(instance, context=self.context).data
 
     def get_can_mentor_on(self, instance: ProjectUser):
         if hasattr(instance, "can_mentor_on"):
-            return SkillLightSerializer(instance.can_mentor_on, many=True).data
+            can_mentor_on: list[int] = instance.can_mentor_on
+            skills = Skill.objects.filter(id__in=can_mentor_on)
+            return SkillLightSerializer(skills, many=True, context=self.context).data
         return None
 
     def get_needs_mentor_on(self, instance: ProjectUser):
         if hasattr(instance, "needs_mentor_on"):
-            return SkillLightSerializer(instance.needs_mentor_on, many=True).data
+            needs_mentor_on: list[int] = instance.needs_mentor_on
+            skills = Skill.objects.filter(id__in=needs_mentor_on)
+            return SkillLightSerializer(skills, many=True, context=self.context).data
         return None
