@@ -18,11 +18,11 @@ from rest_framework.response import Response
 
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     MultipleIDViewsetMixin,
+    NestedOrganizationUserViewMixins,
     NestedUserViewMixins,
     PaginatedViewSet,
     ReadDestroyModelViewSet,
@@ -52,6 +52,7 @@ from .serializers import (
     TagClassificationRemoveTagsSerializer,
     TagClassificationSerializer,
     TagSerializer,
+    UserSkillLightSerializer,
 )
 from .utils import (
     set_default_language_title_and_description,
@@ -502,35 +503,23 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         return self.get_paginated_list(tags)
 
 
-class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
-    serializer_class = UserLightSerializer
+class UserMentorshipViewset(NestedOrganizationUserViewMixins, PaginatedViewSet):
+    serializer_class = UserSkillLightSerializer
     permission_classes = [ReadOnly]
-    multiple_lookup_fields = [(ProjectUser, "user_id")]
-
-    def get_organization(self):
-        organization_code = self.kwargs["organization_code"]
-        return get_object_or_404(Organization, code=organization_code)
-
-    def get_user(self):
-        organization = self.get_organization()
-        user_id = self.kwargs["user_id"]
-        return get_object_or_404(organization.get_all_members(), id=user_id)
 
     def get_user_queryset(self):
-        organization = self.get_organization()
         request_user = self.request.user
-        organization_menbers_id: list[int] = organization.get_all_members().values_list(
-            "id", flat=True
-        )
         user_queryset = self.request.user.get_user_queryset().filter(
-            id__in=organization_menbers_id
+            groups__organizations=self.organization
         )
+
         if request_user.is_authenticated:
             if request_user.is_superuser or (
-                organization.admins.all() | organization.facilitators.all()
+                self.organization.admins.all() | self.organization.facilitators.all()
             ).contains(request_user):
                 return user_queryset
-            if request_user.id in organization_menbers_id:
+
+            if user_queryset.contains(request_user):
                 return user_queryset.filter(
                     Q(
                         privacy_settings__skills__in=[

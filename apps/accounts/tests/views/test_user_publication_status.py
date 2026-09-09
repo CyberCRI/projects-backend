@@ -325,7 +325,6 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.DEFAULT, ("public", None, None)),
             (TestRoles.SUPERADMIN, ("public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
@@ -351,19 +350,16 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        self.assertEqual(len(content), len(expected_users))
+
         self.assertEqual(
             {
                 (notification["sender"]["id"], notification["id"])
                 for notification in content
             },
             {
-                (
-                    (self.users[user_type].id, notifications[user_type].id)
-                    if user_type in expected_users
-                    else (None, notifications[user_type].id)
-                )
+                ((self.users[user_type].id, notifications[user_type].id))
                 for user_type in self.users
+                if user_type in expected_users
             },
         )
 

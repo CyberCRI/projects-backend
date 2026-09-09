@@ -14,6 +14,7 @@ from rest_framework.response import Response
 
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import IsOwner, ReadOnly
+from apps.commons.serializers import RetrieveUpdateModelViewSet
 from apps.commons.views import (
     ListViewSet,
     NestedOrganizationUserViewMixins,
@@ -21,6 +22,7 @@ from apps.commons.views import (
 from apps.emailing.tasks import send_email_task
 from apps.emailing.utils import render_message
 from apps.notifications.filters import NotificationFilter
+from apps.notifications.models import NotificationSettings
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 
@@ -59,7 +61,9 @@ class NotificationsViewSet(NestedOrganizationUserViewMixins, ListViewSet):
         return response
 
 
-class NotificationSettingsViewSet(NestedOrganizationUserViewMixins, viewsets.ViewSet):
+class NotificationSettingsViewSet(
+    NestedOrganizationUserViewMixins, RetrieveUpdateModelViewSet
+):
     """Allows getting or modifying a user's notification settings."""
 
     serializer_class = NotificationSettingsSerializer
@@ -71,14 +75,20 @@ class NotificationSettingsViewSet(NestedOrganizationUserViewMixins, viewsets.Vie
         | HasOrganizationPermission("change_projectuser"),
     ]
 
+    # queryset user only for check object permissions
+    def get_queryset(self):
+        return NotificationSettings.objects.filter(user=self.user)
+
     def list(self, request, *args, **kwargs):
         instance = self.user.notification_settings
+        self.check_object_permissions(request, instance)
 
         serializer = self.serializer_class(instance)
         return Response(serializer.data)
 
     def patch(self, request, *args, **kwargs):
         instance = self.user.notification_settings
+        self.check_object_permissions(request, instance)
 
         serializer = self.serializer_class(
             instance,

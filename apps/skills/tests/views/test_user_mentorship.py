@@ -192,15 +192,16 @@ class UserMentorshipTestCase(JwtAPITestCase):
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), len(mentors))
+        contents = response.json()["results"]
+        self.assertEqual(len(contents), len(mentors))
+        print(contents)
         self.assertSetEqual(
-            {user["id"] for user in content},
+            {content["user"]["id"] for content in contents},
             {self.users[mentor].id for mentor in mentors},
         )
-        for user in content:
+        for content in contents:
             self.assertSetEqual(
-                {skill["tag"]["id"] for skill in user["can_mentor_on"]},
+                {skill["tag"]["id"] for skill in content["can_mentor_on"]},
                 {self.mentor_skill_1.id, self.mentor_skill_2.id},
             )
 
@@ -267,14 +268,14 @@ class UserMentorshipTestCase(JwtAPITestCase):
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), len(mentorees))
+        contents = response.json()["results"]
+        self.assertEqual(len(contents), len(mentorees))
         self.assertSetEqual(
-            {user["id"] for user in content},
+            {content["user"]["id"] for content in contents},
             {self.users[mentoree].id for mentoree in mentorees},
         )
-        for user in content:
+        for content in contents:
             self.assertSetEqual(
-                {skill["tag"]["id"] for skill in user["needs_mentor_on"]},
+                {skill["tag"]["id"] for skill in content["needs_mentor_on"]},
                 {self.mentoree_skill_1.id, self.mentoree_skill_2.id},
             )
