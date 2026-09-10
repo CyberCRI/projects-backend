@@ -341,6 +341,7 @@ class UserSkillLightSerializer(serializers.Serializer):
         if hasattr(instance, "can_mentor_on"):
             can_mentor_on: list[int] = instance.can_mentor_on
             skills = Skill.objects.filter(id__in=can_mentor_on)
+
             return SkillLightSerializer(skills, many=True, context=self.context).data
         return None
 

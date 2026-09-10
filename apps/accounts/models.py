@@ -712,13 +712,6 @@ class ProjectUser(
         if self.is_superuser:
             return Skill.objects.all()
 
-        is_org_admin = Group.objects.filter(
-            organizations__isnull=False,
-            organizations__in=self.get_organizations_queryset(),
-            name__contains="admins",
-            users=self,
-        ).exists()
-
         filters = (
             # own user
             Q(user__pk=self.pk)
@@ -731,11 +724,24 @@ class ProjectUser(
                 user__groups__organizations__in=self.get_organizations_queryset(),
             )
         )
-        if is_org_admin:
-            filters |= Q(
-                user__privacy_settings__skills=PrivacySettings.PrivacyChoices.HIDE,
-                user__groups__organizations__in=self.get_organizations_queryset(),
+
+        org_admin = Group.objects.filter(
+            Q(
+                organizations__isnull=False,
+                organizations__in=self.get_organizations_queryset(),
+                users=self,
             )
+            & (
+                Q(name__contains=GroupData.Role.ADMINS)
+                | Q(name__contains=GroupData.Role.FACILITATORS)
+            )
+        )
+        filters |= Q(
+            user__privacy_settings__skills=PrivacySettings.PrivacyChoices.HIDE,
+            user__groups__organizations__in=Organization.objects.filter(
+                groups__in=org_admin
+            ),
+        )
 
         return Skill.objects.filter(filters).distinct()
 
