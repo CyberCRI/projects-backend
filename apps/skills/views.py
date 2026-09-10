@@ -531,7 +531,7 @@ class UserMentorshipViewset(NestedOrganizationUserViewMixins, PaginatedViewSet):
         ).distinct()
 
         mentors_skills = request.user.get_skills_queryset().filter(
-            can_mentor=True, tag__in=user_mentored_skills
+            needs_mentor=True, tag__in=user_mentored_skills
         )
         users = (
             request.user.get_user_queryset()
