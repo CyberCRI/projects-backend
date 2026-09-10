@@ -512,29 +512,12 @@ class UserMentorshipViewset(NestedOrganizationUserViewMixins, PaginatedViewSet):
     permission_classes = [ReadOnly]
 
     def get_user_queryset(self):
-        request_user = self.request.user
         user_queryset = self.request.user.get_user_queryset().filter(
             groups__organizations=self.organization
         )
-
-        if request_user.is_authenticated:
-            if request_user.is_superuser or (
-                self.organization.admins.all() | self.organization.facilitators.all()
-            ).contains(request_user):
-                return user_queryset
-
-            if user_queryset.contains(request_user):
-                return user_queryset.filter(
-                    Q(
-                        privacy_settings__skills__in=[
-                            PrivacySettings.PrivacyChoices.ORGANIZATION,
-                            PrivacySettings.PrivacyChoices.PUBLIC,
-                        ]
-                    )
-                )
         return user_queryset.filter(
-            privacy_settings__skills=PrivacySettings.PrivacyChoices.PUBLIC
-        )
+            skills__in=self.request.user.get_skills_queryset()
+        ).distinct()
 
     @extend_schema(
         parameters=[

@@ -10,7 +10,12 @@ from apps.accounts.models import (
 )
 from apps.commons.models import GroupData
 from apps.files.models import ProjectUserAttachmentFile, ProjectUserAttachmentLink
-from apps.modules.base import AbstractModules, organization_related, register_module
+from apps.modules.base import (
+    AbstractModules,
+    ignore_method,
+    organization_related,
+    register_module,
+)
 from apps.notifications.models import Notification
 from apps.organizations.models import CategoryFollow
 from apps.projects.models import Project
@@ -72,8 +77,12 @@ class UserModules(AbstractModules):
         )
 
     @organization_related
+    @ignore_method
+    def all_notifications(self) -> QuerySet[Notification]:
+        return self.instance.notifications_received.all()
+
     def notifications(self) -> QuerySet[Notification]:
-        return self.instance.notifications_received.filter(is_viewed=False)
+        return self.all_notifications().filter(is_viewed=False)
 
     @cached_property
     def _researcher(self) -> Researcher | None:

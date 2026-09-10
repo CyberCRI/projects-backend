@@ -48,8 +48,9 @@ class NotificationsViewSet(NestedOrganizationUserViewMixins, ListViewSet):
 
     def get_queryset(self):
         return (
-            self.user.modules_by_organization(self.organization)
-            .notifications()
+            self.user.modules_by_user(self.request.user, self.organization)
+            .all_notifications()
+            .order_by("-created")
             .select_related("sender", "project", "organization")
         )
 
