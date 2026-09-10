@@ -444,67 +444,7 @@ class TemplateTabSerializer(StringsImagesSerializer, serializers.ModelSerializer
         )
 
 
-@auto_translated
-class ProjectCategoryHierarchySerializer(
-    OrganizationRelatedSerializer,
-    serializers.ModelSerializer,
-):
-    children = serializers.SerializerMethodField()
-    background_image = ImageSerializer(read_only=True)
-
-    is_followed = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ProjectCategory
-        read_only_fields = [
-            "id",
-            "slug",
-            "name",
-            "background_color",
-            "foreground_color",
-            "background_image",
-            "children",
-            "is_followed",
-        ]
-        fields = read_only_fields
-
-    def get_is_followed(self, category: ProjectCategory) -> dict[str, Any]:
-        if "request" in self.context:
-            user = self.context["request"].user
-            if not user.is_anonymous:
-                follow = CategoryFollow.objects.filter(follower=user, category=category)
-                user_follow = follow.first()
-                if user_follow:
-                    return {"is_followed": True, "follow_id": user_follow.id}
-        return {"is_followed": False, "follow_id": None}
-
-    def get_children(self, category: ProjectCategory) -> list[dict[str, str | int]]:
-        context = self.context
-        mapping = context.get("mapping")
-        if not mapping:
-            queryset = ProjectCategory.objects.filter(
-                organization=category.organization
-            )
-            mapping = {cat.id: cat for cat in queryset}
-            context["mapping"] = mapping
-        children_ids = list(category.children.all().values_list("id", flat=True))
-        if category.is_root:
-            children_ids += list(
-                ProjectCategory.objects.filter(
-                    organization=category.organization,
-                    parent__isnull=True,
-                    is_root=False,
-                ).values_list("id", flat=True)
-            )
-        children = [mapping.get(child) for child in children_ids if child in mapping]
-        return ProjectCategoryHierarchySerializer(
-            children, many=True, context=context
-        ).data
-
-
 # project category
-
-
 @auto_translated
 class ProjectCategorySerializer(
     StringsImagesSerializer,
@@ -652,6 +592,45 @@ class ProjectCategorySuperLightSerializer(ProjectCategorySerializer):
             "slug",
             "name",
         ]
+
+
+@auto_translated
+class ProjectCategoryHierarchySerializer(ProjectCategorySerializer):
+    class Meta(ProjectCategorySerializer.Meta):
+        read_only_fields = [
+            "id",
+            "slug",
+            "name",
+            "background_color",
+            "foreground_color",
+            "background_image",
+            "children",
+            "is_followed",
+        ]
+        fields = read_only_fields
+
+    def get_children(self, category: ProjectCategory) -> list[dict[str, str | int]]:
+        context = self.context
+        mapping = context.get("mapping")
+        if not mapping:
+            queryset = ProjectCategory.objects.filter(
+                organization=category.organization
+            )
+            mapping = {cat.id: cat for cat in queryset}
+            context["mapping"] = mapping
+        children_ids = list(category.children.all().values_list("id", flat=True))
+        if category.is_root:
+            children_ids += list(
+                ProjectCategory.objects.filter(
+                    organization=category.organization,
+                    parent__isnull=True,
+                    is_root=False,
+                ).values_list("id", flat=True)
+            )
+        children = [mapping.get(child) for child in children_ids if child in mapping]
+        return ProjectCategoryHierarchySerializer(
+            children, many=True, context=context
+        ).data
 
 
 class CategoryFollowSerializer(serializers.ModelSerializer):

@@ -59,10 +59,15 @@ class UserModules(AbstractModules):
         return {
             "skills": any(
                 (
+                    # is public
+                    privacy.skills == PrivacySettings.PrivacyChoices.PUBLIC,
+                    # same user request is own skills
                     is_same_user,
+                    # for hide need to be connected and admin
                     is_connected
                     and is_admin
                     and privacy.skills == PrivacySettings.PrivacyChoices.HIDE,
+                    # user need to be in organization
                     in_organization
                     and privacy.skills == PrivacySettings.PrivacyChoices.ORGANIZATION,
                 )
