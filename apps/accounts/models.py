@@ -985,9 +985,13 @@ class AnonymousUser:
         """Return a list of the permissions representations."""
         return []
 
+    def get_organizations_queryset(self) -> QuerySet[Organization]:
+        """Return the organizations related to this model."""
+        return Organization.objects.none()
+
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
-        return []
+        return list(self.get_organizations_queryset())
 
 
 class InvitationUser(AnonymousUser):
@@ -1032,6 +1036,6 @@ class InternalAdmin(AnonymousUser):
     get_instruction_related_queryset = _query_function
     get_event_related_queryset = _query_function
 
-    def get_related_organizations(self) -> list["Organization"]:
+    def get_organizations_queryset(self) -> QuerySet[Organization]:
         """Return the organizations related to this model."""
-        return list(Organization.objects.all())
+        return Organization.objects.all()

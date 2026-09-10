@@ -181,6 +181,8 @@ class UserMentorshipTestCase(JwtAPITestCase):
     def test_retrieve_mentor_candidates(self, role, mentors):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
+        user.groups.add(organization.get_users())
+
         SkillFactory(user=user, tag=self.mentor_skill_1, needs_mentor=True)
         SkillFactory(user=user, tag=self.mentor_skill_2, needs_mentor=True)
         SkillFactory(user=user, tag=self.other_skill, needs_mentor=True)
@@ -194,7 +196,6 @@ class UserMentorshipTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         contents = response.json()["results"]
         self.assertEqual(len(contents), len(mentors))
-        print(contents)
         self.assertSetEqual(
             {content["user"]["id"] for content in contents},
             {self.users[mentor].id for mentor in mentors},
@@ -257,6 +258,8 @@ class UserMentorshipTestCase(JwtAPITestCase):
     def test_retrieve_mentoree_candidates(self, role, mentorees):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
+        user.groups.add(organization.get_users())
+
         SkillFactory(user=user, tag=self.mentoree_skill_1, can_mentor=True)
         SkillFactory(user=user, tag=self.mentoree_skill_2, can_mentor=True)
         SkillFactory(user=user, tag=self.other_skill, can_mentor=True)
