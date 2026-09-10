@@ -16,13 +16,14 @@ from rest_framework.permissions import (
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from apps.accounts.models import PrivacySettings, ProjectUser
+from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     MultipleIDViewsetMixin,
     NestedOrganizationUserViewMixins,
+    NestedOrganizationViewMixins,
     NestedUserViewMixins,
     PaginatedViewSet,
     ReadDestroyModelViewSet,
@@ -378,41 +379,17 @@ class ReadTagViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [ReadOnly]
 
 
-class OrganizationMentorshipViewset(PaginatedViewSet):
+class OrganizationMentorshipViewset(NestedOrganizationViewMixins, PaginatedViewSet):
     serializer_class = TagSerializer
     permission_classes = [ReadOnly]
 
-    def get_organization(self) -> Organization:
-        organization_code = self.kwargs["organization_code"]
-        return get_object_or_404(Organization, code=organization_code)
-
     def get_user_queryset(self):
-        organization = self.get_organization()
-        request_user = self.request.user
-        organization_members_id: list[int] = organization.get_all_members().values_list(
-            "id", flat=True
-        )
         user_queryset = self.request.user.get_user_queryset().filter(
-            id__in=organization_members_id
+            groups__organizations=self.organization
         )
-        if request_user.is_authenticated:
-            if request_user.is_superuser or (
-                organization.admins.all() | organization.facilitators.all()
-            ).contains(request_user):
-                return user_queryset
-            if request_user.id in organization_members_id:
-                return user_queryset.filter(
-                    Q(
-                        privacy_settings__skills__in=[
-                            PrivacySettings.PrivacyChoices.ORGANIZATION,
-                            PrivacySettings.PrivacyChoices.PUBLIC,
-                        ]
-                    )
-                    | Q(id=request_user.id)
-                )
         return user_queryset.filter(
-            privacy_settings__skills=PrivacySettings.PrivacyChoices.PUBLIC
-        )
+            skills__in=self.request.user.get_skills_queryset()
+        ).distinct()
 
     @extend_schema(
         parameters=[
@@ -443,7 +420,7 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         """
         skills = (
             request.user.get_skills_queryset()
-            .objects.filter(user__in=self.get_user_queryset(), can_mentor=True)
+            .filter(user__in=self.get_user_queryset(), can_mentor=True)
             .distinct()
         )
         tags = (

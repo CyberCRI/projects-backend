@@ -1033,7 +1033,7 @@ class AnonymousUser:
 
     def get_skills_queryset(self) -> QuerySet["Skill"]:
         return Skill.objects.filter(
-            user__privacy_setings__skills=PrivacySettings.PrivacyChoices.PUBLIC
+            user__privacy_settings__skills=PrivacySettings.PrivacyChoices.PUBLIC
         )
 
 
