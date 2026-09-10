@@ -441,9 +441,11 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         """
         Get all skills in current organization that have at least one mentor.
         """
-        skills = Skill.objects.filter(
-            user__in=self.get_user_queryset(), can_mentor=True
-        ).distinct()
+        skills = (
+            request.user.get_skills_queryset()
+            .objects.filter(user__in=self.get_user_queryset(), can_mentor=True)
+            .distinct()
+        )
         tags = (
             Tag.objects.filter(skills__in=skills)
             .annotate(
@@ -485,9 +487,11 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         """
         Get all skills in current organization that have at least one person who wants to be mentored.
         """
-        skills = Skill.objects.filter(
-            user__in=self.get_user_queryset(), needs_mentor=True
-        ).distinct()
+        skills = (
+            request.user.get_skills_queryset()
+            .filter(user__in=self.get_user_queryset(), needs_mentor=True)
+            .distinct()
+        )
         tags = (
             Tag.objects.filter(skills__in=skills)
             .annotate(
@@ -559,25 +563,29 @@ class UserMentorshipViewset(NestedOrganizationUserViewMixins, PaginatedViewSet):
         """
         Get all users in current organization that have at least one skill that could be mentored by the user.
         """
-        user = get_object_or_404(
-            self.request.user.get_user_queryset(), id=self.kwargs["user_id"]
-        )
+        user_skills = self.user.modules_by_user(
+            request.user, self.organization
+        ).skills()
         user_mentored_skills = Tag.objects.filter(
-            skills__user=user, skills__can_mentor=True
+            skills__in=user_skills.filter(can_mentor=True)
         ).distinct()
-        mentorees_skills = Skill.objects.filter(
-            user__in=self.get_user_queryset(),
-            needs_mentor=True,
-            tag__in=user_mentored_skills,
-        ).distinct()
-        users = ProjectUser.objects.filter(skills__in=mentorees_skills).annotate(
-            needs_mentor_on=ArrayAgg(
-                "skills",
-                filter=Q(
-                    skills__needs_mentor=True,
-                    skills__tag__in=user_mentored_skills,
-                ),
-                distinct=True,
+
+        mentors_skills = request.user.get_skills_queryset().filter(
+            can_mentor=True, tag__in=user_mentored_skills
+        )
+        users = (
+            request.user.get_user_queryset()
+            .exclude(pk=self.user.pk)
+            .filter(skills__in=mentors_skills)
+            .annotate(
+                needs_mentor_on=ArrayAgg(
+                    "skills",
+                    filter=Q(
+                        skills__needs_mentor=True,
+                        skills__tag__in=user_mentored_skills,
+                    ),
+                    distinct=True,
+                )
             )
         )
         return self.get_paginated_list(users)
@@ -612,16 +620,19 @@ class UserMentorshipViewset(NestedOrganizationUserViewMixins, PaginatedViewSet):
         user_skills = self.user.modules_by_user(
             request.user, self.organization
         ).skills()
+
         user_mentoree_skills = Tag.objects.filter(
             skills__in=user_skills.filter(needs_mentor=True)
         ).distinct()
 
-        mentors_skills = Skill.objects.filter(
+        mentors_skills = request.user.get_skills_queryset().filter(
             can_mentor=True, tag__in=user_mentoree_skills
         )
+
         users = (
             request.user.get_user_queryset()
             .filter(skills__in=mentors_skills)
+            .exclude(pk=self.user.pk)
             .annotate(
                 can_mentor_on=ArrayAgg(
                     "skills",

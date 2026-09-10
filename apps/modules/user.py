@@ -1,17 +1,13 @@
 from functools import cached_property
 
-from django.contrib.auth.models import Group
 from django.db.models import (
     QuerySet,
 )
 
 from apps.accounts.models import (
-    AnonymousUser,
     PeopleGroup,
-    PrivacySettings,
     ProjectUser,
 )
-from apps.accounts.utils import get_superadmins_group
 from apps.commons.models import GroupData
 from apps.files.models import ProjectUserAttachmentFile, ProjectUserAttachmentLink
 from apps.modules.base import AbstractModules, organization_related, register_module
@@ -26,59 +22,8 @@ from services.crisalid.models import Document, DocumentTypeCentralized, Research
 class UserModules(AbstractModules):
     instance: ProjectUser
 
-    @cached_property
-    def _privacy_settings(self):
-        """generate a privacy informations (only for sklls now) to filter queryset"""
-
-        # return privacy filde from user
-        privacy = self.instance.privacy_settings
-
-        # privacy "ORGANIZATION"
-        in_organization = self.instance.groups.filter(
-            organizations__isnull=False,
-            organizations__in=self.user.get_organizations_queryset(),
-        ).exists()
-
-        # privacy "hide"
-        is_connected = self.user.is_authenticated
-        if isinstance(self.user, AnonymousUser):
-            is_admin = False
-        else:
-            is_admin = self.user.groups.contains(get_superadmins_group()) or (
-                Group.objects.filter(
-                    organizations__isnull=False,
-                    organizations__in=self.instance.get_related_organizations(),
-                    name__contains="admins",
-                    users=self.user,
-                ).exists()
-            )
-        # is same user
-        is_same_user = self.user.pk == self.instance.pk
-
-        # return boolean for each privacy field
-        return {
-            "skills": any(
-                (
-                    # is public
-                    privacy.skills == PrivacySettings.PrivacyChoices.PUBLIC,
-                    # same user request is own skills
-                    is_same_user,
-                    # for hide need to be connected and admin
-                    is_connected
-                    and is_admin
-                    and privacy.skills == PrivacySettings.PrivacyChoices.HIDE,
-                    # user need to be in organization
-                    in_organization
-                    and privacy.skills == PrivacySettings.PrivacyChoices.ORGANIZATION,
-                )
-            )
-        }
-
     def skills(self) -> QuerySet[Skill]:
-        qs = self.instance.skills.all()
-        if self._privacy_settings["skills"]:
-            return qs
-        return qs.none()
+        return self.user.get_skills_queryset().filter(pk__in=self.instance.skills.all())
 
     @organization_related
     def mentor(self) -> QuerySet[Mentoring]:
