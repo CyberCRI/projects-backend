@@ -709,7 +709,17 @@ class ProjectUser(
         )
 
     def get_skills_queryset(self) -> QuerySet["Skill"]:
-        return Skill.objects.filter(
+        if self.is_superuser:
+            return Skill.objects.all()
+
+        is_org_admin = Group.objects.filter(
+            organizations__isnull=False,
+            organizations__in=self.get_organizations_queryset(),
+            name__contains="admins",
+            users=self,
+        ).exists()
+
+        filters = (
             # own user
             Q(user__pk=self.pk)
             |
@@ -720,17 +730,14 @@ class ProjectUser(
                 user__privacy_settings__skills=PrivacySettings.PrivacyChoices.ORGANIZATION,
                 user__groups__organizations__in=self.get_organizations_queryset(),
             )
-            # only admin/usperadmin
-            | Q(
+        )
+        if is_org_admin:
+            filters |= Q(
                 user__privacy_settings__skills=PrivacySettings.PrivacyChoices.HIDE,
                 user__groups__organizations__in=self.get_organizations_queryset(),
-                user__groups__name="admins",
             )
-            | Q(
-                user__privacy_settings__skills=PrivacySettings.PrivacyChoices.HIDE,
-                user__groups__name="superadmins",
-            ),
-        ).distinct()
+
+        return Skill.objects.filter(filters).distinct()
 
     def can_see_project(self, project: "Project") -> bool:
         """Whether the user can see the project."""
