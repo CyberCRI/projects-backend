@@ -181,7 +181,6 @@ class UserMentorshipTestCase(JwtAPITestCase):
     def test_retrieve_mentor_candidates(self, role, mentors):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
-        user.groups.add(organization.get_users())
 
         SkillFactory(user=user, tag=self.mentor_skill_1, needs_mentor=True)
         SkillFactory(user=user, tag=self.mentor_skill_2, needs_mentor=True)
@@ -258,7 +257,6 @@ class UserMentorshipTestCase(JwtAPITestCase):
     def test_retrieve_mentoree_candidates(self, role, mentorees):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
-        user.groups.add(organization.get_users())
 
         SkillFactory(user=user, tag=self.mentoree_skill_1, can_mentor=True)
         SkillFactory(user=user, tag=self.mentoree_skill_2, can_mentor=True)
