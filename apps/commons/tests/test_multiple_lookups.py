@@ -35,15 +35,17 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
-        cls.user = UserFactory(profile_picture=cls.get_test_image())
-        cls.outdated_user_slug = faker.word()
-        cls.user.outdated_slugs = [cls.outdated_user_slug]
-        cls.user.save()
-
         cls.organization = OrganizationFactory()
         cls.outdated_organization_slug = faker.word()
         cls.organization.outdated_slugs = [cls.outdated_organization_slug]
         cls.organization.save()
+
+        cls.user = UserFactory(
+            profile_picture=cls.get_test_image(), groups=[cls.organization.get_users()]
+        )
+        cls.outdated_user_slug = faker.word()
+        cls.user.outdated_slugs = [cls.outdated_user_slug]
+        cls.user.save()
 
         cls.project = ProjectFactory(
             organizations=[cls.organization], header_image=cls.get_test_image()
@@ -229,25 +231,49 @@ class MultipleLookupsTestCase(JwtAPITestCase):
     def test_user_notification_settings_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("NotificationSettings-detail", args=(self.user.id,))
+            reverse(
+                "NotificationSettings-list",
+                args=(
+                    self.organization.code,
+                    self.user.id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.user.notification_settings.id)
         response = self.client.get(
-            reverse("NotificationSettings-detail", args=(self.user.slug,))
+            reverse(
+                "NotificationSettings-list",
+                args=(
+                    self.organization.code,
+                    self.user.slug,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.user.notification_settings.id)
         response = self.client.get(
-            reverse("NotificationSettings-detail", args=(self.user.keycloak_id,))
+            reverse(
+                "NotificationSettings-list",
+                args=(
+                    self.organization.code,
+                    self.user.keycloak_id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.user.notification_settings.id)
         response = self.client.get(
-            reverse("NotificationSettings-detail", args=(self.outdated_user_slug,))
+            reverse(
+                "NotificationSettings-list",
+                args=(
+                    self.organization.code,
+                    self.outdated_user_slug,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()

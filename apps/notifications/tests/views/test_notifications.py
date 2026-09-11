@@ -19,14 +19,20 @@ class NotificationsTestCase(JwtAPITestCase):
         notification = NotificationFactory(
             project=self.project, organization=self.organization
         )
+
+        notification.receiver.groups.add(self.organization.get_users())
+
         self.client.force_authenticate(notification.receiver)
         response = self.client.get(
-            reverse("Notification-list", args=(self.organization.code,))
+            reverse(
+                "Notification-list",
+                args=(self.organization.code, notification.receiver.pk),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_status_change(self):
-        user = UserFactory()
+        user = UserFactory(groups=[self.organization.get_users()])
         notifications = NotificationFactory.create_batch(
             2,
             receiver=user,
@@ -49,7 +55,7 @@ class NotificationsTestCase(JwtAPITestCase):
         ]
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Notification-list", args=(self.organization.code,))
+            reverse("Notification-list", args=(self.organization.code, user.pk))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for notification in notifications:

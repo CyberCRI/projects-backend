@@ -16,13 +16,14 @@ from rest_framework.permissions import (
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from apps.accounts.models import PrivacySettings, ProjectUser
+from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     MultipleIDViewsetMixin,
+    NestedOrganizationUserViewMixins,
+    NestedOrganizationViewMixins,
     NestedUserViewMixins,
     PaginatedViewSet,
     ReadDestroyModelViewSet,
@@ -52,6 +53,7 @@ from .serializers import (
     TagClassificationRemoveTagsSerializer,
     TagClassificationSerializer,
     TagSerializer,
+    UserSkillLightSerializer,
 )
 from .utils import (
     set_default_language_title_and_description,
@@ -377,41 +379,17 @@ class ReadTagViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [ReadOnly]
 
 
-class OrganizationMentorshipViewset(PaginatedViewSet):
+class OrganizationMentorshipViewset(NestedOrganizationViewMixins, PaginatedViewSet):
     serializer_class = TagSerializer
     permission_classes = [ReadOnly]
 
-    def get_organization(self) -> Organization:
-        organization_code = self.kwargs["organization_code"]
-        return get_object_or_404(Organization, code=organization_code)
-
     def get_user_queryset(self):
-        organization = self.get_organization()
-        request_user = self.request.user
-        organization_members_id: list[int] = organization.get_all_members().values_list(
-            "id", flat=True
-        )
         user_queryset = self.request.user.get_user_queryset().filter(
-            id__in=organization_members_id
+            groups__organizations=self.organization
         )
-        if request_user.is_authenticated:
-            if request_user.is_superuser or (
-                organization.admins.all() | organization.facilitators.all()
-            ).contains(request_user):
-                return user_queryset
-            if request_user.id in organization_members_id:
-                return user_queryset.filter(
-                    Q(
-                        privacy_settings__skills__in=[
-                            PrivacySettings.PrivacyChoices.ORGANIZATION,
-                            PrivacySettings.PrivacyChoices.PUBLIC,
-                        ]
-                    )
-                    | Q(id=request_user.id)
-                )
         return user_queryset.filter(
-            privacy_settings__skills=PrivacySettings.PrivacyChoices.PUBLIC
-        )
+            skills__in=self.request.user.get_skills_queryset()
+        ).distinct()
 
     @extend_schema(
         parameters=[
@@ -440,9 +418,11 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         """
         Get all skills in current organization that have at least one mentor.
         """
-        skills = Skill.objects.filter(
-            user__in=self.get_user_queryset(), can_mentor=True
-        ).distinct()
+        skills = (
+            request.user.get_skills_queryset()
+            .filter(user__in=self.get_user_queryset(), can_mentor=True)
+            .distinct()
+        )
         tags = (
             Tag.objects.filter(skills__in=skills)
             .annotate(
@@ -484,9 +464,11 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         """
         Get all skills in current organization that have at least one person who wants to be mentored.
         """
-        skills = Skill.objects.filter(
-            user__in=self.get_user_queryset(), needs_mentor=True
-        ).distinct()
+        skills = (
+            request.user.get_skills_queryset()
+            .filter(user__in=self.get_user_queryset(), needs_mentor=True)
+            .distinct()
+        )
         tags = (
             Tag.objects.filter(skills__in=skills)
             .annotate(
@@ -502,46 +484,17 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         return self.get_paginated_list(tags)
 
 
-class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
-    serializer_class = UserLightSerializer
+class UserMentorshipViewset(NestedOrganizationUserViewMixins, PaginatedViewSet):
+    serializer_class = UserSkillLightSerializer
     permission_classes = [ReadOnly]
-    multiple_lookup_fields = [(ProjectUser, "user_id")]
-
-    def get_organization(self):
-        organization_code = self.kwargs["organization_code"]
-        return get_object_or_404(Organization, code=organization_code)
-
-    def get_user(self):
-        organization = self.get_organization()
-        user_id = self.kwargs["user_id"]
-        return get_object_or_404(organization.get_all_members(), id=user_id)
 
     def get_user_queryset(self):
-        organization = self.get_organization()
-        request_user = self.request.user
-        organization_menbers_id: list[int] = organization.get_all_members().values_list(
-            "id", flat=True
-        )
         user_queryset = self.request.user.get_user_queryset().filter(
-            id__in=organization_menbers_id
+            groups__organizations=self.organization
         )
-        if request_user.is_authenticated:
-            if request_user.is_superuser or (
-                organization.admins.all() | organization.facilitators.all()
-            ).contains(request_user):
-                return user_queryset
-            if request_user.id in organization_menbers_id:
-                return user_queryset.filter(
-                    Q(
-                        privacy_settings__skills__in=[
-                            PrivacySettings.PrivacyChoices.ORGANIZATION,
-                            PrivacySettings.PrivacyChoices.PUBLIC,
-                        ]
-                    )
-                )
         return user_queryset.filter(
-            privacy_settings__skills=PrivacySettings.PrivacyChoices.PUBLIC
-        )
+            skills__in=self.request.user.get_skills_queryset()
+        ).distinct()
 
     @extend_schema(
         parameters=[
@@ -570,25 +523,29 @@ class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
         """
         Get all users in current organization that have at least one skill that could be mentored by the user.
         """
-        user = get_object_or_404(
-            self.request.user.get_user_queryset(), id=self.kwargs["user_id"]
-        )
+        user_skills = self.user.modules_by_user(
+            request.user, self.organization
+        ).skills()
         user_mentored_skills = Tag.objects.filter(
-            skills__user=user, skills__can_mentor=True
+            skills__in=user_skills.filter(can_mentor=True)
         ).distinct()
-        mentorees_skills = Skill.objects.filter(
-            user__in=self.get_user_queryset(),
-            needs_mentor=True,
-            tag__in=user_mentored_skills,
-        ).distinct()
-        users = ProjectUser.objects.filter(skills__in=mentorees_skills).annotate(
-            needs_mentor_on=ArrayAgg(
-                "skills",
-                filter=Q(
-                    skills__needs_mentor=True,
-                    skills__tag__in=user_mentored_skills,
-                ),
-                distinct=True,
+
+        mentors_skills = request.user.get_skills_queryset().filter(
+            needs_mentor=True, tag__in=user_mentored_skills
+        )
+        users = (
+            request.user.get_user_queryset()
+            .exclude(pk=self.user.pk)
+            .filter(skills__in=mentors_skills)
+            .annotate(
+                needs_mentor_on=ArrayAgg(
+                    "skills",
+                    filter=Q(
+                        skills__needs_mentor=True,
+                        skills__tag__in=user_mentored_skills,
+                    ),
+                    distinct=True,
+                )
             )
         )
         return self.get_paginated_list(users)
@@ -620,25 +577,31 @@ class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
         """
         Get all users in current organization that have at least one skill that could be mentored by the user.
         """
-        user = get_object_or_404(
-            self.request.user.get_user_queryset(), id=self.kwargs["user_id"]
-        )
+        user_skills = self.user.modules_by_user(
+            request.user, self.organization
+        ).skills()
+
         user_mentoree_skills = Tag.objects.filter(
-            skills__user=user, skills__needs_mentor=True
+            skills__in=user_skills.filter(needs_mentor=True)
         ).distinct()
-        mentors_skills = Skill.objects.filter(
-            user__in=self.get_user_queryset(),
-            can_mentor=True,
-            tag__in=user_mentoree_skills,
-        ).distinct()
-        users = ProjectUser.objects.filter(skills__in=mentors_skills).annotate(
-            can_mentor_on=ArrayAgg(
-                "skills",
-                filter=Q(
-                    skills__can_mentor=True,
-                    skills__tag__in=user_mentoree_skills,
-                ),
-                distinct=True,
+
+        mentors_skills = request.user.get_skills_queryset().filter(
+            can_mentor=True, tag__in=user_mentoree_skills
+        )
+
+        users = (
+            request.user.get_user_queryset()
+            .filter(skills__in=mentors_skills)
+            .exclude(pk=self.user.pk)
+            .annotate(
+                can_mentor_on=ArrayAgg(
+                    "skills",
+                    filter=Q(
+                        skills__can_mentor=True,
+                        skills__tag__in=user_mentoree_skills,
+                    ),
+                    distinct=True,
+                )
             )
         )
         return self.get_paginated_list(users)

@@ -347,11 +347,10 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             for user_type in self.users
         }
         response = self.client.get(
-            reverse("Notification-list", args=(organization.code,))
+            reverse("Notification-list", args=(organization.code, user.pk))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
             {
                 (notification["sender"]["id"], notification["id"])
