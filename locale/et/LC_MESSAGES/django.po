@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-10 15:24+0200\n"
+"POT-Creation-Date: 2026-09-11 15:26+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -175,16 +175,16 @@ msgstr "Tundmatu avaldamise olek"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Tundmatu avaldamise olek '{publication_status}'"
 
-#: apps/commons/fields.py:31 apps/skills/serializers.py:112
+#: apps/commons/fields.py:32 apps/skills/serializers.py:112
 msgid "This field is required."
 msgstr "See väli on kohustuslik."
 
-#: apps/commons/fields.py:32
+#: apps/commons/fields.py:33
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Vigane ID \"{user_id}\" - objekti ei eksisteeri."
 
-#: apps/commons/fields.py:34 apps/skills/serializers.py:117
+#: apps/commons/fields.py:35 apps/skills/serializers.py:117
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Vale tüüp. Oodati stringi väärtust, saadi {data_type}."
