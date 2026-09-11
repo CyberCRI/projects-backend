@@ -138,7 +138,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
             (TestRoles.OWNER, PrivacyChoices.HIDE, True),
             (TestRoles.SUPERADMIN, PrivacyChoices.HIDE, True),
             (TestRoles.ORG_ADMIN, PrivacyChoices.HIDE, True),
-            (TestRoles.ORG_FACILITATOR, PrivacyChoices.HIDE, False),
+            (TestRoles.ORG_FACILITATOR, PrivacyChoices.HIDE, True),
             (TestRoles.ORG_USER, PrivacyChoices.HIDE, False),
         ]
     )
