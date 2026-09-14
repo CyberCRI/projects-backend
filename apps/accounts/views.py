@@ -1188,10 +1188,9 @@ class UserFollowerCategoryViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelVi
 
     def get_queryset(self) -> QuerySet:
         # TODO(remi): add organizations
-        return (
-            self.user.modules_by_user(self.request.user)
-            .follows_categories()
-            .select_related("organization")
+        user_follow = self.user.modules_by_user(self.request.user).follows_categories()
+        return user_follow.annotate_follow(self.request.user).select_related(
+            "organization"
         )
 
 

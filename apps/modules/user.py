@@ -17,7 +17,7 @@ from apps.modules.base import (
     register_module,
 )
 from apps.notifications.models import Notification
-from apps.organizations.models import ProjectCategory
+from apps.organizations.models import CategoryFollow
 from apps.projects.models import Project
 from apps.skills.models import Mentoring, Skill
 from services.crisalid.models import Document, DocumentTypeCentralized, Researcher
@@ -45,9 +45,8 @@ class UserModules(AbstractModules):
         return qs.filter(follows__in=follows_projects)
 
     @organization_related
-    def follows_categories(self) -> QuerySet[ProjectCategory]:
-        qs = self.instance.category_follows.all()
-        return ProjectCategory.objects.filter(follows__in=qs)
+    def follows_categories(self) -> QuerySet[CategoryFollow]:
+        return self.instance.category_follows.all()
 
     def files(self) -> QuerySet[ProjectUserAttachmentFile]:
         return self.instance.files.all()
