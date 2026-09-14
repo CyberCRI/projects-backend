@@ -16,11 +16,11 @@ from apps.commons.mixins import (
     OrganizationRelated,
 )
 from apps.commons.models import GroupData
-from apps.commons.queryset import MultipleIdsQuerySet
 from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
+from apps.organizations.queryset import ProjectCategoryQuerySet
 from apps.projects.models import ProjectTab
 from services.translator.mixins import HasAutoTranslatedFields
 
@@ -594,7 +594,7 @@ class ProjectCategory(
     )
     history = HistoricalRecords()
 
-    objects = MultipleIdsQuerySet.as_manager()
+    objects = ProjectCategoryQuerySet.as_manager()
 
     class Meta:
         ordering = ["organization__code", "order_index"]

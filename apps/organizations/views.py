@@ -106,6 +106,7 @@ class ProjectCategoryViewSet(
                 is_root=False,
                 organization__code=self.kwargs["organization_code"],
             )
+            .annotate_follow(self.request.user)
             .select_related("organization")
             .prefetch_related("tags")
             .distinct()
