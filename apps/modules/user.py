@@ -4,9 +4,18 @@ from django.db.models import (
     QuerySet,
 )
 
-from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.accounts.models import (
+    PeopleGroup,
+    ProjectUser,
+)
+from apps.commons.models import GroupData
 from apps.files.models import ProjectUserAttachmentFile, ProjectUserAttachmentLink
-from apps.modules.base import AbstractModules, organization_related, register_module
+from apps.modules.base import (
+    AbstractModules,
+    ignore_method,
+    organization_related,
+    register_module,
+)
 from apps.notifications.models import Notification
 from apps.organizations.models import CategoryFollow
 from apps.projects.models import Project
@@ -19,7 +28,7 @@ class UserModules(AbstractModules):
     instance: ProjectUser
 
     def skills(self) -> QuerySet[Skill]:
-        return self.instance.skills.all()
+        return self.user.get_skills_queryset().filter(pk__in=self.instance.skills.all())
 
     @organization_related
     def mentor(self) -> QuerySet[Mentoring]:
@@ -61,8 +70,19 @@ class UserModules(AbstractModules):
         )
 
     @organization_related
+    def reviews_projects(self) -> QuerySet[Project]:
+        return self.user.get_project_queryset().filter(
+            groups__data__role=GroupData.Role.REVIEWERS,
+            groups__users=self.instance,
+        )
+
+    @organization_related
+    @ignore_method
+    def all_notifications(self) -> QuerySet[Notification]:
+        return self.instance.notifications_received.all()
+
     def notifications(self) -> QuerySet[Notification]:
-        return self.instance.notifications_received.filter(is_viewed=False)
+        return self.all_notifications().filter(is_viewed=False)
 
     @cached_property
     def _researcher(self) -> Researcher | None:

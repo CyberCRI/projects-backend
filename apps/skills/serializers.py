@@ -6,6 +6,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.fields import empty
 
+from apps.accounts.models import ProjectUser
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
     UserMultipleIdRelatedField,
@@ -320,3 +321,33 @@ class MentoringSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         fields = read_only_fields
+
+
+class UserSkillLightSerializer(serializers.Serializer):
+    user = serializers.SerializerMethodField()
+    can_mentor_on = serializers.SerializerMethodField()
+    needs_mentor_on = serializers.SerializerMethodField()
+
+    class Meta:
+        read_only_fields = ["user", "can_mentor_on", "needs_mentor_on"]
+        fields = read_only_fields
+
+    def get_user(self, instance: ProjectUser):
+        from apps.accounts.serializers import UserLighterSerializer
+
+        return UserLighterSerializer(instance, context=self.context).data
+
+    def get_can_mentor_on(self, instance: ProjectUser):
+        if hasattr(instance, "can_mentor_on"):
+            can_mentor_on: list[int] = instance.can_mentor_on
+            skills = Skill.objects.filter(id__in=can_mentor_on)
+
+            return SkillLightSerializer(skills, many=True, context=self.context).data
+        return None
+
+    def get_needs_mentor_on(self, instance: ProjectUser):
+        if hasattr(instance, "needs_mentor_on"):
+            needs_mentor_on: list[int] = instance.needs_mentor_on
+            skills = Skill.objects.filter(id__in=needs_mentor_on)
+            return SkillLightSerializer(skills, many=True, context=self.context).data
+        return None

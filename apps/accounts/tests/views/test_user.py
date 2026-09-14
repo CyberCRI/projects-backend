@@ -878,7 +878,7 @@ class MiscUserTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["notifications"], 5)
+        self.assertEqual(response.json()["modules"]["notifications"], 5)
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_language_from_organization(self, mocked):
@@ -992,13 +992,14 @@ class MiscUserTestCase(JwtAPITestCase):
             ]
         )
         response = self.client.get(
-            reverse("ProjectUser-detail", args=(user.id,))
+            reverse("ProjectUser-groups", args=(user.id,))
             + f"?current_org_pk={organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(len(content["people_groups"]), 1)
-        self.assertEqual(content["people_groups"][0]["id"], people_group.id)
+        contents = response.json()["results"]
+
+        self.assertEqual(len(contents), 1)
+        self.assertEqual(contents[0]["id"], people_group.id)
 
     def test_check_permissions(self):
         user = UserFactory()

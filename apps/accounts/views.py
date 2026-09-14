@@ -1,8 +1,9 @@
 import uuid
+from functools import cached_property
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
+from django.db.models import Case, Q, QuerySet, Value, When
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import translation
@@ -58,7 +59,6 @@ from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.serializers import ProjectCategoryLightSerializer
 from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
-from apps.skills.models import Skill
 from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
     create_google_account,
@@ -151,6 +151,14 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
             ]
         return super().get_permissions()
 
+    @cached_property
+    def organization(self):
+        current_org_pk = self.request.query_params.get("current_org_pk")
+        if not current_org_pk:
+            return None
+
+        return get_object_or_404(Organization.objects.filter(pk=current_org_pk))
+
     def annotate_organization_role(
         self, queryset: QuerySet, organization: Organization
     ) -> QuerySet:
@@ -192,18 +200,13 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
 
     def get_queryset(self):
         queryset = self.request.user.get_user_queryset()
-        organization_pk = self.request.query_params.get("current_org_pk")
-        if organization_pk is not None:
-            organization = Organization.objects.get(pk=organization_pk)
-            queryset = self.annotate_organization_role(queryset, organization)
+        if self.organization is not None:
+            queryset = self.annotate_organization_role(queryset, self.organization)
+
         if self.action == "admin_list":
             queryset = self.annotate_keycloak_email_verified(queryset)
-        skills_prefetch = Prefetch(
-            "skills", queryset=Skill.objects.select_related("tag")
-        )
-        return queryset.prefetch_related(skills_prefetch, "groups").select_related(
-            "researcher"
-        )
+
+        return queryset.select_related("researcher")
 
     def get_object(self):
         """
@@ -233,11 +236,7 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update({"request": self.request})
-        current_org_pk = self.request.query_params.get("current_org_pk")
-        if current_org_pk:
-            organization = get_object_or_404(Organization, pk=current_org_pk)
-            context.update({"organization": organization})
+        context.update({"request": self.request, "organization": self.organization})
         return context
 
     @extend_schema(
@@ -259,10 +258,8 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
     )
     def get_by_email(self, request, *args, **kwargs):
         queryset = ProjectUser.objects.all()
-        current_org_pk = request.query_params.get("current_org_pk")
-        if current_org_pk is not None:
-            organization = Organization.objects.get(pk=current_org_pk)
-            queryset = self.annotate_organization_role(queryset, organization)
+        if self.organization is not None:
+            queryset = self.annotate_organization_role(queryset, self.organization)
         user = queryset.filter(
             Q(email=kwargs.get("email")) | Q(personal_email=kwargs.get("email"))
         ).distinct()
@@ -373,7 +370,7 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
     )
     def groups(self, request, *args, **kwargs):
         user = self.get_object()
-        queryset = user.modules_by_user(request.user).groups()
+        queryset = user.modules_by_user(request.user, self.organization).groups()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -1102,17 +1099,16 @@ class UserProfilePictureView(NestedUserViewMixins, ImageStorageView):
     ]
 
     def get_queryset(self):
-        return self.user.images.all()
+        return Image.objects.filter(user=self.user)
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"account/profile/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        user = ProjectUser.objects.get(id=self.kwargs["user_id"])
-        user.profile_picture = image
-        user.save()
-        image.owner = user
+        self.user.profile_picture = image
+        self.user.save()
+        image.owner = self.user
         image.save()
         return f"/v1/user/{self.kwargs['user_id']}/profile-picture/{image.id}"
 

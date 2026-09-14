@@ -2,7 +2,7 @@ import inspect
 from contextlib import suppress
 
 from django.contrib.auth.models import Group
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
@@ -13,6 +13,7 @@ from rest_framework.serializers import BaseSerializer
 
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
+from apps.commons.models import GroupData
 from services.crisalid.models import Researcher
 
 
@@ -236,10 +237,15 @@ class PrivacySettingFieldMixin:
                 ):
                     return False
                 return Group.objects.filter(
-                    organizations__isnull=False,
-                    organizations__in=instance.get_related_organizations(),
-                    name__contains="admins",
-                    users=request.user,
+                    Q(
+                        organizations__isnull=False,
+                        organizations__in=instance.get_organizations_queryset(),
+                        users=request.user,
+                    )
+                    & (
+                        Q(name__contains=GroupData.Role.ADMINS)
+                        | Q(name__contains=GroupData.Role.FACILITATORS)
+                    )
                 ).exists()
         return False
 

@@ -149,6 +149,26 @@ class UserSerializer(
         read_only=True, required=False, allow_null=True
     )
 
+    # Write only profile picture fields
+    profile_picture_file = serializers.ImageField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_scale_x = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_scale_y = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_left = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_top = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_natural_ratio = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+
     class Meta:
         model = ProjectUser
         read_only_fields = [
@@ -190,6 +210,12 @@ class UserSerializer(
             "skype",
             "landline_phone",
             "twitter",
+            "profile_picture_file",
+            "profile_picture_scale_x",
+            "profile_picture_scale_y",
+            "profile_picture_left",
+            "profile_picture_top",
+            "profile_picture_natural_ratio",
         ]
 
     @cached_property

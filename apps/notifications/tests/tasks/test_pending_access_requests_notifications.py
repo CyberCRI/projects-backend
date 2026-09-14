@@ -44,9 +44,10 @@ class PendingAccessRequestsNotificationsTestCase(JwtAPITestCase):
             self.assertFalse(notification.is_viewed)
             self.assertFalse(notification.to_send)
 
-        self.client.force_authenticate(self.admins[0])
+        user = self.admins[0]
+        self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Notification-list", args=(self.organization.code,))
+            reverse("Notification-list", args=(self.organization.code, user.pk))
         )
         results = response.json()["results"]
         self.assertEqual(response.status_code, status.HTTP_200_OK)

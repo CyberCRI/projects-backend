@@ -16,7 +16,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
+from apps.accounts.models import PeopleGroup, PeopleGroupLocation
 from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import (
     PeopleGroupHierarchySerializer,
@@ -29,6 +29,8 @@ from apps.commons.views import (
     CreateListDestroyViewSet,
     MultipleIDViewsetMixin,
     NestedOrganizationViewMixins,
+    NestedUserViewMixins,
+    QuerySerializersMixin,
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -65,30 +67,27 @@ from .serializers import (
     ProjectCategoryHierarchySerializer,
     ProjectCategoryLightSerializer,
     ProjectCategorySerializer,
+    ProjectCategorySuperLightSerializer,
     TemplateSerializer,
     TermsAndConditionsSerializer,
 )
 
 
-class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ProjectCategoryViewSet(
+    NestedOrganizationViewMixins,
+    MultipleIDViewsetMixin,
+    QuerySerializersMixin,
+    viewsets.ModelViewSet,
+):
     serializer_class = ProjectCategorySerializer
     filterset_class = ProjectCategoryFilter
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     multiple_lookup_fields = [(ProjectCategory, "id")]
-
-    def get_queryset(self):
-        if "organization_code" in self.kwargs:
-            return (
-                ProjectCategory.objects.filter(
-                    is_root=False,
-                    organization__code=self.kwargs["organization_code"],
-                )
-                .select_related("organization")
-                .prefetch_related("tags")
-                .distinct()
-            )
-        return ProjectCategory.objects.none()
+    query_serializers = {
+        "light": ProjectCategoryLightSerializer,
+        "superlight": ProjectCategorySuperLightSerializer,
+    }
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectcategory")
@@ -101,11 +100,19 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
-    def perform_create(self, serializer):
-        organization = get_object_or_404(
-            Organization, code=self.kwargs["organization_code"]
+    def get_queryset(self):
+        return (
+            ProjectCategory.objects.filter(
+                is_root=False,
+                organization__code=self.kwargs["organization_code"],
+            )
+            .select_related("organization")
+            .prefetch_related("tags")
+            .distinct()
         )
-        serializer.save(organization=organization)
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.organization)
 
     @action(
         detail=True,
@@ -184,12 +191,11 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
+class CategoryFollowViewset(NestedUserViewMixins, CreateListDestroyViewSet):
     serializer_class = CategoryFollowSerializer
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "categoryfollow")
@@ -202,15 +208,11 @@ class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
         ]
         return super().get_permissions()
 
-    def get_queryset(self) -> QuerySet:
-        return self.request.user.get_user_related_queryset(
-            CategoryFollow.objects.filter(follower__id=self.kwargs.get("user_id")),
-            user_related_name="follower",
-        )
+    def get_queryset(self) -> QuerySet[CategoryFollow]:
+        return self.user.modules_by_user(self.request.user).follows_categories()
 
     def perform_create(self, serializer: CategoryFollowSerializer):
-        follower = get_object_or_404(ProjectUser, id=self.kwargs["user_id"])
-        serializer.save(follower=follower)
+        serializer.save(follower=self.user)
 
 
 class TemplateViewSet(

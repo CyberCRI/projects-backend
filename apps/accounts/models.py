@@ -39,6 +39,7 @@ from apps.commons.queryset import MultipleIdsQuerySet
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import AbstractLocation, Project
+from apps.skills.models import Skill
 from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
@@ -707,6 +708,43 @@ class ProjectUser(
             **{f"{event_related_name}__in": self.get_event_queryset()}
         )
 
+    def get_skills_queryset(self) -> QuerySet["Skill"]:
+        if self.is_superuser:
+            return Skill.objects.all()
+
+        filters = (
+            # own user
+            Q(user__pk=self.pk)
+            |
+            # public all user quand see
+            Q(user__privacy_settings__skills=PrivacySettings.PrivacyChoices.PUBLIC)
+            # only user in same orga
+            | Q(
+                user__privacy_settings__skills=PrivacySettings.PrivacyChoices.ORGANIZATION,
+                user__groups__organizations__in=self.get_organizations_queryset(),
+            )
+        )
+
+        org_admin = Group.objects.filter(
+            Q(
+                organizations__isnull=False,
+                organizations__in=self.get_organizations_queryset(),
+                users=self,
+            )
+            & (
+                Q(name__contains=GroupData.Role.ADMINS)
+                | Q(name__contains=GroupData.Role.FACILITATORS)
+            )
+        )
+        filters |= Q(
+            user__privacy_settings__skills=PrivacySettings.PrivacyChoices.HIDE,
+            user__groups__organizations__in=Organization.objects.filter(
+                groups__in=org_admin
+            ),
+        )
+
+        return Skill.objects.filter(filters).distinct()
+
     def can_see_project(self, project: "Project") -> bool:
         """Whether the user can see the project."""
         return self.get_project_queryset().contains(project)
@@ -985,9 +1023,18 @@ class AnonymousUser:
         """Return a list of the permissions representations."""
         return []
 
+    def get_organizations_queryset(self) -> QuerySet[Organization]:
+        """Return the organizations related to this model."""
+        return Organization.objects.none()
+
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
-        return []
+        return list(self.get_organizations_queryset())
+
+    def get_skills_queryset(self) -> QuerySet["Skill"]:
+        return Skill.objects.filter(
+            user__privacy_settings__skills=PrivacySettings.PrivacyChoices.PUBLIC
+        )
 
 
 class InvitationUser(AnonymousUser):
@@ -1032,6 +1079,9 @@ class InternalAdmin(AnonymousUser):
     get_instruction_related_queryset = _query_function
     get_event_related_queryset = _query_function
 
-    def get_related_organizations(self) -> list["Organization"]:
+    def get_organizations_queryset(self) -> QuerySet[Organization]:
         """Return the organizations related to this model."""
-        return list(Organization.objects.all())
+        return Organization.objects.all()
+
+    def get_skills_queryset(self) -> QuerySet["Skill"]:
+        return Skill.objects.all()

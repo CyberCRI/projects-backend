@@ -120,13 +120,13 @@ class ListCategoryFollowTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         for publication_status, user in self.users.items():
             response = self.client.get(reverse("CategoryFollow-list", args=(user.id,)))
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            content = response.json()["results"]
             if publication_status in retrieved_follows:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                content = response.json()["results"]
                 self.assertEqual(len(content), 1)
                 self.assertEqual(
                     content[0]["id"],
                     self.category_follows[publication_status].id,
                 )
             else:
-                self.assertEqual(len(content), 0)
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

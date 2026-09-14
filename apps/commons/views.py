@@ -1,7 +1,6 @@
 from functools import cached_property
 
 from django.db.models import QuerySet
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter as _OpenApiParameter
 from rest_framework import mixins, serializers, viewsets
@@ -226,7 +225,6 @@ class NestedUserViewMixins(MultipleIDViewsetMixin):
         self.user = get_object_or_404(
             request.user.get_user_queryset().slug_or_id(kwargs["user_id"]),
         )
-
         super().initial(request, *args, **kwargs)
 
     def get_permissions(self):
@@ -242,11 +240,7 @@ class NestedUserViewMixins(MultipleIDViewsetMixin):
 class NestedOrganizationUserViewMixins(
     NestedOrganizationViewMixins, NestedUserViewMixins
 ):
-    def initial(self, request, *ar, **kw):
-        super().initial(request, *ar, **kw)
-        # check if user is in organizations
-        if not self.user.get_organizations_queryset().contains(self.organization):
-            raise Http404
+    pass
 
 
 class QuerySerializersMixin:
