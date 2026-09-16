@@ -513,14 +513,10 @@ class ProjectCategorySerializer(
         ]
 
     def get_is_followed(self, category: ProjectCategory) -> dict[str, Any]:
-        if "request" in self.context:
-            user = self.context["request"].user
-            if not user.is_anonymous:
-                follow = CategoryFollow.objects.filter(follower=user, category=category)
-                user_follow = follow.first()
-                if user_follow:
-                    return {"is_followed": True, "follow_id": user_follow.id}
-        return {"is_followed": False, "follow_id": None}
+        return getattr(category, "annotate_follow", None) or {
+            "is_followed": False,
+            "follow_id": None,
+        }
 
     def get_hierarchy(self, obj: ProjectCategory) -> list[dict[str, str | int]]:
         hierarchy = []
@@ -538,6 +534,7 @@ class ProjectCategorySerializer(
         ).data
 
     def get_projects_count(self, obj: ProjectCategory) -> int:
+        # TODO(remi): replace this to Category modules
         return obj.projects.count()
 
     def get_related_organizations(self) -> list[Organization]:

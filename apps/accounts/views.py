@@ -55,7 +55,7 @@ from apps.files.views import ImageStorageView
 from apps.modules.group import PeopleGroupModules
 from apps.newsfeed.serializers import EventSerializer, NewsSerializer
 from apps.newsfeed.views import EventViewSet, NewsViewSet
-from apps.organizations.models import Organization, ProjectCategory
+from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.serializers import ProjectCategoryLightSerializer
 from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
@@ -1140,9 +1140,8 @@ class UserMemberProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewS
 
     def get_queryset(self) -> QuerySet:
         return (
-            self.request.user.get_project_queryset()
-            .filter(groups__users=self.user)
-            .distinct()
+            self.user.modules_by_user(self.request.user)
+            .projects()
             .select_related("header_image")
             .prefetch_related("categories", "tags", "organizations__logo_image")
         )
@@ -1157,12 +1156,8 @@ class UserReviewerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelVie
 
     def get_queryset(self) -> QuerySet:
         return (
-            self.request.user.get_project_queryset()
-            .filter(
-                groups__data__role=GroupData.Role.REVIEWERS,
-                groups__users=self.user,
-            )
-            .distinct()
+            self.user.modules_by_user(self.request.user)
+            .reviews_projects()
             .select_related("header_image")
             .prefetch_related("categories", "tags", "organizations__logo_image")
         )
@@ -1177,9 +1172,8 @@ class UserFollowerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelVie
 
     def get_queryset(self) -> QuerySet:
         return (
-            self.request.user.get_project_queryset()
-            .filter(follows__follower=self.user)
-            .distinct()
+            self.user.modules_by_user(self.request.user)
+            .follows_projects()
             .select_related("header_image")
             .prefetch_related("categories", "tags", "organizations__logo_image")
         )
@@ -1193,10 +1187,10 @@ class UserFollowerCategoryViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelVi
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self) -> QuerySet:
-        return (
-            ProjectCategory.objects.filter(follows__follower=self.user)
-            .distinct()
-            .select_related("organization")
+        # TODO(remi): add organizations
+        user_follow = self.user.modules_by_user(self.request.user).follows_categories()
+        return user_follow.annotate_follow(self.request.user).select_related(
+            "organization"
         )
 
 
