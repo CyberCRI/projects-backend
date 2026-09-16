@@ -125,7 +125,7 @@ class TagClassificationAddTagsSerializer(serializers.Serializer):
     )
 
     def validate_tags(self, tags: list[Tag]) -> list[Tag]:
-        organization = self.context.get("current_organization")
+        organization = self.context.get("organization")
         if organization and any(
             (tag.organization and tag.organization != organization) for tag in tags
         ):
