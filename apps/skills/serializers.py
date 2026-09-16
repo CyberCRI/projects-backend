@@ -6,6 +6,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.fields import empty
 
+from apps.accounts.models import ProjectUser
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
     UserMultipleIdRelatedField,
@@ -50,33 +51,10 @@ class TagClassificationSerializer(
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["title", "description"]
-
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
-    is_owned = serializers.SerializerMethodField()
-    is_enabled_for_projects = serializers.SerializerMethodField()
-    is_enabled_for_skills = serializers.SerializerMethodField()
-
-    def get_is_owned(self, tag_classification: TagClassification) -> bool:
-        organization = self.context.get("current_organization")
-        return organization and tag_classification.organization == organization
-
-    def get_is_enabled_for_projects(
-        self, tag_classification: TagClassification
-    ) -> bool:
-        organization = self.context.get("current_organization")
-        return (
-            organization
-            and tag_classification
-            in organization.enabled_projects_tag_classifications.all()
-        )
-
-    def get_is_enabled_for_skills(self, tag_classification: TagClassification) -> bool:
-        organization = self.context.get("current_organization")
-        return (
-            organization
-            and tag_classification
-            in organization.enabled_skills_tag_classifications.all()
-        )
+    is_owned = serializers.BooleanField(read_only=True)
+    is_enabled_for_projects = serializers.BooleanField(read_only=True)
+    is_enabled_for_skills = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = TagClassification
@@ -147,7 +125,7 @@ class TagClassificationAddTagsSerializer(serializers.Serializer):
     )
 
     def validate_tags(self, tags: list[Tag]) -> list[Tag]:
-        organization = self.context.get("current_organization")
+        organization = self.context.get("organization")
         if organization and any(
             (tag.organization and tag.organization != organization) for tag in tags
         ):
@@ -230,25 +208,6 @@ class TagRelatedField(serializers.RelatedField):
         return Tag.objects.get(id=tag_id)
 
 
-class SkillLightSerializer(serializers.ModelSerializer):
-    tag = TagSerializer(read_only=True)
-
-    class Meta:
-        model = Skill
-        read_only_fields = [
-            "id",
-            "tag",
-            "level",
-            "level_to_reach",
-            "category",
-            "type",
-            "can_mentor",
-            "needs_mentor",
-            "comment",
-        ]
-        fields = read_only_fields
-
-
 class SkillSerializer(serializers.ModelSerializer):
     user = UserMultipleIdRelatedField(read_only=True)
     tag = TagRelatedField()
@@ -267,6 +226,17 @@ class SkillSerializer(serializers.ModelSerializer):
             "needs_mentor",
             "comment",
         ]
+
+
+class SkillLightSerializer(SkillSerializer):
+    tag = TagSerializer(read_only=True)
+
+    class Meta(SkillSerializer.Meta):
+        # remove user field
+        read_only_fields = [
+            field for field in SkillSerializer.Meta.fields if field not in ("user",)
+        ]
+        fields = read_only_fields
 
 
 class MentoringContactSerializer(serializers.Serializer):
@@ -328,3 +298,33 @@ class MentoringSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         fields = read_only_fields
+
+
+class UserSkillLightSerializer(serializers.Serializer):
+    user = serializers.SerializerMethodField()
+    can_mentor_on = serializers.SerializerMethodField()
+    needs_mentor_on = serializers.SerializerMethodField()
+
+    class Meta:
+        read_only_fields = ["user", "can_mentor_on", "needs_mentor_on"]
+        fields = read_only_fields
+
+    def get_user(self, instance: ProjectUser):
+        from apps.accounts.serializers import UserLighterSerializer
+
+        return UserLighterSerializer(instance, context=self.context).data
+
+    def get_can_mentor_on(self, instance: ProjectUser):
+        if hasattr(instance, "can_mentor_on"):
+            can_mentor_on: list[int] = instance.can_mentor_on
+            skills = Skill.objects.filter(id__in=can_mentor_on)
+
+            return SkillLightSerializer(skills, many=True, context=self.context).data
+        return None
+
+    def get_needs_mentor_on(self, instance: ProjectUser):
+        if hasattr(instance, "needs_mentor_on"):
+            needs_mentor_on: list[int] = instance.needs_mentor_on
+            skills = Skill.objects.filter(id__in=needs_mentor_on)
+            return SkillLightSerializer(skills, many=True, context=self.context).data
+        return None

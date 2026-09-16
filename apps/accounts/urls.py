@@ -6,7 +6,11 @@ from apps.accounts.views import (
     DeleteCookieView,
     PeopleGroupLocationViewSet,
     PrivacySettingsViewSet,
+    UserFollowerCategoryViewSet,
+    UserFollowerProjectViewSet,
+    UserMemberProjectViewSet,
     UserProfilePictureView,
+    UserReviewerProjectViewSet,
     UserViewSet,
 )
 from apps.commons.urls import (
@@ -21,11 +25,40 @@ router.register(r"privacy-settings", PrivacySettingsViewSet, basename="PrivacySe
 
 user_router_register(router, r"follow", UserFollowViewSet, basename="Follower")
 user_router_register(router, r"review", ReviewViewSet, basename="Reviewer")
+
 user_router_register(
     router,
     r"profile-picture",
     UserProfilePictureView,
     basename="UserProfilePicture",
+)
+
+user_router_register(
+    router,
+    r"projects/member",
+    UserMemberProjectViewSet,
+    basename="UserMemberProject",
+)
+
+user_router_register(
+    router,
+    r"projects/reviewer",
+    UserReviewerProjectViewSet,
+    basename="UserReviewerProject",
+)
+
+user_router_register(
+    router,
+    r"projects/follower",
+    UserFollowerProjectViewSet,
+    basename="UserFollowerProject",
+)
+
+user_router_register(
+    router,
+    r"categories/follower",
+    UserFollowerCategoryViewSet,
+    basename="UserFollowerCategory",
 )
 
 organization_people_group_router_register(
@@ -34,7 +67,6 @@ organization_people_group_router_register(
     PeopleGroupLocationViewSet,
     basename="PeopleGroupLocations",
 )
-
 
 urlpatterns = [
     path("access-token/", AccessTokenView.as_view()),

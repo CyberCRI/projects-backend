@@ -12,7 +12,7 @@ from apps.announcements.models import Announcement
 from apps.commons.models import GroupData
 from apps.feedbacks.models import Comment, Review
 from apps.files.models import AttachmentFile, AttachmentLink
-from apps.modules.base import AbstractModules, register_module
+from apps.modules.base import AbstractModules, organization_related, register_module
 from apps.projects.models import (
     BlogEntry,
     Goal,
@@ -27,6 +27,7 @@ from apps.projects.models import (
 class ProjectModules(AbstractModules):
     instance: Project
 
+    @organization_related
     def members(self) -> QuerySet[ProjectUser]:
         return (
             self.user.get_user_queryset()
@@ -65,6 +66,7 @@ class ProjectModules(AbstractModules):
             .distinct()
         )
 
+    @organization_related
     def groups(self) -> QuerySet[PeopleGroup]:
         return (
             self.user.get_people_group_queryset()
@@ -108,13 +110,15 @@ class ProjectModules(AbstractModules):
             .distinct()
         )
 
+    @organization_related
+    def _user_projects(self):
+        return self.user.get_project_queryset()
+
     def linked_projects(self) -> QuerySet[Project]:
-        return self.instance.linked_projects.filter(
-            project__in=self.user.get_project_queryset()
-        )
+        return self.instance.linked_projects.filter(project__in=self._user_projects())
 
     def similars(self) -> QuerySet[Project]:
-        return self.instance.similars().filter(pk__in=self.user.get_project_queryset())
+        return self.instance.similars().filter(pk__in=self._user_projects())
 
     def locations(self) -> QuerySet[Location]:
         return self.instance.locations.all()

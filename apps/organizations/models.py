@@ -16,6 +16,7 @@ from apps.commons.mixins import (
     OrganizationRelated,
 )
 from apps.commons.models import GroupData
+from apps.commons.queryset import MultipleIdsQuerySet
 from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
@@ -592,6 +593,8 @@ class ProjectCategory(
         "self", on_delete=models.SET_NULL, null=True, related_name="children"
     )
     history = HistoricalRecords()
+
+    objects = MultipleIdsQuerySet.as_manager()
 
     class Meta:
         ordering = ["organization__code", "order_index"]

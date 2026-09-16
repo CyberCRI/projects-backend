@@ -57,7 +57,13 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         for publication_status, user in self.users.items():
             response = self.client.get(
-                reverse("NotificationSettings-detail", args=(user.id,))
+                reverse(
+                    "NotificationSettings-list",
+                    args=(
+                        self.organization.code,
+                        user.id,
+                    ),
+                )
             )
             if publication_status in retrieved_notification_settings:
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -109,7 +115,13 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
             "new_instruction": faker.boolean(),
         }
         response = self.client.patch(
-            reverse("NotificationSettings-detail", args=(self.user.id,)),
+            reverse(
+                "NotificationSettings-list",
+                args=(
+                    self.organization.code,
+                    self.user.id,
+                ),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)

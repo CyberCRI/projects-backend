@@ -11,8 +11,8 @@ from django.db.models import (
 from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from apps.commons.models import GroupData
 from apps.files.models import PeopleGroupImage
-from apps.modules.base import AbstractModules, register_module
-from apps.newsfeed.models import Event, EventLocation, NewsLocation
+from apps.modules.base import AbstractModules, organization_related, register_module
+from apps.newsfeed.models import Event, EventLocation, News, NewsLocation
 from apps.projects.models import Location, Project
 from services.crisalid.models import Document, DocumentTypeCentralized
 
@@ -21,6 +21,7 @@ from services.crisalid.models import Document, DocumentTypeCentralized
 class PeopleGroupModules(AbstractModules):
     instance: PeopleGroup
 
+    @organization_related
     def members(self) -> QuerySet[ProjectUser]:
         return (
             self.user.get_user_queryset()
@@ -62,6 +63,7 @@ class PeopleGroupModules(AbstractModules):
             .distinct()
         )
 
+    @organization_related
     def featured_projects(self) -> QuerySet[Project]:
         group_projects = Project.objects.filter(
             groups__people_groups=self.instance
@@ -115,9 +117,11 @@ class PeopleGroupModules(AbstractModules):
     def gallery(self):
         return PeopleGroupImage.objects.filter(people_group=self.instance)
 
-    def news(self):
+    @organization_related
+    def news(self) -> QuerySet[News]:
         return self.user.get_news_queryset().filter(people_groups=self.instance)
 
+    @organization_related
     def event(self) -> QuerySet[Event]:
         return self.user.get_event_queryset().filter(people_groups=self.instance)
 

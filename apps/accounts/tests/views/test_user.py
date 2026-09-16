@@ -878,7 +878,7 @@ class MiscUserTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["notifications"], 5)
+        self.assertEqual(response.json()["modules"]["notifications"], 5)
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_language_from_organization(self, mocked):
@@ -992,13 +992,14 @@ class MiscUserTestCase(JwtAPITestCase):
             ]
         )
         response = self.client.get(
-            reverse("ProjectUser-detail", args=(user.id,))
+            reverse("ProjectUser-groups", args=(user.id,))
             + f"?current_org_pk={organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(len(content["people_groups"]), 1)
-        self.assertEqual(content["people_groups"][0]["id"], people_group.id)
+        contents = response.json()["results"]
+
+        self.assertEqual(len(contents), 1)
+        self.assertEqual(contents[0]["id"], people_group.id)
 
     def test_check_permissions(self):
         user = UserFactory()
@@ -1267,3 +1268,31 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         keycloak_groups = KeycloakService.get_user_groups(user.keycloak_account)
         self.assertIn(organization_group, [group["id"] for group in keycloak_groups])
+
+
+class UserGroupsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.user = UserFactory()
+        cls.people_groups = PeopleGroupFactory.create_batch(
+            2, organization=cls.organization
+        )
+        for people_group in cls.people_groups:
+            people_group.setup_permissions()
+            people_group.members.add(cls.user)
+
+    def test_list_user_groups(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(reverse("ProjectUser-groups", args=(self.user.id,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(
+            {people_group["id"] for people_group in content},
+            {people_group.id for people_group in self.people_groups},
+        )
+
+    def test_list_user_groups_anonymous(self):
+        response = self.client.get(reverse("ProjectUser-groups", args=(self.user.id,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
