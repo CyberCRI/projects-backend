@@ -243,8 +243,8 @@ class PrivacySettingFieldMixin:
                         users=request.user,
                     )
                     & (
-                        Q(name__contains=GroupData.Role.ADMINS)
-                        | Q(name__contains=GroupData.Role.FACILITATORS)
+                        Q(data__role=GroupData.Role.ADMINS)
+                        | Q(data__role=GroupData.Role.FACILITATORS)
                     )
                 ).exists()
         return False
