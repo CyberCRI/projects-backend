@@ -1,7 +1,17 @@
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import transaction
-from django.db.models import Count, Q, QuerySet
+from django.db.models import (
+    BooleanField,
+    Case,
+    Count,
+    Exists,
+    OuterRef,
+    Q,
+    QuerySet,
+    Value,
+    When,
+)
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -42,7 +52,7 @@ from .exceptions import (
     UserDoesNotNeedMentorError,
     WikipediaTagSearchLimitError,
 )
-from .filters import TagFilter
+from .filters import TagClassificationFilter, TagFilter
 from .models import Mentoring, MentoringMessage, Skill, Tag, TagClassification
 from .serializers import (
     MentoringContactSerializer,
@@ -85,10 +95,14 @@ class SkillViewSet(NestedUserViewMixins, viewsets.ModelViewSet):
         serializer.save(user=self.user)
 
 
-class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class TagClassificationViewSet(
+    MultipleIDViewsetMixin, NestedOrganizationViewMixins, viewsets.ModelViewSet
+):
     permission_classes = [ReadOnly]
     serializer_class = TagClassificationSerializer
     lookup_field = "id"
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TagClassificationFilter
     multiple_lookup_fields = [(TagClassification, "id")]
 
     def get_permissions(self):
@@ -102,34 +116,36 @@ class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        organization_code = self.kwargs.get("organization_code")
-        if organization_code:
-            organization = get_object_or_404(Organization, code=organization_code)
-            context["current_organization"] = organization
-        return context
-
     def get_queryset(self):
-        organization_code = self.kwargs.get("organization_code")
-        if organization_code:
-            return (
-                TagClassification.objects.filter(
-                    Q(organization__code=organization_code) | Q(is_public=True)
-                )
-                .distinct()
-                .select_related("organization")
+        return (
+            TagClassification.objects.filter(
+                Q(organization=self.organization) | Q(is_public=True)
             )
-        return TagClassification.objects.none()
+            .annotate(
+                is_enabled_for_skills=Exists(
+                    self.organization.enabled_skills_tag_classifications.filter(
+                        pk=OuterRef("pk")
+                    )
+                ),
+                is_enabled_for_projects=Exists(
+                    self.organization.enabled_projects_tag_classifications.filter(
+                        pk=OuterRef("pk")
+                    )
+                ),
+                is_owned=Case(
+                    When(organization=self.organization, then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
+            )
+            .select_related("organization")
+        )
 
     def perform_create(self, serializer: TagClassificationSerializer):
-        organization_code = self.kwargs.get("organization_code")
-        if organization_code:
-            organization = get_object_or_404(Organization, code=organization_code)
-            serializer.save(
-                organization=organization,
-                type=TagClassification.TagClassificationType.CUSTOM,
-            )
+        serializer.save(
+            organization=self.organization,
+            type=TagClassification.TagClassificationType.CUSTOM,
+        )
 
     @extend_schema(request=TagClassificationAddTagsSerializer, responses={204: None})
     @action(

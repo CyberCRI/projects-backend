@@ -51,33 +51,10 @@ class TagClassificationSerializer(
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["title", "description"]
-
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
-    is_owned = serializers.SerializerMethodField()
-    is_enabled_for_projects = serializers.SerializerMethodField()
-    is_enabled_for_skills = serializers.SerializerMethodField()
-
-    def get_is_owned(self, tag_classification: TagClassification) -> bool:
-        organization = self.context.get("current_organization")
-        return organization and tag_classification.organization == organization
-
-    def get_is_enabled_for_projects(
-        self, tag_classification: TagClassification
-    ) -> bool:
-        organization = self.context.get("current_organization")
-        return (
-            organization
-            and tag_classification
-            in organization.enabled_projects_tag_classifications.all()
-        )
-
-    def get_is_enabled_for_skills(self, tag_classification: TagClassification) -> bool:
-        organization = self.context.get("current_organization")
-        return (
-            organization
-            and tag_classification
-            in organization.enabled_skills_tag_classifications.all()
-        )
+    is_owned = serializers.BooleanField(read_only=True)
+    is_enabled_for_projects = serializers.BooleanField(read_only=True)
+    is_enabled_for_skills = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = TagClassification

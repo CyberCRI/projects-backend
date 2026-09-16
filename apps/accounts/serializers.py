@@ -459,12 +459,11 @@ class UserLighterSerializer(UserLightSerializer):
 
 
 @auto_translated
-class UserAdminListSerializer(serializers.ModelSerializer):
+class UserAdminListSerializer(UserSerializer):
     current_org_role = serializers.CharField(required=False, read_only=True)
     email_verified = serializers.BooleanField(required=False, read_only=True)
-    people_groups = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta(UserSerializer.Meta):
         model = ProjectUser
         read_only_fields = [
             "id",
@@ -477,23 +476,11 @@ class UserAdminListSerializer(serializers.ModelSerializer):
             "current_org_role",
             "email_verified",
             "last_login",
-            "people_groups",
             "created_at",
+            "modules",
         ]
         fields = read_only_fields
-
-    def get_people_groups(self, user: ProjectUser) -> list:
-        organization = self.context.get("organization")
-        queryset = (
-            PeopleGroup.objects.filter(groups__users=user, is_root=False)
-            .select_related("organization")
-            .distinct()
-        )
-        if organization:
-            queryset = queryset.filter(organization=organization).distinct()
-        return PeopleGroupSuperLightSerializer(
-            queryset, many=True, context=self.context
-        ).data
+        modules_keys = ("groups",)
 
 
 @auto_translated
