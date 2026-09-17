@@ -790,10 +790,12 @@ class ProjectTabViewset(NestedProjectViewMixins, viewsets.ModelViewSet):
     """Project tabs."""
 
     serializer_class = ProjectTabSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = ProjectTabFilter
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
+    ordering_fields = ("order",)
+    ordering = ("order",)
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ProjectIsNotLocked,

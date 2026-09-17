@@ -1040,6 +1040,31 @@ class ProjectTab(
 
         TEXT = "text"
         BLOG = "blog"
+        # convert tabs to extras tabs
+        MEMBERS = "members"
+        GROUPS = "groups"
+        LINKED_PROJECTS = "linked_projects"
+        LOCATIONS = "locations"
+        COMMENTS = "comments"
+        GOALS = "goals"
+        FILES = "files"
+        LINKS = "links"
+        ANNOUNCEMENTS = "announcements"
+        MESSAGES = "messages"
+
+    # which type is a "bridge between projects and tabs"
+    PROJECT_TYPE_BRIDGE = (
+        TabType.MEMBERS.value,
+        TabType.GROUPS.value,
+        TabType.LINKED_PROJECTS.value,
+        TabType.LOCATIONS.value,
+        TabType.COMMENTS.value,
+        TabType.GOALS.value,
+        TabType.FILES.value,
+        TabType.LINKS.value,
+        TabType.ANNOUNCEMENTS.value,
+        TabType.MESSAGES.value,
+    )
 
     project = models.ForeignKey(
         "projects.Project",
@@ -1054,6 +1079,8 @@ class ProjectTab(
     icon = models.CharField(max_length=255, blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
     show_preview = models.BooleanField(default=True)
+    show_tab = models.BooleanField(default=True)
+    order = models.PositiveIntegerField()
 
     objects = MultipleIdsQuerySet.as_manager()
 
@@ -1067,6 +1094,7 @@ class ProjectTab(
                 condition=models.Q(uuid__isnull=False),
             ),
         ]
+        ordering = ("order",)
 
     def __repr__(self):
         return f"<ProjectTab ({self.uuid=!r} {self.title!r})>"

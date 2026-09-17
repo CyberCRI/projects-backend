@@ -188,6 +188,61 @@ class ReadTemplateTestCase(JwtAPITestCase):
         self.assertEqual(content["id"], self.template.id)
 
 
+class ReadFilterTemplateTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
+    def test_list_template_filter(self):
+        user = self.get_parameterized_test_user(TestRoles.SUPERADMIN, instances=[])
+        self.client.force_authenticate(user)
+
+        def req(query: dict, expected_results: list[Template]):
+            response = self.client.get(
+                reverse("Template-list", args=(self.organization.code,), query=query)
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = response.json()
+            self.assertEqual(len(content["results"]), len(expected_results))
+            for idx, template in enumerate(content["results"]):
+                self.assertEqual(template["id"], expected_results[idx].id)
+
+        template_name1 = TemplateFactory(organization=self.organization, name="name1")
+        template_name2 = TemplateFactory(organization=self.organization, name="name2")
+        template_name3 = TemplateFactory(organization=self.organization, name="a title")
+
+        # no search
+        req({"search": ""}, [template_name3, template_name2, template_name1])
+        # no template_name3 (name is "title")
+        req(
+            {"search": "name", "ordering": "-updated_at"},
+            [template_name2, template_name1],
+        )
+        # not template found
+        req({"search": "doudou"}, [])
+
+        # order by updated
+        req(
+            {"ordering": "-updated_at"},
+            [template_name3, template_name2, template_name1],
+        )
+        req(
+            {"ordering": "updated_at"},
+            [
+                template_name1,
+                template_name2,
+                template_name3,
+            ],
+        )
+        # update template
+        template_name1.save()
+        req(
+            {"ordering": "-updated_at"},
+            [template_name1, template_name3, template_name2],
+        )
+
+
 class UpdateTemplateTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):

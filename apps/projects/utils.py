@@ -127,6 +127,8 @@ def sync_project_tabs(projects: Iterable[Project], tabs: Iterable[TemplateTab]):
                 type=tab.type,
                 icon=tab.icon,
                 show_preview=tab.show_preview,
+                show_tab=tab.show_tab,
+                order=tab.order,
             )
             tab.save()
 
