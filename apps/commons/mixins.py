@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Optional, Self
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q, QuerySet
+from django.db.models import DateTimeField, Model, Q, QuerySet
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
@@ -513,3 +513,13 @@ class HasEmbedding:
 class HasRelatedLocationContent:
     def get_related_content(self):
         raise NotImplementedError
+
+
+class TimestampedModelMixin(Model):
+    """mixins to add in all needed model created/update field"""
+
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True

@@ -2,7 +2,7 @@ from django_filters import rest_framework as filters
 
 from apps.commons.filters import MultiValueCharFilter
 
-from .models import Organization, ProjectCategory
+from .models import Organization, ProjectCategory, Template
 
 
 class ProjectCategoryFilter(filters.FilterSet):
@@ -24,3 +24,11 @@ class OrganizationFilter(filters.FilterSet):
     class Meta:
         model = Organization
         fields = ["codes", "tags"]
+
+
+class TemplateFilter(filters.FilterSet):
+    categories = filters.MultipleChoiceFilter(field_name="categories", lookup_expr="in")
+
+    class Meta:
+        model = Template
+        fields = ("categories",)
