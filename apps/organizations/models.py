@@ -507,6 +507,7 @@ class TemplateTab(OrganizationRelated, models.Model):
     )
     icon = models.CharField(max_length=255, blank=True, null=True)
     show_preview = models.BooleanField(default=True)
+    show_tab = models.BooleanField(default=True)
 
     # content is all optional
     title_item = models.TextField(max_length=255, default="", blank=True, null=True)

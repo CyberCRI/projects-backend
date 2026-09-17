@@ -1040,6 +1040,17 @@ class ProjectTab(
 
         TEXT = "text"
         BLOG = "blog"
+        # convert tabs to extras tabs
+        MEMBERS = "members"
+        GROUPS = "groups"
+        LINKED_PROJECTS = "linked_projects"
+        LOCATIONS = "locations"
+        COMMENTS = "comments"
+        GOALS = "goals"
+        FILES = "files"
+        LINKS = "links"
+        ANNOUNCEMENTS = "announcements"
+        MESSAGES = "messages"
 
     project = models.ForeignKey(
         "projects.Project",
@@ -1054,6 +1065,7 @@ class ProjectTab(
     icon = models.CharField(max_length=255, blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
     show_preview = models.BooleanField(default=True)
+    show_tab = models.BooleanField(default=True)
 
     objects = MultipleIdsQuerySet.as_manager()
 
