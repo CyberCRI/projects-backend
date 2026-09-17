@@ -1052,6 +1052,20 @@ class ProjectTab(
         ANNOUNCEMENTS = "announcements"
         MESSAGES = "messages"
 
+    # which type is a "bridge between projects and tabs"
+    PROJECT_TYPE_BRIDGE = (
+        TabType.MEMBERS.value,
+        TabType.GROUPS.value,
+        TabType.LINKED_PROJECTS.value,
+        TabType.LOCATIONS.value,
+        TabType.COMMENTS.value,
+        TabType.GOALS.value,
+        TabType.FILES.value,
+        TabType.LINKS.value,
+        TabType.ANNOUNCEMENTS.value,
+        TabType.MESSAGES.value,
+    )
+
     project = models.ForeignKey(
         "projects.Project",
         on_delete=models.CASCADE,
