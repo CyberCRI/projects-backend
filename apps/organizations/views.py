@@ -9,7 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
@@ -24,6 +24,7 @@ from apps.accounts.serializers import (
     UserSerializer,
 )
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
+from apps.commons.filters import UnaccentSearchFilter
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
@@ -220,7 +221,11 @@ class TemplateViewSet(NestedOrganizationViewMixins, viewsets.ModelViewSet):
     serializer_class = TemplateSerializer
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        UnaccentSearchFilter,
+        OrderingFilter,
+    ]
     ordering_fields = ("updated_at", "created_at", "title")
     ordering = ("-updated_at",)
     search_fields = (
