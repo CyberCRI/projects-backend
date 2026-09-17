@@ -123,10 +123,11 @@ class ProjectGroupsFilter(filters.FilterSet):
 class ProjectTabFilter(filters.FilterSet):
     type = filters.CharFilter()  # noqa: A003
     show_preview = filters.BooleanFilter()
+    show_tab = filters.BooleanFilter()
 
     class Meta:
         model = ProjectTab
-        fields = ("type", "show_preview")
+        fields = ("type", "show_preview", "show_tab")
 
 
 class ProjectTabItemFilter(filters.FilterSet):

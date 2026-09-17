@@ -1066,6 +1066,7 @@ class ProjectTab(
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
     show_preview = models.BooleanField(default=True)
     show_tab = models.BooleanField(default=True)
+    order = models.PositiveIntegerField()
 
     objects = MultipleIdsQuerySet.as_manager()
 
@@ -1079,6 +1080,7 @@ class ProjectTab(
                 condition=models.Q(uuid__isnull=False),
             ),
         ]
+        ordering = ("order",)
 
     def __repr__(self):
         return f"<ProjectTab ({self.uuid=!r} {self.title!r})>"

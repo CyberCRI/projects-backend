@@ -923,6 +923,8 @@ class ProjectTabSerializer(
             "icon",
             "images",
             "show_preview",
+            "show_tab",
+            "order",
             "uuid",
         ]
 
