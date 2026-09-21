@@ -1,6 +1,8 @@
 from functools import cached_property
 
-from django.db.models import QuerySet
+import rest_framework
+import rest_framework.request
+from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter as _OpenApiParameter
 from rest_framework import mixins, serializers, viewsets
@@ -157,11 +159,12 @@ class PaginatedViewSet(viewsets.ViewSet):
 
 class NestedOrganizationViewMixins:
     def initial(self, request, *args, **kwargs):
-        self.organization = get_object_or_404(
-            Organization, code=kwargs["organization_code"]
-        )
+        self.organization = self.get_organization(request, *args, **kwargs)
 
         super().initial(request, *args, **kwargs)
+
+    def get_organization(self, request, *args, **kwargs):
+        return get_object_or_404(Organization, code=kwargs["organization_code"])
 
     @cached_property
     def organizations(self) -> QuerySet[Organization]:
@@ -173,6 +176,27 @@ class NestedOrganizationViewMixins:
         context = super().get_serializer_context()
         context.update({"organization": self.organization})
         return context
+
+
+class QueryOrganizationViewMixins(NestedOrganizationViewMixins):
+    """organization passed in queryparams"""
+
+    def get_organization(
+        self, request: rest_framework.request.Request, *args, **kwargs
+    ):
+        # TODO(remi): replace this by NestedOrganizationMixins
+        current_org_pk = request.query_params.get("current_org_pk")
+        filters = None
+        if current_org_pk:
+            filters = Q(pk=current_org_pk)
+        current_org_code = request.query_params.get("current_org")
+        if current_org_code:
+            filters = Q(code=current_org_code)
+
+        if filters is None:
+            return None
+
+        return get_object_or_404(Organization.objects.filter(filters))
 
 
 class NestedProjectViewMixins(MultipleIDViewsetMixin):
