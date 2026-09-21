@@ -26,6 +26,7 @@ from apps.commons.mixins import (
     HasPermissionsSetup,
     HasRelatedLocationContent,
     HasRelatedModules,
+    OrganizationRelated,
     ProjectRelated,
 )
 from apps.commons.models import GroupData
@@ -857,7 +858,9 @@ class Goal(HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models.Mode
         return self.project
 
 
-class AbstractLocation(HasAutoTranslatedFields, DuplicableModel, models.Model):
+class AbstractLocation(
+    HasAutoTranslatedFields, DuplicableModel, OrganizationRelated, models.Model
+):
     """A project location on Earth.
 
     Attributes

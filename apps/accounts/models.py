@@ -46,9 +46,7 @@ from services.keycloak.models import KeycloakAccount
 from services.translator.mixins import HasAutoTranslatedFields
 
 
-class PeopleGroupLocation(
-    OrganizationRelated, HasRelatedLocationContent, AbstractLocation
-):
+class PeopleGroupLocation(HasRelatedLocationContent, AbstractLocation):
     """base location for group"""
 
     people_group = models.ForeignKey(
