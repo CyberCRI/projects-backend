@@ -222,14 +222,14 @@ class PrivacySettingFieldMixin:
             get_superadmins_group()
         ):
             return True
-        settings, _ = PrivacySettings.objects.get_or_create(user=instance)
+        settings = instance.privacy_settings
         match getattr(settings, self.privacy_field):
             case PrivacySettings.PrivacyChoices.PUBLIC:
                 return True
             case PrivacySettings.PrivacyChoices.ORGANIZATION:
                 return instance.groups.filter(
                     organizations__isnull=False,
-                    organizations__in=request.user.get_related_organizations(),
+                    organizations__in=request.user.get_organizations_queryset(),
                 ).exists()
             case PrivacySettings.PrivacyChoices.HIDE:
                 if not request.user.is_authenticated or not isinstance(
