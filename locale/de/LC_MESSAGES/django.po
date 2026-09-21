@@ -112,7 +112,7 @@ msgstr "Sie können diese Rolle keinem Benutzer zuweisen"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sie können diese Rolle keinem Benutzer zuweisen: {role}"
 
-#: apps/accounts/models.py:165 apps/projects/models.py:171
+#: apps/accounts/models.py:167 apps/projects/models.py:171
 msgid "visibility"
 msgstr "Sichtbarkeit"
 
