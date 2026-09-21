@@ -12,7 +12,9 @@ class TabModules(AbstractModules):
 
     def items(self) -> QuerySet[Any]:
         if self.instance.type in ProjectTab.PROJECT_TYPE_BRIDGE:
-            return self.instance.project.modules_by_user(self.user, self.organization)[
-                self.instance.type
-            ]()
+            method = getattr(
+                self.instance.project.modules_by_user(self.user, self.organization),
+                self.instance.type,
+            )
+            return method()
         return self.instance.items.all()

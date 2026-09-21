@@ -12,7 +12,12 @@ from apps.announcements.models import Announcement
 from apps.commons.models import GroupData
 from apps.feedbacks.models import Comment, Review
 from apps.files.models import AttachmentFile, AttachmentLink
-from apps.modules.base import AbstractModules, organization_related, register_module
+from apps.modules.base import (
+    AbstractModules,
+    ignore_method,
+    organization_related,
+    register_module,
+)
 from apps.projects.models import (
     BlogEntry,
     Goal,
@@ -137,6 +142,10 @@ class ProjectModules(AbstractModules):
 
     def links(self) -> QuerySet[AttachmentLink]:
         return self.instance.links.all()
+
+    @ignore_method
+    def resources(self):
+        return self.files().values("pk").union(self.links().values("pk")).values("pk")
 
     def announcements(self) -> QuerySet[Announcement]:
         return self.instance.announcements.all()

@@ -1047,8 +1047,8 @@ class ProjectTab(
         LOCATIONS = "locations"
         COMMENTS = "comments"
         GOALS = "goals"
-        FILES = "files"
-        LINKS = "links"
+        RESOURCES = "resources"
+        BLOGS = "blogs"
         ANNOUNCEMENTS = "announcements"
         MESSAGES = "messages"
 
@@ -1060,8 +1060,8 @@ class ProjectTab(
         TabType.LOCATIONS.value,
         TabType.COMMENTS.value,
         TabType.GOALS.value,
-        TabType.FILES.value,
-        TabType.LINKS.value,
+        TabType.RESOURCES.value,
+        TabType.BLOGS.value,
         TabType.ANNOUNCEMENTS.value,
         TabType.MESSAGES.value,
     )
@@ -1080,7 +1080,7 @@ class ProjectTab(
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
     show_preview = models.BooleanField(default=True)
     show_tab = models.BooleanField(default=True)
-    order = models.PositiveIntegerField()
+    order = models.PositiveIntegerField(default=0)
 
     objects = MultipleIdsQuerySet.as_manager()
 
