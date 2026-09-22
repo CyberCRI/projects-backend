@@ -17,6 +17,7 @@ from apps.commons.mixins import HasPermissionsSetup
 from apps.commons.models import GroupData
 from apps.commons.serializers import (
     BaseLocationSerializer,
+    PrivacySerializer,
     StringsImagesSerializer,
 )
 from apps.files.models import Image
@@ -67,6 +68,7 @@ class PrivacySettingsSerializer(serializers.ModelSerializer):
 @auto_translated
 class UserSerializer(
     ModulesSerializers,
+    PrivacySerializer,
     StringsImagesSerializer,
     serializers.ModelSerializer,
 ):

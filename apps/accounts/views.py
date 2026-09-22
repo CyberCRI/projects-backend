@@ -206,7 +206,7 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
         if self.action == "admin_list":
             queryset = self.annotate_keycloak_email_verified(queryset)
 
-        return queryset.select_related("researcher")
+        return queryset.select_related("researcher", "privacy_settings")
 
     def get_object(self):
         """
@@ -257,7 +257,7 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
         permission_classes=[HasBasePermission("get_user_by_email", "accounts")],
     )
     def get_by_email(self, request, *args, **kwargs):
-        queryset = ProjectUser.objects.all()
+        queryset = ProjectUser.objects.all().select_related("privacy_settings")
         if self.organization is not None:
             queryset = self.annotate_organization_role(queryset, self.organization)
         user = queryset.filter(
@@ -746,7 +746,11 @@ class PeopleGroupViewSet(
     def member(self, request, *args, **kwargs):
         group = self.get_object()
 
-        queryset = group.modules_by_user(request.user).members()
+        queryset = (
+            group.modules_by_user(request.user)
+            .members()
+            .select_related("privacy_settings")
+        )
 
         page = self.paginate_queryset(queryset)
         if page is not None:

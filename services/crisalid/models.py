@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 
-from apps.commons.mixins import HasEmbedding, OrganizationRelated
+from apps.commons.mixins import HasEmbedding, HasOwner, OrganizationRelated
 from apps.organizations.models import Organization
 from services.crisalid.relators import RolesChoices
 from services.translator.mixins import HasAutoTranslatedFields
@@ -119,7 +119,7 @@ class Identifier(models.Model):
         return f"{self.harvester} :: {self.value}"
 
 
-class Researcher(CrisalidDataModel):
+class Researcher(HasOwner, CrisalidDataModel):
     """Link to a crisalid"""
 
     PRIVACY_HARVESTER = (
@@ -151,6 +151,9 @@ class Researcher(CrisalidDataModel):
     @property
     def display_name(self):
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}"
+
+    def get_owner(self):
+        return self.user
 
 
 class DocumentContributor(models.Model):

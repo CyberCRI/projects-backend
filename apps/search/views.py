@@ -38,7 +38,9 @@ class SearchViewSet(ListViewSet):
                 )
                 | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
             )
-            .select_related("user", "project__header_image", "people_group")
+            .select_related(
+                "user__privacy_settings", "project__header_image", "people_group"
+            )
             .prefetch_related("people_group__organization", "project__categories")
         )
         if order:
@@ -86,10 +88,9 @@ class SearchViewSet(ListViewSet):
     @action(detail=False, methods=["GET"], url_path="(?P<search>.+)")
     def search(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        search_objects = list(queryset)
 
         # generate ids for opensearch
-        search_objects_ids = [sobj.id for sobj in search_objects]
+        search_objects_ids = queryset.values_list("id", flat=True)
 
         query = self.kwargs.get("search", "")
         indices = [
@@ -138,9 +139,8 @@ class SearchViewSet(ListViewSet):
         search_objects_ids = [hit.search_object_id for hit in response.hits]
 
         # remove search id not hits in opensearch
-        filtered_search_object = [
-            obj for obj in search_objects if obj.id in search_objects_ids
-        ]
+        filtered_search_object = queryset.filter(id__in=search_objects_ids)
+
         # sort filtered_search_object by hits index
         ordered_search_objs = sorted(
             filtered_search_object,
