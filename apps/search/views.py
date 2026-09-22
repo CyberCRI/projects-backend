@@ -90,7 +90,7 @@ class SearchViewSet(ListViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         # generate ids for opensearch
-        search_objects_ids = queryset.values_list("id", flat=True)
+        search_objects_ids = list(queryset.values_list("id", flat=True))
 
         query = self.kwargs.get("search", "")
         indices = [

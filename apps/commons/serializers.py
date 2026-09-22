@@ -1,5 +1,5 @@
 from collections.abc import Collection
-from functools import cached_property
+from functools import cache
 from typing import Any, Optional
 
 from django.contrib.auth.models import Group
@@ -225,18 +225,23 @@ class BaseLocationSerializer(
 class PrivacySerializer:
     instance: ProjectUser
 
-    @cached_property
-    def _get_user(self):
-        if isinstance(self.instance, ProjectUser):
-            return self.instance
-        if isinstance(self.instance, HasOwner):
-            return self.instance.get_owner()
+    def __init__(self, *ar, **kw):
+        super().__init__(*ar, **kw)
+        self._privacy_settings = cache(self._privacy_settings)
+
+    def _get_user(self, instance):
+        if isinstance(instance, ProjectUser):
+            return instance
+        if isinstance(instance, HasOwner):
+            return instance.get_owner()
         return None
 
-    @cached_property
-    def _privacy_settings(self) -> tuple[Optional[PrivacySettings], bool, bool]:
+    def _privacy_settings(
+        self, instance
+    ) -> tuple[Optional[PrivacySettings], bool, bool]:
 
-        instance = self._get_user
+        instance = self._get_user(instance)
+
         if instance is None:
             return None, False, False
 
@@ -270,10 +275,10 @@ class PrivacySerializer:
 
         return settings, is_in_org, is_org_admin
 
-    def _field_is_private(self, field: str) -> bool:
+    def _field_is_private(self, instance, field: str) -> bool:
         """check if field from privacysettings is private from user"""
 
-        privacy_settings, is_in_org, is_org_admin = self._privacy_settings
+        privacy_settings, is_in_org, is_org_admin = self._privacy_settings(instance)
 
         # not privacy_settings, return all privayc field
         if privacy_settings is None:

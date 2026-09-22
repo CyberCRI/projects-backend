@@ -166,8 +166,12 @@ class PrivacySettingFieldMixin:
         ]
         super().__init__(**kwargs)
 
+    def get_attribute(self, instance):
+        self._instance = instance
+        return super().get_attribute(instance)
+
     def to_representation(self, value):
-        if self.parent._field_is_private(self.privacy_field):
+        if self.parent._field_is_private(self._instance, self.privacy_field):
             return self.default_value
         return super().to_representation(value)
 
