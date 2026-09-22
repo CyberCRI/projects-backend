@@ -200,7 +200,7 @@ class ProjectRecommendationsViewset(
         queryset = (
             self.request.user.get_project_queryset()
             .filter(
-                organizations__code__in=self.organizations,
+                organizations__in=self.organizations,
                 score__activity__gte=0.37,  # 6 months of inactivity
             )
             .exclude(id=project.id)
@@ -215,7 +215,7 @@ class ProjectRecommendationsViewset(
         queryset = (
             user.get_project_queryset()
             .filter(
-                organizations__code__in=self.organizations,
+                organizations__in=self.organizations,
                 score__activity__gte=0.37,  # 6 months of inactivity
             )
             .prefetch_related("categories")
@@ -253,7 +253,7 @@ class UserRecommendationsViewset(NestedOrganizationViewMixins, RecommendationsVi
         queryset = (
             user.get_user_queryset()
             .filter(
-                groups__organizations__code__in=self.organizations,
+                groups__organizations__in=self.organizations,
                 score__activity__gte=0.1,  # 49 weeks of inactivity
             )
             .select_related("privacy_settings")
