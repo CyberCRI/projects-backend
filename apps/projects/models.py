@@ -1051,6 +1051,8 @@ class ProjectTab(
         BLOGS = "blogs"
         ANNOUNCEMENTS = "announcements"
         MESSAGES = "messages"
+        REVIEWS = "reviews"
+        DESCRIPTION = "description"
 
     # which type is a "bridge between projects and tabs"
     PROJECT_TYPE_BRIDGE = (
@@ -1064,6 +1066,8 @@ class ProjectTab(
         TabType.BLOGS.value,
         TabType.ANNOUNCEMENTS.value,
         TabType.MESSAGES.value,
+        TabType.REVIEWS.value,
+        TabType.DESCRIPTION.value,
     )
 
     project = models.ForeignKey(
@@ -1093,11 +1097,17 @@ class ProjectTab(
                 # ignore uuid if tab is create by user (not template)
                 condition=models.Q(uuid__isnull=False),
             ),
+            models.UniqueConstraint(
+                fields=["type", "project"],
+                name="unique_project_tab_type_bridge",
+                # tab need to be unique only for defined type (PROJECT_TYPE_BRIDGE)
+                condition=~models.Q(type__in=("blog", "text")),
+            ),
         ]
         ordering = ("order",)
 
     def __repr__(self):
-        return f"<ProjectTab ({self.uuid=!r} {self.title!r})>"
+        return f"<ProjectTab ({self.uuid=!r} {self.title!r} {self.type!r})>"
 
     def get_related_project(self) -> Project:
         """Return the projects related to this model."""
