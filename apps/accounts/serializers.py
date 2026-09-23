@@ -1,4 +1,5 @@
 import uuid
+from functools import cached_property
 
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
@@ -40,6 +41,7 @@ from .exceptions import (
     UserRolePermissionDeniedError,
 )
 from .models import (
+    AnonymousUser,
     PeopleGroup,
     PeopleGroupLocation,
     PrivacySettings,
@@ -387,6 +389,24 @@ class UserSerializer(
             data["language"] = organization.language
 
         return super().to_internal_value(data)
+
+    @cached_property
+    def _user_acces(self):
+        request = self.context.get("request")
+        if request:
+            return request.user.get_user_queryset().values_list("pk", flat=True)
+        return []
+
+    def to_representation(self, instance: ProjectUser):
+        # TODO(remi): optimize this
+        force_display = self.context.get("force_display", False)
+        if force_display or instance.pk in self._user_acces:
+            return super().to_representation(instance)
+
+        return {
+            **AnonymousUser.serialize(with_permissions=False),
+            "current_org_role": None,
+        }
 
 
 @auto_translated
