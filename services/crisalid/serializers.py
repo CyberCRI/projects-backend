@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from apps.accounts.models import ProjectUser
 from apps.commons.fields import PrivacySettingProtectedMethodField
+from apps.commons.serializers import PrivacySerializer
+from apps.modules.serializers import ModulesSerializers
 from services.crisalid.models import Document, Identifier, Researcher
 from services.translator.serializers import auto_translated
 
@@ -23,7 +25,7 @@ class IdentifierSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
-class ResearcherSerializer(serializers.ModelSerializer):
+class ResearcherSerializer(PrivacySerializer, serializers.ModelSerializer):
     user = ProjectUserMinimalSerializer()
     # TODO(remi): change privacy field for identifiers (not based in socials)
     identifiers = PrivacySettingProtectedMethodField(privacy_field="socials")
@@ -53,25 +55,19 @@ class ResearcherDocumentsSerializer(ResearcherSerializer):
 
 
 @auto_translated
-class DocumentLightSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Document
-        fields = ("title", "publication_date", "document_type")
-
-
-@auto_translated
-class DocumentSerializer(DocumentLightSerializer):
+class DocumentSerializer(ModulesSerializers, serializers.ModelSerializer):
     contributors = ResearcherDocumentsSerializer(many=True)
     identifiers = IdentifierSerializer(many=True)
-    similars = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
         exclude = ("updated",)
 
-    def get_similars(self, instance: Document):
-        """return similar count"""
-        return instance.similars().count()
+
+class DocumentLightSerializer(DocumentSerializer):
+    class Meta(DocumentSerializer.Meta):
+        fields = ("title", "publication_date", "document_type", "modules")
+        modules_keys = ()
 
 
 class DocumentAnalyticsSerializer(serializers.Serializer):
