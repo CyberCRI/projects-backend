@@ -816,4 +816,8 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
             organization=organization,
             **serializer.validated_data,
         )
-        return Response(MentoringSerializer(instance).data)
+        return Response(
+            MentoringSerializer(
+                instance, context={"request": request, "organization": organization}
+            ).data
+        )

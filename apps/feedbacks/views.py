@@ -48,6 +48,11 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_value_regex = "[0-9]+"
     multiple_lookup_fields = [(ProjectUser, "user_id"), (Project, "project_id")]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "review")
         if codename:

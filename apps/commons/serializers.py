@@ -258,7 +258,11 @@ class PrivacySerializer:
             settings = PrivacySettings(user=instance)
 
         request = self.context.get("request")
-        assert request is not None
+
+        if request is None:
+            logger.warning("Request is not set in serialier %r", type(self))
+            return None, False, False
+
         user: ProjectUser = request.user
 
         if user.is_anonymous:
