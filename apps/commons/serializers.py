@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Collection
 from functools import cache
 from typing import Any, Optional
@@ -15,6 +16,8 @@ from apps.commons.utils import process_text, remove_images_text
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+
+logger = logging.getLogger(__name__)
 
 
 class ProjectRelatedSerializer(serializers.ModelSerializer):
@@ -234,6 +237,10 @@ class PrivacySerializer:
             return instance
         if isinstance(instance, HasOwner):
             return instance.get_owner()
+
+        logger.warning(
+            "Invalid get user from privacySerializer: user=%r", type(instance)
+        )
         return None
 
     def _privacy_settings(
@@ -244,17 +251,20 @@ class PrivacySerializer:
 
         if instance is None:
             return None, False, False
+        try:
+            settings = instance.privacy_settings
+        except ProjectUser.privacy_settings.RelatedObjectDoesNotExist:
+            # if user are not privacy_settings set, create a empty one (whitout save)
+            settings = PrivacySettings(user=instance)
 
         request = self.context.get("request")
         assert request is not None
         user: ProjectUser = request.user
 
-        settings = instance.privacy_settings
-
         if user.is_anonymous:
             is_in_org = is_org_admin = False
         elif user.pk == instance.pk or user.is_superuser:
-            return settings, True, True
+            is_in_org = is_org_admin = True
         else:
             is_in_org = instance.groups.filter(
                 organizations__isnull=False,
