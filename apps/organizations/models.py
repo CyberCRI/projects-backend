@@ -14,6 +14,7 @@ from apps.commons.mixins import (
     HasOwner,
     HasPermissionsSetup,
     OrganizationRelated,
+    TimestampedModelMixin,
 )
 from apps.commons.models import GroupData
 from apps.commons.queryset import MultipleIdsQuerySet
@@ -388,7 +389,9 @@ class TemplateCategories(models.Model):
     always_use = models.BooleanField(default=False)
 
 
-class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
+class Template(
+    HasAutoTranslatedFields, TimestampedModelMixin, OrganizationRelated, models.Model
+):
     """
     Templates are used to guide the creation a new project by providing placeholders.
 
