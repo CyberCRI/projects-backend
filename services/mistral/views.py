@@ -11,15 +11,16 @@ from apps.accounts.models import ProjectUser
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.cache import redis_cache_viewset_method
 from apps.commons.permissions import ReadOnly
-from apps.commons.views import MultipleIDViewsetMixin
-from apps.organizations.utils import get_below_hierarchy_codes
+from apps.commons.views import MultipleIDViewsetMixin, NestedOrganizationViewMixins
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
 
 from .models import ProjectEmbedding, UserEmbedding
 
 
-class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
+class RecommendationsViewset(
+    NestedOrganizationViewMixins, MultipleIDViewsetMixin, GenericViewSet
+):
     filter_backends = [DjangoFilterBackend]
     ordering_fields = []
     permission_classes = [ReadOnly]
@@ -27,6 +28,11 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
     multiple_lookup_fields = [(Project, "project_id")]
     queryset: QuerySet[Project | ProjectUser]
     serializer_class: ProjectLightSerializer | UserLightSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
     def _list(self, request, *args, **kwargs):
         """
@@ -86,9 +92,7 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
             project = get_object_or_404(
                 self.request.user.get_project_queryset(),
                 id=self.kwargs["project_id"],
-                organizations__code__in=get_below_hierarchy_codes(
-                    [self.kwargs["organization_code"]]
-                ),
+                organizations__in=self.organizations,
             )
             return self.get_queryset_for_project(project)
         return self.get_queryset_for_user(self.request.user)
@@ -198,9 +202,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
         queryset = (
             self.request.user.get_project_queryset()
             .filter(
-                organizations__code__in=get_below_hierarchy_codes(
-                    [self.kwargs["organization_code"]]
-                ),
+                organizations__in=self.organizations,
                 score__activity__gte=0.37,  # 6 months of inactivity
             )
             .exclude(id=project.id)
@@ -215,9 +217,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
         queryset = (
             user.get_project_queryset()
             .filter(
-                organizations__code__in=get_below_hierarchy_codes(
-                    [self.kwargs["organization_code"]]
-                ),
+                organizations__in=self.organizations,
                 score__activity__gte=0.37,  # 6 months of inactivity
             )
             .prefetch_related("categories")
@@ -238,12 +238,11 @@ class UserRecommendationsViewset(RecommendationsViewset):
         queryset = (
             self.request.user.get_user_queryset()
             .filter(
-                groups__organizations__code__in=get_below_hierarchy_codes(
-                    [self.kwargs["organization_code"]]
-                ),
+                groups__organizations__in=self.organizations,
                 score__activity__gte=0.1,  # 49 weeks of inactivity
             )
             .exclude(groups__projects__id=project.id)
+            .select_related("privacy_settings")
         )
         embedding = self.get_project_embedding(project)
         if self.request.user.is_authenticated:
@@ -253,11 +252,13 @@ class UserRecommendationsViewset(RecommendationsViewset):
         return queryset.none()
 
     def get_queryset_for_user(self, user: ProjectUser) -> QuerySet[ProjectUser]:
-        queryset = user.get_user_queryset().filter(
-            groups__organizations__code__in=get_below_hierarchy_codes(
-                [self.kwargs["organization_code"]]
-            ),
-            score__activity__gte=0.1,  # 49 weeks of inactivity
+        queryset = (
+            user.get_user_queryset()
+            .filter(
+                groups__organizations__in=self.organizations,
+                score__activity__gte=0.1,  # 49 weeks of inactivity
+            )
+            .select_related("privacy_settings")
         )
         embedding = self.get_user_embedding(user)
         if user.is_authenticated:

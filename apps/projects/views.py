@@ -365,7 +365,11 @@ class ProjectMemberViewSet(
     ]
 
     def get_queryset(self) -> QuerySet[ProjectUser]:
-        return self.project.modules_by_user(self.request.user).members()
+        return (
+            self.project.modules_by_user(self.request.user)
+            .members()
+            .select_related("privacy_settings")
+        )
 
     @extend_schema(request=ProjectAddTeamMembersSerializer, responses=ProjectSerializer)
     @action(

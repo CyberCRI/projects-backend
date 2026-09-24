@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 16:41+0200\n"
+"POT-Creation-Date: 2026-09-23 10:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -154,21 +154,21 @@ msgstr ""
 msgid "Unknown publication status '{publication_status}'"
 msgstr ""
 
-#: apps/commons/fields.py:32 apps/skills/serializers.py:89
+#: apps/commons/fields.py:27 apps/skills/serializers.py:89
 msgid "This field is required."
 msgstr ""
 
-#: apps/commons/fields.py:33
+#: apps/commons/fields.py:28
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr ""
 
-#: apps/commons/fields.py:35 apps/skills/serializers.py:94
+#: apps/commons/fields.py:30 apps/skills/serializers.py:94
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr ""
 
-#: apps/commons/serializers.py:210
+#: apps/commons/serializers.py:217
 msgid "The value must be between -90 and 90."
 msgstr ""
 
@@ -1958,63 +1958,63 @@ msgid ""
 "Do you want to be mentored in %(skill)s? (reminder)\n"
 msgstr ""
 
-#: services/crisalid/models.py:189
+#: services/crisalid/models.py:198
 msgid "Document"
 msgstr ""
 
-#: services/crisalid/models.py:190
+#: services/crisalid/models.py:199
 msgid "Scholarly Publication"
 msgstr ""
 
-#: services/crisalid/models.py:191
+#: services/crisalid/models.py:200
 msgid "Article"
 msgstr ""
 
-#: services/crisalid/models.py:192
+#: services/crisalid/models.py:201
 msgid "Journal Article"
 msgstr ""
 
-#: services/crisalid/models.py:193
+#: services/crisalid/models.py:202
 msgid "Conference Article"
 msgstr ""
 
-#: services/crisalid/models.py:194
+#: services/crisalid/models.py:203
 msgid "Conference Abstract"
 msgstr ""
 
-#: services/crisalid/models.py:195
+#: services/crisalid/models.py:204
 msgid "Preface"
 msgstr ""
 
-#: services/crisalid/models.py:196
+#: services/crisalid/models.py:205
 msgid "Comment"
 msgstr ""
 
-#: services/crisalid/models.py:197
+#: services/crisalid/models.py:206
 msgid "Book Chapter"
 msgstr ""
 
-#: services/crisalid/models.py:198
+#: services/crisalid/models.py:207
 msgid "Book"
 msgstr ""
 
-#: services/crisalid/models.py:199
+#: services/crisalid/models.py:208
 msgid "Monograph"
 msgstr ""
 
-#: services/crisalid/models.py:200
+#: services/crisalid/models.py:209
 msgid "Proceedings"
 msgstr ""
 
-#: services/crisalid/models.py:201
+#: services/crisalid/models.py:210
 msgid "Book Of Chapters"
 msgstr ""
 
-#: services/crisalid/models.py:202
+#: services/crisalid/models.py:211
 msgid "Presentation"
 msgstr ""
 
-#: services/crisalid/models.py:203
+#: services/crisalid/models.py:212
 msgid "Unknown"
 msgstr ""
 

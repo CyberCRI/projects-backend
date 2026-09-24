@@ -1,16 +1,23 @@
+import logging
 from collections.abc import Collection
-from typing import Any
+from functools import cache
+from typing import Any, Optional
 
+from django.contrib.auth.models import Group
 from django.db.models import Model, Q
 from django.utils.translation import gettext_lazy as _
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import import_from_string
 
-from apps.accounts.models import ProjectUser
+from apps.accounts.models import PrivacySettings, ProjectUser
+from apps.commons.mixins import HasOwner
+from apps.commons.models import GroupData
 from apps.commons.utils import process_text, remove_images_text
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+
+logger = logging.getLogger(__name__)
 
 
 class ProjectRelatedSerializer(serializers.ModelSerializer):
@@ -216,3 +223,86 @@ class BaseLocationSerializer(
 
     def valiate_lng(self, value):
         return self._check_gis(super().validate_lng(value))
+
+
+class PrivacySerializer:
+    instance: ProjectUser
+
+    def __init__(self, *ar, **kw):
+        super().__init__(*ar, **kw)
+        self._privacy_settings = cache(self._privacy_settings)
+
+    def _get_user(self, instance):
+        if isinstance(instance, ProjectUser):
+            return instance
+        if isinstance(instance, HasOwner):
+            return instance.get_owner()
+
+        logger.warning(
+            "Invalid get user from privacySerializer: user=%r", type(instance)
+        )
+        return None
+
+    def _privacy_settings(
+        self, instance
+    ) -> tuple[Optional[PrivacySettings], bool, bool]:
+
+        instance = self._get_user(instance)
+
+        if instance is None:
+            return None, False, False
+        try:
+            settings = instance.privacy_settings
+        except ProjectUser.privacy_settings.RelatedObjectDoesNotExist:
+            # if user are not privacy_settings set, create a empty one (whitout save)
+            settings = PrivacySettings(user=instance)
+
+        request = self.context.get("request")
+
+        if request is None:
+            logger.warning("Request is not set in serialier %r", type(self))
+            return None, False, False
+
+        user: ProjectUser = request.user
+
+        if user.is_anonymous:
+            is_in_org = is_org_admin = False
+        elif user.pk == instance.pk or user.is_superuser:
+            is_in_org = is_org_admin = True
+        else:
+            is_in_org = instance.groups.filter(
+                organizations__isnull=False,
+                organizations__in=request.user.get_organizations_queryset(),
+            ).exists()
+
+            is_org_admin = Group.objects.filter(
+                Q(
+                    organizations__isnull=False,
+                    organizations__in=instance.get_organizations_queryset(),
+                    users=request.user,
+                )
+                & (
+                    Q(data__role=GroupData.Role.ADMINS)
+                    | Q(data__role=GroupData.Role.FACILITATORS)
+                )
+            ).exists()
+
+        return settings, is_in_org, is_org_admin
+
+    def _field_is_private(self, instance, field: str) -> bool:
+        """check if field from privacysettings is private from user"""
+
+        privacy_settings, is_in_org, is_org_admin = self._privacy_settings(instance)
+
+        # not privacy_settings, return all privayc field
+        if privacy_settings is None:
+            return True
+
+        match getattr(privacy_settings, field):
+            case PrivacySettings.PrivacyChoices.PUBLIC:
+                return False
+            case PrivacySettings.PrivacyChoices.ORGANIZATION:
+                return not is_in_org
+            case PrivacySettings.PrivacyChoices.HIDE:
+                return not is_org_admin
+        return True

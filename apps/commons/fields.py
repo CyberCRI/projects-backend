@@ -1,8 +1,5 @@
 import inspect
-from contextlib import suppress
 
-from django.contrib.auth.models import Group
-from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
@@ -12,9 +9,7 @@ from rest_framework.fields import Field
 from rest_framework.serializers import BaseSerializer
 
 from apps.accounts.models import PrivacySettings, ProjectUser
-from apps.accounts.utils import get_superadmins_group
-from apps.commons.models import GroupData
-from services.crisalid.models import Researcher
+from apps.commons.serializers import PrivacySerializer
 
 
 @extend_schema_field(OpenApiTypes.UUID)
@@ -161,6 +156,8 @@ class WritableSerializerMethodField(serializers.SerializerMethodField):
 
 
 class PrivacySettingFieldMixin:
+    parent: PrivacySerializer
+
     def __init__(self, **kwargs):
         self.privacy_field = kwargs.pop("privacy_field", "")
         self.default_value = kwargs.pop("default_value", None)
@@ -169,90 +166,14 @@ class PrivacySettingFieldMixin:
         ]
         super().__init__(**kwargs)
 
-    def _get_user(self, value):
-        if isinstance(value, ProjectUser):
-            return value
-        if isinstance(value, Researcher):
-            return value.user
-
-        user_data = getattr(self.parent, "instance", None) or getattr(
-            self.parent, "queryset", None
-        )
-        if (
-            user_data
-            and isinstance(user_data, QuerySet)
-            and user_data.model == ProjectUser
-            and user_data.count() == 1
-        ):
-            return user_data.get()
-        if (
-            user_data
-            and isinstance(user_data, QuerySet)
-            and user_data.model == ProjectUser
-            and self.source_attrs
-        ):
-            try:
-                return user_data.filter(**{self.source_attrs[0]: value}).first()
-            except TypeError:  # filter raises a TypeError if queryset has been sliced
-                user_data = list(user_data)
-        if user_data and isinstance(user_data, ProjectUser):
-            return user_data
-        if user_data and isinstance(user_data, list) and len(user_data) == 1:
-            return user_data[0]
-        if user_data and isinstance(user_data, list) and self.source_attrs:
-            return [
-                user
-                for user in user_data
-                if getattr(user, self.source_attrs[0]) == value
-            ][0]
-        if self.source_attrs:
-            with suppress(
-                ProjectUser.MultipleObjectsReturned, ProjectUser.DoesNotExist
-            ):
-                return ProjectUser.objects.get(**{self.source_attrs[0]: value})
-        return None
-
-    def _check_privacy_settings(self, value):
-        instance = self._get_user(value)
-        assert isinstance(instance, ProjectUser)
-        request = self.context.get("request")
-        assert request is not None
-
-        if instance == request.user or request.user.groups.contains(
-            get_superadmins_group()
-        ):
-            return True
-        settings, _ = PrivacySettings.objects.get_or_create(user=instance)
-        match getattr(settings, self.privacy_field):
-            case PrivacySettings.PrivacyChoices.PUBLIC:
-                return True
-            case PrivacySettings.PrivacyChoices.ORGANIZATION:
-                return instance.groups.filter(
-                    organizations__isnull=False,
-                    organizations__in=request.user.get_related_organizations(),
-                ).exists()
-            case PrivacySettings.PrivacyChoices.HIDE:
-                if not request.user.is_authenticated or not isinstance(
-                    request.user, ProjectUser
-                ):
-                    return False
-                return Group.objects.filter(
-                    Q(
-                        organizations__isnull=False,
-                        organizations__in=instance.get_organizations_queryset(),
-                        users=request.user,
-                    )
-                    & (
-                        Q(data__role=GroupData.Role.ADMINS)
-                        | Q(data__role=GroupData.Role.FACILITATORS)
-                    )
-                ).exists()
-        return False
+    def get_attribute(self, instance):
+        self._instance = instance
+        return super().get_attribute(instance)
 
     def to_representation(self, value):
-        if self._check_privacy_settings(value):
-            return super().to_representation(value)
-        return self.default_value
+        if self.parent._field_is_private(self._instance, self.privacy_field):
+            return self.default_value
+        return super().to_representation(value)
 
 
 class PrivacySettingProtectedCharField(PrivacySettingFieldMixin, serializers.CharField):
