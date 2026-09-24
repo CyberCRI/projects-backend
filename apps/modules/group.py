@@ -1,12 +1,4 @@
-from django.db.models import (
-    Case,
-    CharField,
-    IntegerField,
-    Q,
-    QuerySet,
-    Value,
-    When,
-)
+from django.db.models import Case, F, IntegerField, Q, QuerySet, Value, When
 
 from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from apps.commons.models import GroupData
@@ -26,41 +18,23 @@ class PeopleGroupModules(AbstractModules):
         return (
             self.user.get_user_queryset()
             .filter(
+                groups__people_groups=self.instance,
                 groups__data__role__in=(
                     GroupData.Role.LEADERS,
                     GroupData.Role.MANAGERS,
                     GroupData.Role.MEMBERS,
                 ),
-                groups__people_groups=self.instance,
             )
             .annotate(
-                role=Case(
-                    When(
-                        groups__data__role=GroupData.Role.LEADERS,
-                        then=Value(GroupData.Role.LEADERS.value),
-                    ),
-                    When(
-                        groups__data__role=GroupData.Role.MANAGERS,
-                        then=Value(GroupData.Role.MANAGERS.value),
-                    ),
-                    When(
-                        groups__data__role=GroupData.Role.MEMBERS,
-                        then=Value(GroupData.Role.MEMBERS.value),
-                    ),
-                    output_field=CharField(),
-                ),
-                priority_role_order=Case(
-                    When(groups__data__role=GroupData.Role.LEADERS, then=Value(1)),
-                    When(groups__data__role=GroupData.Role.MANAGERS, then=Value(2)),
-                    When(
-                        groups__data__role=GroupData.Role.MEMBERS,
-                        then=Value(3),
-                    ),
+                role=F("groups__data__role"),
+                role_priority=Case(
+                    When(role=GroupData.Role.LEADERS.value, then=Value(1)),
+                    When(role=GroupData.Role.MANAGERS.value, then=Value(2)),
+                    When(role=GroupData.Role.MEMBERS.value, then=Value(3)),
                     output_field=IntegerField(),
                 ),
             )
-            .order_by("priority_role_order")
-            .distinct()
+            .order_by("role_priority")
         )
 
     @organization_related
