@@ -93,7 +93,8 @@ class AccessRequestSerializer(
         slug_field="code", queryset=Organization.objects.all()
     )
     user = UserMultipleIdRelatedField(
-        queryset=ProjectUser.objects.all(), allow_null=True
+        queryset=ProjectUser.objects.all().select_related("privacy_settings"),
+        allow_null=True,
     )
 
     class Meta:

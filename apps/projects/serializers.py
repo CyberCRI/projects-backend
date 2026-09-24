@@ -724,16 +724,13 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
     linked_projects = serializers.SerializerMethodField(read_only=True)
     delta = serializers.SerializerMethodField(read_only=True)
 
-    @staticmethod
-    def get_id(version) -> int:
+    def get_id(self, version) -> int:
         return version.pk
 
-    @staticmethod
-    def get_project_id(version) -> str:
+    def get_project_id(self, version) -> str:
         return version.id
 
-    @staticmethod
-    def get_delta(version) -> dict[str, str]:
+    def get_delta(self, version) -> dict[str, str]:
         previous = version.prev_record
         while previous:
             previous_reason = previous.history_change_reason
@@ -756,8 +753,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
             previous = previous.prev_record
         return {}
 
-    @staticmethod
-    def get_categories(version) -> list[str]:
+    def get_categories(self, version) -> list[str]:
         categories_ids = version.categories.all().values_list(
             "projectcategory_id", flat=True
         )
@@ -765,29 +761,27 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
             "name", flat=True
         )
 
-    @staticmethod
-    def get_tags(version) -> list[str]:
+    def get_tags(self, version) -> list[str]:
         tags_ids = version.tags.all().values_list("tag_id", flat=True)
         return Tag.objects.filter(id__in=tags_ids).values_list("title", flat=True)
 
-    @staticmethod
-    def get_members(version) -> list[str]:
+    def get_members(self, version) -> list[str]:
         members = Project.objects.get(id=version.id).get_all_members()
         return [m.get_full_name() for m in members]
 
-    @staticmethod
-    def get_comments(version) -> dict[str, Any]:
+    def get_comments(self, version) -> dict[str, Any]:
         comments = Comment.history.as_of(version.history_date).filter(
             project__id=version.id, deleted_at=None
         )
-        return CommentSerializer(comments, many=True).data
+        return CommentSerializer(comments, many=True, context=self.context).data
 
-    @staticmethod
-    def get_linked_projects(version) -> dict[str, Any]:
+    def get_linked_projects(self, version) -> dict[str, Any]:
         linked_projects = LinkedProject.history.as_of(version.history_date).filter(
             target__id=version.id
         )
-        return LinkedProjectSerializer(linked_projects, many=True).data
+        return LinkedProjectSerializer(
+            linked_projects, many=True, context=self.context
+        ).data
 
     class Meta:
         model = apps.get_model("projects", "HistoricalProject")
@@ -813,16 +807,13 @@ class ProjectVersionListSerializer(serializers.ModelSerializer):
     project_id = serializers.SerializerMethodField(read_only=True)
     updated_fields = serializers.SerializerMethodField(read_only=True)
 
-    @staticmethod
-    def get_id(version) -> int:
+    def get_id(self, version) -> int:
         return version.pk
 
-    @staticmethod
-    def get_project_id(version) -> str:
+    def get_project_id(self, version) -> str:
         return version.id
 
-    @staticmethod
-    def get_updated_fields(version) -> list[str]:
+    def get_updated_fields(self, version) -> list[str]:
         previous = version.prev_record
         while previous:
             previous_reason = previous.history_change_reason

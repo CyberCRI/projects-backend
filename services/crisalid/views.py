@@ -129,7 +129,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
     def similars(self, request, *args, **kwargs):
         """methods to return similars projects"""
         obj: Document = self.get_object()
-        queryset = obj.similars()
+        queryset = obj.modules_by_user(request.user).similars()
 
         queryset_page = self.paginate_queryset(queryset)
         data = self.serializer_class(
