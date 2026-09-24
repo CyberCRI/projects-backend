@@ -44,6 +44,7 @@ class UserModules(AbstractModules):
         follows_projects = self.instance.follows.all()
         return qs.filter(follows__in=follows_projects)
 
+    @organization_related
     def follows_categories(self) -> QuerySet[CategoryFollow]:
         return self.instance.category_follows.all()
 

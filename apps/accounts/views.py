@@ -1,5 +1,4 @@
 import uuid
-from functools import cached_property
 
 from django.conf import settings
 from django.db import transaction
@@ -48,6 +47,7 @@ from apps.commons.views import (
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
     NestedUserViewMixins,
+    QueryOrganizationViewMixins,
     QuerySerializersMixin,
 )
 from apps.files.models import Image
@@ -108,7 +108,12 @@ from .utils import (
 )
 
 
-class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class UserViewSet(
+    QueryOrganizationViewMixins,
+    QuerySerializersMixin,
+    MultipleIDViewsetMixin,
+    viewsets.ModelViewSet,
+):
     serializer_class = UserSerializer
     query_serializers = {
         "light": UserLightSerializer,
@@ -150,14 +155,6 @@ class UserViewSet(QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelV
                 | HasOrganizationPermission(codename),
             ]
         return super().get_permissions()
-
-    @cached_property
-    def organization(self):
-        current_org_pk = self.request.query_params.get("current_org_pk")
-        if not current_org_pk:
-            return None
-
-        return get_object_or_404(Organization.objects.filter(pk=current_org_pk))
 
     def annotate_organization_role(
         self, queryset: QuerySet, organization: Organization
@@ -1131,7 +1128,9 @@ class PrivacySettingsViewSet(NestedUserViewMixins, RetrieveUpdateModelViewSet):
         return PrivacySettings.objects.filter(user=self.user)
 
 
-class UserMemberProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+class UserMemberProjectViewSet(
+    QueryOrganizationViewMixins, NestedUserViewMixins, viewsets.ReadOnlyModelViewSet
+):
     serializer_class = ProjectLightSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["updated_at", "created_at"]
@@ -1140,15 +1139,17 @@ class UserMemberProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewS
 
     def get_queryset(self) -> QuerySet:
         return (
-            self.request.user.get_project_queryset()
-            .filter(groups__users=self.user)
+            self.user.modules_by_user(self.user, self.organization)
+            .projects()
             .distinct()
             .select_related("header_image")
             .prefetch_related("categories", "tags", "organizations__logo_image")
         )
 
 
-class UserReviewerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+class UserReviewerProjectViewSet(
+    QueryOrganizationViewMixins, NestedUserViewMixins, viewsets.ReadOnlyModelViewSet
+):
     serializer_class = ProjectLightSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["updated_at", "created_at"]
@@ -1157,18 +1158,17 @@ class UserReviewerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelVie
 
     def get_queryset(self) -> QuerySet:
         return (
-            self.request.user.get_project_queryset()
-            .filter(
-                groups__data__role=GroupData.Role.REVIEWERS,
-                groups__users=self.user,
-            )
+            self.user.modules_by_user(self.user, self.organization)
+            .reviews_projects()
             .distinct()
             .select_related("header_image")
             .prefetch_related("categories", "tags", "organizations__logo_image")
         )
 
 
-class UserFollowerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+class UserFollowerProjectViewSet(
+    QueryOrganizationViewMixins, NestedUserViewMixins, viewsets.ReadOnlyModelViewSet
+):
     serializer_class = ProjectLightSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["updated_at", "created_at"]
@@ -1177,15 +1177,17 @@ class UserFollowerProjectViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelVie
 
     def get_queryset(self) -> QuerySet:
         return (
-            self.request.user.get_project_queryset()
-            .filter(follows__follower=self.user)
+            self.user.modules_by_user(self.request.user, self.organization)
+            .follows_projects()
             .distinct()
             .select_related("header_image")
             .prefetch_related("categories", "tags", "organizations__logo_image")
         )
 
 
-class UserFollowerCategoryViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelViewSet):
+class UserFollowerCategoryViewSet(
+    QueryOrganizationViewMixins, NestedUserViewMixins, viewsets.ReadOnlyModelViewSet
+):
     serializer_class = ProjectCategoryLightSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["name"]
@@ -1194,7 +1196,11 @@ class UserFollowerCategoryViewSet(NestedUserViewMixins, viewsets.ReadOnlyModelVi
 
     def get_queryset(self) -> QuerySet:
         return (
-            ProjectCategory.objects.filter(follows__follower=self.user)
+            ProjectCategory.objects.filter(
+                follows__in=self.user.modules_by_user(
+                    self.request.user, self.organization
+                ).follows_categories()
+            )
             .distinct()
             .select_related("organization")
         )
