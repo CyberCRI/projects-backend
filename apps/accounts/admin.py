@@ -15,7 +15,7 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from services.keycloak.interface import KeycloakService
 
-from .exports import UserResource
+from .exports import PeopleGroupResource, UserResource
 from .models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from .utils import get_group_permissions
 
@@ -160,11 +160,25 @@ class GroupAdmin(admin.ModelAdmin):
 
 
 @admin.register(PeopleGroup)
-class PeopleGroupAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
+class PeopleGroupAdmin(
+    TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin
+):
+    resource_classes = [PeopleGroupResource]
+
     list_display = ("id", "name", "organization", "email")
     search_fields = ("name", "email", "id")
     filter_horizontal = ("featured_projects",)
     list_filter = ("organization",)
+
+    def get_queryset_for_organizations(
+        self,
+        queryset: QuerySet[ProjectUser],
+        organizations: QuerySet[Organization],
+    ) -> QuerySet[ProjectUser]:
+        """
+        Filter the queryset based on the organizations the user has admin access to.
+        """
+        return queryset.filter(organization__in=organizations).distinct()
 
 
 @admin.register(PeopleGroupLocation)
