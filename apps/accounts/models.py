@@ -526,24 +526,14 @@ class ProjectUser(
         q_filter = Q(publication_status=Project.PublicationStatus.PUBLIC)
         q_filter |= Q(
             publication_status=Project.PublicationStatus.ORG,
-            organizations__in=self.get_organizations_queryset(),
-        )
-
-        org_admin = Group.objects.filter(
-            Q(
-                organizations__isnull=False,
-                organizations__in=self.get_organizations_queryset(),
-                users=self,
-            )
-            & (
-                Q(data__role=GroupData.Role.ADMINS)
-                | Q(data__role=GroupData.Role.FACILITATORS)
-            )
+            organizations__in=get_objects_for_user(
+                self, "organizations.view_org_project"
+            ),
         )
         q_filter |= Q(
-            publication_status=Project.PublicationStatus.PRIVATE,
-            organizations__in=Organization.objects.filter(groups__in=org_admin),
+            organizations__in=get_objects_for_user(self, "organizations.view_project")
         )
+        q_filter |= Q(id__in=get_objects_for_user(self, "projects.view_project"))
 
         # if user is superuser, we reset all preview filters ( to return all elements)
         if self.is_superuser:
@@ -566,7 +556,11 @@ class ProjectUser(
                         Q(organization__in=organizations)
                         & Q(people_groups__isnull=True)
                     )
-                    | Q(organization__in=organizations)
+                    | Q(
+                        organization__in=get_objects_for_user(
+                            self, "organizations.view_news"
+                        )
+                    )
                 )
         return self._news_queryset.distinct()
 
@@ -584,7 +578,11 @@ class ProjectUser(
                         Q(organization__in=organizations)
                         & Q(people_groups__isnull=True)
                     )
-                    | Q(organization__in=organizations)
+                    | Q(
+                        organization__in=get_objects_for_user(
+                            self, "organizations.view_instruction"
+                        )
+                    )
                 )
         return self._instruction_queryset.distinct()
 
@@ -602,7 +600,11 @@ class ProjectUser(
                         Q(organization__in=organizations)
                         & Q(people_groups__isnull=True)
                     )
-                    | Q(organization__in=organizations)
+                    | Q(
+                        organization__in=get_objects_for_user(
+                            self, "organizations.view_event"
+                        )
+                    )
                 )
         return self._event_queryset.distinct()
 
@@ -620,24 +622,16 @@ class ProjectUser(
             privacy_settings__publication_status=PrivacySettings.PrivacyChoices.PUBLIC
         )
         q_filter |= Q(
-            privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
-            groups__organizations__in=self.get_organizations_queryset(),
-        )
-
-        org_admin = Group.objects.filter(
-            Q(
-                organizations__isnull=False,
-                organizations__in=self.get_organizations_queryset(),
-                users=self,
-            )
-            & (
-                Q(data__role=GroupData.Role.ADMINS)
-                | Q(data__role=GroupData.Role.FACILITATORS)
+            privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION
+        ) & Q(
+            groups__organizations__in=get_objects_for_user(
+                self, "organizations.view_org_projectuser"
             )
         )
         q_filter |= Q(
-            privacy_settings__publication_status=PrivacySettings.PrivacyChoices.HIDE,
-            groups__organizations__in=Organization.objects.filter(groups__in=org_admin),
+            groups__organizations__in=get_objects_for_user(
+                self, "organizations.view_projectuser"
+            )
         )
 
         # if user is superuser, we reset all preview filters ( to return all elements)
@@ -655,25 +649,16 @@ class ProjectUser(
             return self._people_group_queryset
 
         q_filter = Q(publication_status=PeopleGroup.PublicationStatus.PUBLIC)
-        q_filter |= Q(
-            publication_status=PeopleGroup.PublicationStatus.ORG,
-            organization__in=self.get_organizations_queryset(),
-        )
-
-        org_admin = Group.objects.filter(
-            Q(
-                organizations__isnull=False,
-                organizations__in=self.get_organizations_queryset(),
-                users=self,
-            )
-            & (
-                Q(data__role=GroupData.Role.ADMINS)
-                | Q(data__role=GroupData.Role.FACILITATORS)
+        q_filter |= Q(id__in=get_objects_for_user(self, "accounts.view_peoplegroup"))
+        q_filter |= Q(publication_status=PeopleGroup.PublicationStatus.ORG) & Q(
+            organization__in=get_objects_for_user(
+                self, "organizations.view_org_peoplegroup"
             )
         )
         q_filter |= Q(
-            publication_status=PeopleGroup.PublicationStatus.PRIVATE,
-            organization__in=Organization.objects.filter(groups__in=org_admin),
+            organization__in=get_objects_for_user(
+                self, "organizations.view_peoplegroup"
+            )
         )
 
         # if user is superuser, we reset all preview filters ( to return all elements)
