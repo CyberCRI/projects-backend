@@ -45,9 +45,11 @@ class PeopleGroupModules(AbstractModules):
 
         return (
             Project.objects.filter(
-                Q(id__in=self.user.get_user_queryset().values_list("id", flat=True))
-                & Q(groups__people_groups=self.instance)
-                | Q(people_groups=self.instance)
+                Q(id__in=self.user.get_project_queryset().values_list("id", flat=True))
+                & (
+                    Q(groups__people_groups=self.instance)
+                    | Q(people_groups=self.instance)
+                )
             )
             .annotate(
                 is_group_project=Case(
