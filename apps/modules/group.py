@@ -16,8 +16,8 @@ class PeopleGroupModules(AbstractModules):
     @organization_related
     def members(self) -> QuerySet[ProjectUser]:
         return (
-            self.user.get_user_queryset()
-            .filter(
+            ProjectUser.objects.filter(
+                id__in=self.user.get_user_queryset().values_list("id", flat=True),
                 groups__people_groups=self.instance,
                 groups__data__role__in=(
                     GroupData.Role.LEADERS,
@@ -44,9 +44,12 @@ class PeopleGroupModules(AbstractModules):
         ).distinct()
 
         return (
-            self.user.get_project_queryset()
-            .filter(
-                Q(groups__people_groups=self.instance) | Q(people_groups=self.instance)
+            Project.objects.filter(
+                Q(id__in=self.user.get_project_queryset().values_list("id", flat=True))
+                & (
+                    Q(groups__people_groups=self.instance)
+                    | Q(people_groups=self.instance)
+                )
             )
             .annotate(
                 is_group_project=Case(
