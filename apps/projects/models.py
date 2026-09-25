@@ -1040,6 +1040,35 @@ class ProjectTab(
 
         TEXT = "text"
         BLOG = "blog"
+        # convert tabs to extras tabs
+        MEMBERS = "members"
+        GROUPS = "groups"
+        LINKED_PROJECTS = "linked_projects"
+        LOCATIONS = "locations"
+        COMMENTS = "comments"
+        GOALS = "goals"
+        RESOURCES = "resources"
+        BLOGS = "blogs"
+        ANNOUNCEMENTS = "announcements"
+        MESSAGES = "messages"
+        REVIEWS = "reviews"
+        DESCRIPTION = "description"
+
+    # which type is a "bridge between projects and tabs"
+    PROJECT_TYPE_BRIDGE = (
+        TabType.MEMBERS.value,
+        TabType.GROUPS.value,
+        TabType.LINKED_PROJECTS.value,
+        TabType.LOCATIONS.value,
+        TabType.COMMENTS.value,
+        TabType.GOALS.value,
+        TabType.RESOURCES.value,
+        TabType.BLOGS.value,
+        TabType.ANNOUNCEMENTS.value,
+        TabType.MESSAGES.value,
+        TabType.REVIEWS.value,
+        TabType.DESCRIPTION.value,
+    )
 
     project = models.ForeignKey(
         "projects.Project",
@@ -1054,6 +1083,8 @@ class ProjectTab(
     icon = models.CharField(max_length=255, blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
     show_preview = models.BooleanField(default=True)
+    show_tab = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
 
     objects = MultipleIdsQuerySet.as_manager()
 
@@ -1066,10 +1097,17 @@ class ProjectTab(
                 # ignore uuid if tab is create by user (not template)
                 condition=models.Q(uuid__isnull=False),
             ),
+            models.UniqueConstraint(
+                fields=["type", "project"],
+                name="unique_project_tab_type_bridge",
+                # tab need to be unique only for defined type (PROJECT_TYPE_BRIDGE)
+                condition=~models.Q(type__in=("blog", "text")),
+            ),
         ]
+        ordering = ("order",)
 
     def __repr__(self):
-        return f"<ProjectTab ({self.uuid=!r} {self.title!r})>"
+        return f"<ProjectTab ({self.uuid=!r} {self.title!r} {self.type!r})>"
 
     def get_related_project(self) -> Project:
         """Return the projects related to this model."""

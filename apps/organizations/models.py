@@ -507,6 +507,8 @@ class TemplateTab(OrganizationRelated, models.Model):
     )
     icon = models.CharField(max_length=255, blank=True, null=True)
     show_preview = models.BooleanField(default=True)
+    show_tab = models.BooleanField(default=True)
+    order = models.PositiveIntegerField()
 
     # content is all optional
     title_item = models.TextField(max_length=255, default="", blank=True, null=True)
@@ -520,6 +522,7 @@ class TemplateTab(OrganizationRelated, models.Model):
                 name="unique_template_tab",
             ),
         ]
+        ordering = ("order",)
 
     def get_related_organizations(self) -> Organization:
         """Return the organizations related to this model."""
