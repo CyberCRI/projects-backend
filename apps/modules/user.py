@@ -56,19 +56,13 @@ class UserModules(AbstractModules):
 
     @organization_related
     def groups(self) -> QuerySet[PeopleGroup]:
-        return (
-            self.user.get_people_group_queryset()
-            .filter(groups__users=self.instance, is_root=False)
-            .distinct()
+        return self.user.get_people_group_queryset().filter(
+            groups__users=self.instance, is_root=False
         )
 
     @organization_related
     def projects(self) -> QuerySet[Project]:
-        return (
-            self.user.get_project_queryset()
-            .filter(groups__users=self.instance)
-            .distinct()
-        )
+        return self.user.get_project_queryset().filter(groups__users=self.instance)
 
     @organization_related
     def reviews_projects(self) -> QuerySet[Project]:

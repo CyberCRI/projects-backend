@@ -1,6 +1,6 @@
 from django.db.models import (
     Case,
-    CharField,
+    F,
     IntegerField,
     QuerySet,
     Value,
@@ -37,38 +37,23 @@ class ProjectModules(AbstractModules):
         return (
             self.user.get_user_queryset()
             .filter(
+                groups__projects=self.instance,
                 groups__data__role__in=(
                     GroupData.Role.OWNERS,
                     GroupData.Role.MEMBERS,
                     GroupData.Role.REVIEWERS,
                 ),
-                groups__projects=self.instance,
             )
             .annotate(
-                role=Case(
-                    When(
-                        groups__data__role=GroupData.Role.OWNERS,
-                        then=Value(GroupData.Role.OWNERS.value),
-                    ),
-                    When(
-                        groups__data__role=GroupData.Role.MEMBERS,
-                        then=Value(GroupData.Role.MEMBERS.value),
-                    ),
-                    When(
-                        groups__data__role=GroupData.Role.REVIEWERS,
-                        then=Value(GroupData.Role.REVIEWERS.value),
-                    ),
-                    output_field=CharField(),
-                ),
-                priority_role_order=Case(
-                    When(groups__data__role=GroupData.Role.OWNERS, then=Value(1)),
-                    When(groups__data__role=GroupData.Role.MEMBERS, then=Value(2)),
-                    When(groups__data__role=GroupData.Role.REVIEWERS, then=Value(3)),
+                role=F("groups__data__role"),
+                role_priority=Case(
+                    When(role=GroupData.Role.OWNERS.value, then=Value(1)),
+                    When(role=GroupData.Role.MEMBERS.value, then=Value(2)),
+                    When(role=GroupData.Role.REVIEWERS.value, then=Value(3)),
                     output_field=IntegerField(),
                 ),
             )
-            .order_by("priority_role_order")
-            .distinct()
+            .order_by("role_priority")
         )
 
     @organization_related
@@ -76,43 +61,26 @@ class ProjectModules(AbstractModules):
         return (
             self.user.get_people_group_queryset()
             .filter(
+                groups__projects=self.instance,
                 groups__data__role__in=(
                     GroupData.Role.OWNER_GROUPS,
                     GroupData.Role.MEMBER_GROUPS,
                     GroupData.Role.REVIEWER_GROUPS,
                 ),
-                groups__projects=self.instance,
             )
             .annotate(
-                role=Case(
+                role=F("groups__data__role"),
+                role_priority=Case(
+                    When(role=GroupData.Role.OWNER_GROUPS.value, then=Value(1)),
+                    When(role=GroupData.Role.MEMBER_GROUPS.value, then=Value(2)),
                     When(
-                        groups__data__role=GroupData.Role.OWNER_GROUPS,
-                        then=Value(GroupData.Role.OWNER_GROUPS.value),
-                    ),
-                    When(
-                        groups__data__role=GroupData.Role.MEMBER_GROUPS,
-                        then=Value(GroupData.Role.MEMBER_GROUPS.value),
-                    ),
-                    When(
-                        groups__data__role=GroupData.Role.REVIEWER_GROUPS,
-                        then=Value(GroupData.Role.REVIEWER_GROUPS.value),
-                    ),
-                    output_field=CharField(),
-                ),
-                priority_role_order=Case(
-                    When(groups__data__role=GroupData.Role.OWNER_GROUPS, then=Value(1)),
-                    When(
-                        groups__data__role=GroupData.Role.MEMBER_GROUPS, then=Value(2)
-                    ),
-                    When(
-                        groups__data__role=GroupData.Role.REVIEWER_GROUPS,
+                        role=GroupData.Role.REVIEWER_GROUPS.value,
                         then=Value(3),
                     ),
                     output_field=IntegerField(),
                 ),
             )
-            .order_by("priority_role_order")
-            .distinct()
+            .order_by("role_priority")
         )
 
     @organization_related
