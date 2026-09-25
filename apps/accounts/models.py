@@ -47,9 +47,11 @@ from services.translator.mixins import HasAutoTranslatedFields
 
 
 class PeopleGroupLocation(
-    OrganizationRelated, HasRelatedLocationContent, AbstractLocation
+    HasRelatedLocationContent, OrganizationRelated, AbstractLocation
 ):
     """base location for group"""
+
+    organization_query_string: str = "people_group__organization"
 
     people_group = models.ForeignKey(
         "accounts.PeopleGroup",

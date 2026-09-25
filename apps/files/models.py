@@ -468,11 +468,14 @@ class Image(BaseImage, HasOwner, ProjectRelated, OrganizationRelated):
         return None
 
 
-class ProjectUserAttachmentFile(HasAutoTranslatedFields, HasOwner, models.Model):
+class ProjectUserAttachmentFile(
+    HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.Model
+):
     """
     An attachment file that is related to a project.
     """
 
+    organization_query_string: str = "owner__groups__organizations"
     auto_translated_fields: list[str] = ["title", "description"]
 
     owner = models.ForeignKey(
@@ -495,12 +498,18 @@ class ProjectUserAttachmentFile(HasAutoTranslatedFields, HasOwner, models.Model)
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return user == self.get_owner()
 
+    def get_related_organizations(self) -> list["Organization"]:
+        return self.get_owner().get_related_organizations()
 
-class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model):
+
+class ProjectUserAttachmentLink(
+    HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.Model
+):
     """
     A link that is attached to a project.
     """
 
+    organization_query_string: str = "owner__groups__organizations"
     auto_translated_fields: list[str] = ["title", "description"]
 
     owner = models.ForeignKey(
@@ -530,6 +539,9 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return user == self.get_owner()
+
+    def get_related_organizations(self) -> list["Organization"]:
+        return self.get_owner().get_related_organizations()
 
 
 class PeopleGroupImage(BaseImage, HasOwners, OrganizationRelated):

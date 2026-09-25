@@ -110,7 +110,7 @@ msgstr "Sa ei saa seda rolli kasutajale määrata"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sa ei saa seda rolli kasutajale määrata: {role}"
 
-#: apps/accounts/models.py:167 apps/projects/models.py:170
+#: apps/accounts/models.py:169 apps/projects/models.py:170
 msgid "visibility"
 msgstr "nähtavus"
 
