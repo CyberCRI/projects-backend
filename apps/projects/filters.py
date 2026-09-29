@@ -23,7 +23,7 @@ class ProjectFilterMixin(filters.FilterSet):
     group_members = PeopleGroupMultipleIDFilter(
         field_name="groups__people_groups__id", lookup_expr="in", distinct=True
     )
-    tags = MultiValueCharFilter(field_name="tags__id", lookup_expr="in")
+    tags = MultiValueCharFilter(field_name="tags__id", lookup_expr="in", distinct=True)
     sdgs = MultiValueCharFilter(field_name="sdgs", lookup_expr="overlap")
 
     def filter_organizations(self, queryset, name, value):
