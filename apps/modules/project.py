@@ -30,8 +30,8 @@ class ProjectModules(AbstractModules):
     @organization_related
     def members(self) -> QuerySet[ProjectUser]:
         return (
-            ProjectUser.objects.filter(
-                id__in=self.user.get_user_queryset().values_list("id", flat=True),
+            self.user.get_user_queryset()
+            .filter(
                 groups__projects=self.instance,
                 groups__data__role__in=(
                     GroupData.Role.OWNERS,
@@ -54,10 +54,8 @@ class ProjectModules(AbstractModules):
     @organization_related
     def groups(self) -> QuerySet[PeopleGroup]:
         return (
-            PeopleGroup.objects.filter(
-                id__in=self.user.get_people_group_queryset().values_list(
-                    "id", flat=True
-                ),
+            self.user.get_people_group_queryset()
+            .filter(
                 groups__projects=self.instance,
                 groups__data__role__in=(
                     GroupData.Role.OWNER_GROUPS,
