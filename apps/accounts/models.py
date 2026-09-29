@@ -633,15 +633,11 @@ class ProjectUser(
             | Q(
                 privacy_settings__publication_status=PrivacySettings.PrivacyChoices.PUBLIC
             )
-            | (
-                Q(
-                    privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION
-                )
-                & Q(
-                    groups__organizations__in=get_objects_for_user(
-                        self, "organizations.view_org_projectuser"
-                    )
-                )
+            | Q(
+                privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
+                groups__organizations__in=get_objects_for_user(
+                    self, "organizations.view_org_projectuser"
+                ),
             )
             | Q(
                 groups__organizations__in=get_objects_for_user(
@@ -667,13 +663,11 @@ class ProjectUser(
         queryset = PeopleGroup.objects.filter(
             Q(publication_status=PeopleGroup.PublicationStatus.PUBLIC)
             | Q(id__in=get_objects_for_user(self, "accounts.view_peoplegroup"))
-            | (
-                Q(publication_status=PeopleGroup.PublicationStatus.ORG)
-                & Q(
-                    organization__in=get_objects_for_user(
-                        self, "organizations.view_org_peoplegroup"
-                    )
-                )
+            | Q(
+                publication_status=PeopleGroup.PublicationStatus.ORG,
+                organization__in=get_objects_for_user(
+                    self, "organizations.view_org_peoplegroup"
+                ),
             )
             | Q(
                 organization__in=get_objects_for_user(
