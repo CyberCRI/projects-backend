@@ -95,6 +95,7 @@ api_urlpatterns = [
     path("", include(one_to_one_router.urls)),
     # urlpatterns based urls for function based views and APIViews
     path("", include("apps.accounts.urls")),
+    path("", include("apps.analytics.urls")),
     path("google/", include("services.google.urls")),
     path("crisalid/", include("services.crisalid.urls")),
     path("healthz/", include(("apps.healthcheck.urls", "healthcheck"))),
