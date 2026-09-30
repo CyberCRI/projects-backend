@@ -355,82 +355,97 @@ class KeycloakService:
             )
 
     @classmethod
-    def set_user_projects_groups(
+    def get_keycloak_organizations(
         cls, keycloak_account: KeycloakAccount
-    ) -> KeycloakAccount:
-
-        organizations_codes = list(
-            Organization.objects.filter(
-                groups__users__keycloak_account=keycloak_account
-            )
-            .distinct()
-            .values_list("code", flat=True)
-        )
-
+    ) -> models.QuerySet[Organization]:
+        """get projects organization from keycloak account"""
+        keycloak_organization_codes = []
         with suppress(KeycloakGetError):
             keycloak_groups = cls.get_user_groups(keycloak_account)
-
-            # Handle superadmin group
-            if "/projects/administrators" in [
-                group.get("path") for group in keycloak_groups
-            ]:
-                keycloak_account.user.groups.add(get_superadmins_group())
-
             keycloak_organization_codes = {
                 group.get("name")
                 for group in keycloak_groups
                 if group.get("path", "").startswith("/organizations/")
             }
-            # Remove extra groups
-            for organization_code in organizations_codes:
-                if organization_code not in keycloak_organization_codes:
-                    # At the moment we don't perform destructive actions using this system
-                    # keycloak_account.user.groups.remove(*organization.groups.all())  # noqa: ERA001
-                    pass
-            # Add missing groups
-            for organization_code in keycloak_organization_codes:
-                if organization_code not in organizations_codes:
-                    # if keycloak account is linked to a organization not defined in projects, we ignore it
-                    try:
-                        organization = Organization.objects.get(code=organization_code)
-                        keycloak_account.user.groups.add(organization.get_users())
-                    except Organization.DoesNotExist:
-                        logger.warning(
-                            "Organization %r not exist in projects, we cannot add group to user %s",
-                            organization_code,
-                            keycloak_account,
-                        )
+
+        return Organization.objects.filter(code__in=keycloak_organization_codes)
+
+    @classmethod
+    def get_missins_organizations_projects(
+        cls, keycloak_account: KeycloakAccount
+    ) -> models.QuerySet[Organization]:
+        """get organizations set in projects but not in keycloak"""
+        return (
+            Organization.objects.filter(
+                groups__users__keycloak_account=keycloak_account
+            )
+            .exclude(code__in=cls.get_keycloak_organizations(keycloak_account))
+            .distinct()
+        )
+
+    @classmethod
+    def get_missins_organizations_keycloak(
+        cls, keycloak_account: KeycloakAccount
+    ) -> models.QuerySet[Organization]:
+        """get organizations set in keycloak but not in projects"""
+
+        return (
+            cls.get_keycloak_organizations(keycloak_account)
+            .exclude(
+                code__in=Organization.objects.filter(
+                    groups__users__keycloak_account=keycloak_account
+                )
+            )
+            .distinct()
+        )
+
+    @classmethod
+    def account_is_administrators(cls, keycloak_account: KeycloakAccount) -> bool:
+        with suppress(KeycloakGetError):
+            keycloak_groups = cls.get_user_groups(keycloak_account)
+
+            # Handle superadmin group
+            for group in keycloak_groups:
+                if group.get("path") == "/projects/administrators":
+                    return True
+        return False
+
+    @classmethod
+    def set_user_projects_groups(
+        cls, keycloak_account: KeycloakAccount
+    ) -> KeycloakAccount:
+
+        # Handle superadmin group
+        if cls.account_is_administrators(keycloak_account):
+            keycloak_account.user.groups.add(get_superadmins_group())
+
+        # Remove extra groups
+        # At the moment we don't perform destructive actions using this system
+        # keycloak_account.user.groups.remove(*organization.groups.all())  # noqa: ERA001
+        # for organization in cls.get_missins_organizations_projects(
+        #     keycloak_account
+        # ):
+        #     pass
+
+        # Add missing groups
+        for organization in cls.get_missins_organizations_keycloak(keycloak_account):
+            keycloak_account.user.groups.add(organization.get_users())
+
         return keycloak_account
 
     @classmethod
     def set_user_keycloak_groups(
         cls, keycloak_account: KeycloakAccount
     ) -> KeycloakAccount:
-        organizations = Organization.objects.filter(
-            groups__users__keycloak_account=keycloak_account
-        ).distinct()
-        with suppress(KeycloakGetError):
-            keycloak_groups = cls.get_user_groups(keycloak_account)
-            keycloak_organization_codes = {
-                group.get("name")
-                for group in keycloak_groups
-                if group.get("path", "").startswith("/organizations/")
-            }
-            # Add missing groups
-            for organization in organizations:
-                if organization.code not in keycloak_organization_codes:
-                    organization = Organization.objects.get(code=organization.code)
-                    cls.add_user_to_organization_group(keycloak_account, organization)
-            # Remove extra groups
-            organizations_codes = organizations.values_list("code", flat=True)
-            for group in keycloak_groups:
-                if group.get("path", "").startswith("/organizations/"):
-                    organization_code = group.get("name")
-                    if organization_code not in organizations_codes:
-                        organization = Organization.objects.get(code=organization_code)
-                        cls.remove_user_from_organization_group(
-                            keycloak_account, organization
-                        )
+
+        # Add missing groups
+        for organization in cls.get_missins_organizations_projects(keycloak_account):
+            cls.add_user_to_organization_group(keycloak_account, organization)
+
+        # Remove extra groups
+        for organization in cls.get_missins_organizations_keycloak(keycloak_account):
+            cls.remove_user_from_organization_group(keycloak_account, organization)
+
         return keycloak_account
 
     @classmethod
