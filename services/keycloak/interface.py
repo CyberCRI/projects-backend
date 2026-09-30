@@ -403,7 +403,7 @@ class KeycloakService:
         """get organizations set in keycloak but not in projects"""
 
         return keycloak_groups_infos.organizations.exclude(
-            code__in=Organization.objects.filter(
+            pk__in=Organization.objects.filter(
                 groups__users__keycloak_account=keycloak_account
             )
         ).distinct()
