@@ -211,7 +211,9 @@ class TagClassification(
         return classification
 
 
-class Skill(models.Model, HasOwner):
+class Skill(models.Model, HasOwner, OrganizationRelated):
+    organization_query_string: str = "user__groups__organizations"
+
     class SkillType(models.TextChoices):
         """Main type of a skill."""
 
@@ -241,6 +243,10 @@ class Skill(models.Model, HasOwner):
     def get_owner(self):
         """Get the owner of the object."""
         return self.user
+
+    def get_related_organizations(self):
+        """Return the organizations related to this model."""
+        return self.get_owner().get_related_organizations()
 
 
 class Mentoring(models.Model, HasOwners, OrganizationRelated):

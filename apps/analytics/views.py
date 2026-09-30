@@ -4,10 +4,13 @@ from collections import defaultdict
 from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import mixins
+from rest_framework import mixins, serializers
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.permissions import HasBasePermission
@@ -18,7 +21,7 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.skills.models import Tag
 
-from .serializers import StatsSerializer
+from .serializers import GlobalAnalyticsSerializer, StatsSerializer
 
 
 @extend_schema(
@@ -109,5 +112,45 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
                 "by_month": by_month,
                 "top_tags": tags,
             }
+        )
+        return Response(serializer.data)
+
+
+class GlobalAnalyticsView(APIView):
+    permission_classes = []
+
+    @staticmethod
+    def get_date_param(request: Request, name: str) -> datetime.date | None:
+        value = request.query_params.get(name)
+        if not value:
+            return None
+        return serializers.DateField().run_validation(value)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="from_date",
+                description="Start date of the period used for the `*_period` "
+                "fields (YYYY-MM-DD). Defaults to one year ago.",
+                type=OpenApiTypes.DATE,
+            ),
+            OpenApiParameter(
+                name="to_date",
+                description="End date (included) of the period used for the "
+                "`*_period` fields (YYYY-MM-DD). Defaults to no end date.",
+                type=OpenApiTypes.DATE,
+            ),
+        ],
+        responses=GlobalAnalyticsSerializer(many=True),
+    )
+    def get(self, request: Request):
+        from_date = self.get_date_param(request, "from_date") or (
+            timezone.localdate() - datetime.timedelta(days=365)
+        )
+        to_date = self.get_date_param(request, "to_date")
+        serializer = GlobalAnalyticsSerializer(
+            Organization.objects.order_by("code"),
+            many=True,
+            context={"from_date": from_date, "to_date": to_date},
         )
         return Response(serializer.data)
