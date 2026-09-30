@@ -391,9 +391,15 @@ class KeycloakService:
             for organization_code in keycloak_organization_codes:
                 if organization_code not in organizations_codes:
                     # if keycloak account is linked to a organization not defined in projects, we ignore it
-                    with suppress(Organization.DoesNotExist):
+                    try:
                         organization = Organization.objects.get(code=organization_code)
                         keycloak_account.user.groups.add(organization.get_users())
+                    except Organization.DoesNotExist:
+                        logger.warning(
+                            "Organization %r not exist in projects, we cannot add group to user %s",
+                            organization_code,
+                            keycloak_account,
+                        )
         return keycloak_account
 
     @classmethod
