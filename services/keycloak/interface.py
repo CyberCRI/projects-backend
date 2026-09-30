@@ -358,9 +358,15 @@ class KeycloakService:
     def set_user_projects_groups(
         cls, keycloak_account: KeycloakAccount
     ) -> KeycloakAccount:
-        organizations = Organization.objects.filter(
-            groups__users__keycloak_account=keycloak_account
-        ).distinct()
+
+        organizations_codes = list(
+            Organization.objects.filter(
+                groups__users__keycloak_account=keycloak_account
+            )
+            .distinct()
+            .values_list("code", flat=True)
+        )
+
         with suppress(KeycloakGetError):
             keycloak_groups = cls.get_user_groups(keycloak_account)
 
@@ -376,18 +382,18 @@ class KeycloakService:
                 if group.get("path", "").startswith("/organizations/")
             }
             # Remove extra groups
-            for organization in organizations:
-                if organization.code not in keycloak_organization_codes:
+            for organization_code in organizations_codes:
+                if organization_code not in keycloak_organization_codes:
                     # At the moment we don't perform destructive actions using this system
                     # keycloak_account.user.groups.remove(*organization.groups.all())  # noqa: ERA001
                     pass
             # Add missing groups
             for organization_code in keycloak_organization_codes:
-                if organization_code not in organizations.values_list(
-                    "code", flat=True
-                ):
-                    organization = Organization.objects.get(code=organization_code)
-                    keycloak_account.user.groups.add(organization.get_users())
+                if organization_code not in organizations_codes:
+                    # if keycloak account is linked to a organization not defined in projects, we ignore it
+                    with suppress(Organization.DoesNotExist):
+                        organization = Organization.objects.get(code=organization_code)
+                        keycloak_account.user.groups.add(organization.get_users())
         return keycloak_account
 
     @classmethod
