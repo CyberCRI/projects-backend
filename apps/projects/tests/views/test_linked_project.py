@@ -190,12 +190,11 @@ class ValidateLinkedProjectTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            [
-                {},
-                {
+            {
+                "1": {
                     "project_id": [
                         f"The project '{project.title}' can't be linked to itself"
                     ]
                 },
-            ],
+            },
         )

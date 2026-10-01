@@ -1,5 +1,6 @@
 import logging
 from contextlib import suppress
+from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -32,6 +33,12 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class KeycloakGroupInfo:
+    is_administrator: bool = False
+    organizations: models.QuerySet[Organization] = Organization.objects.none()
 
 
 class KeycloakService:
@@ -355,70 +362,98 @@ class KeycloakService:
             )
 
     @classmethod
-    def set_user_projects_groups(
+    def sanitize_group_keycloak(
         cls, keycloak_account: KeycloakAccount
-    ) -> KeycloakAccount:
-        organizations = Organization.objects.filter(
-            groups__users__keycloak_account=keycloak_account
-        ).distinct()
+    ) -> KeycloakGroupInfo:
+        infos = KeycloakGroupInfo()
+
+        organization_codes = []
         with suppress(KeycloakGetError):
             keycloak_groups = cls.get_user_groups(keycloak_account)
 
-            # Handle superadmin group
-            if "/projects/administrators" in [
-                group.get("path") for group in keycloak_groups
-            ]:
-                keycloak_account.user.groups.add(get_superadmins_group())
+            for group in keycloak_groups:
+                if group.get("path", "").startswith("/organizations/"):
+                    organization_codes.append(group.get("name"))
+                elif group.get("path") == "/projects/administrators":
+                    infos.is_administrator = True
 
-            keycloak_organization_codes = {
-                group.get("name")
-                for group in keycloak_groups
-                if group.get("path", "").startswith("/organizations/")
-            }
-            # Remove extra groups
-            for organization in organizations:
-                if organization.code not in keycloak_organization_codes:
-                    # At the moment we don't perform destructive actions using this system
-                    # keycloak_account.user.groups.remove(*organization.groups.all())  # noqa: ERA001
-                    pass
-            # Add missing groups
-            for organization_code in keycloak_organization_codes:
-                if organization_code not in organizations.values_list(
-                    "code", flat=True
-                ):
-                    organization = Organization.objects.get(code=organization_code)
-                    keycloak_account.user.groups.add(organization.get_users())
+            infos.organizations = Organization.objects.filter(
+                code__in=organization_codes
+            )
+
+        return infos
+
+    @classmethod
+    def get_missing_organizations_projects(
+        cls, keycloak_account: KeycloakAccount, keycloak_groups_infos: KeycloakGroupInfo
+    ) -> models.QuerySet[Organization]:
+        """get organizations set in projects but not in keycloak"""
+        return (
+            Organization.objects.filter(
+                groups__users__keycloak_account=keycloak_account
+            )
+            .exclude(pk__in=keycloak_groups_infos.organizations)
+            .distinct()
+        )
+
+    @classmethod
+    def get_missing_organizations_keycloak(
+        cls, keycloak_account: KeycloakAccount, keycloak_groups_infos: KeycloakGroupInfo
+    ) -> models.QuerySet[Organization]:
+        """get organizations set in keycloak but not in projects"""
+
+        return keycloak_groups_infos.organizations.exclude(
+            pk__in=Organization.objects.filter(
+                groups__users__keycloak_account=keycloak_account
+            )
+        ).distinct()
+
+    @classmethod
+    def set_user_projects_groups(
+        cls, keycloak_account: KeycloakAccount
+    ) -> KeycloakAccount:
+
+        keycloak_groups_infos = cls.sanitize_group_keycloak(keycloak_account)
+
+        # Handle superadmin group
+        if keycloak_groups_infos.is_administrator:
+            keycloak_account.user.groups.add(get_superadmins_group())
+
+        # Remove extra groups
+        # At the moment we don't perform destructive actions using this system
+        # keycloak_account.user.groups.remove(*organization.groups.all())  # noqa: ERA001
+        # for organization in cls.get_missing_organizations_projects(
+        #     keycloak_account, keycloak_groups_infos
+        # ):
+        #     pass
+
+        # Add missing groups
+        for organization in cls.get_missing_organizations_keycloak(
+            keycloak_account, keycloak_groups_infos
+        ):
+            keycloak_account.user.groups.add(organization.get_users())
+
         return keycloak_account
 
     @classmethod
     def set_user_keycloak_groups(
         cls, keycloak_account: KeycloakAccount
     ) -> KeycloakAccount:
-        organizations = Organization.objects.filter(
-            groups__users__keycloak_account=keycloak_account
-        ).distinct()
-        with suppress(KeycloakGetError):
-            keycloak_groups = cls.get_user_groups(keycloak_account)
-            keycloak_organization_codes = {
-                group.get("name")
-                for group in keycloak_groups
-                if group.get("path", "").startswith("/organizations/")
-            }
-            # Add missing groups
-            for organization in organizations:
-                if organization.code not in keycloak_organization_codes:
-                    organization = Organization.objects.get(code=organization.code)
-                    cls.add_user_to_organization_group(keycloak_account, organization)
-            # Remove extra groups
-            organizations_codes = organizations.values_list("code", flat=True)
-            for group in keycloak_groups:
-                if group.get("path", "").startswith("/organizations/"):
-                    organization_code = group.get("name")
-                    if organization_code not in organizations_codes:
-                        organization = Organization.objects.get(code=organization_code)
-                        cls.remove_user_from_organization_group(
-                            keycloak_account, organization
-                        )
+
+        keycloak_groups_infos = cls.sanitize_group_keycloak(keycloak_account)
+
+        # Add missing groups
+        for organization in cls.get_missing_organizations_projects(
+            keycloak_account, keycloak_groups_infos
+        ):
+            cls.add_user_to_organization_group(keycloak_account, organization)
+
+        # Remove extra groups
+        for organization in cls.get_missing_organizations_keycloak(
+            keycloak_account, keycloak_groups_infos
+        ):
+            cls.remove_user_from_organization_group(keycloak_account, organization)
+
         return keycloak_account
 
     @classmethod

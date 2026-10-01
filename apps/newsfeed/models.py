@@ -66,7 +66,9 @@ class Newsfeed(models.Model):
     )
 
 
-class NewsLocation(HasRelatedLocationContent, AbstractLocation):
+class NewsLocation(HasRelatedLocationContent, OrganizationRelated, AbstractLocation):
+    organization_query_string: str = "news__organization"
+
     news = models.OneToOneField(
         "newsfeed.News",
         related_name="location",
@@ -207,7 +209,9 @@ class Instruction(HasAutoTranslatedFields, OrganizationRelated, HasOwner, models
         return self.owner == user
 
 
-class EventLocation(HasRelatedLocationContent, AbstractLocation):
+class EventLocation(HasRelatedLocationContent, OrganizationRelated, AbstractLocation):
+    organization_query_string: str = "event__organization"
+
     event = models.OneToOneField(
         "newsfeed.Event",
         related_name="location",

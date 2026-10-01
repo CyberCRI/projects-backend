@@ -3,6 +3,7 @@ import re
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 from apps.commons.mixins import OrganizationRelated
@@ -85,7 +86,14 @@ class AutoTranslatedField(models.Model):
         return chunks
 
     def update_translation(self):
-        instance = self.instance
+        try:
+            instance = self.instance
+        except ObjectDoesNotExist:
+            # If the related instance was deleted without triggering
+            # HasAutoTranslatedFields._delete_auto_translated_fields,
+            # delete here to avoid everlasting errors.
+            self.delete()
+            return
         field_name = self.field_name
         content = getattr(instance, field_name, "")
         if not isinstance(instance, OrganizationRelated):

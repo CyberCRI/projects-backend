@@ -3,7 +3,7 @@ import uuid
 from contextlib import suppress
 from datetime import date
 from functools import cached_property
-from typing import Any, Optional
+from typing import Any, Optional, TypeVar
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -45,11 +45,15 @@ from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 from services.translator.mixins import HasAutoTranslatedFields
 
+M = TypeVar("M", bound=models.Model)
+
 
 class PeopleGroupLocation(
-    OrganizationRelated, HasRelatedLocationContent, AbstractLocation
+    HasRelatedLocationContent, OrganizationRelated, AbstractLocation
 ):
     """base location for group"""
+
+    organization_query_string: str = "people_group__organization"
 
     people_group = models.ForeignKey(
         "accounts.PeopleGroup",
@@ -514,6 +518,11 @@ class ProjectUser(
         """Return the first_name plus the last_name, with a space in between."""
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
 
+    def _subquery_filter(self, queryset: QuerySet[M]) -> QuerySet[M]:
+        return queryset.model.objects.filter(
+            id__in=queryset.values_list("id", flat=True)
+        )
+
     def get_project_queryset(self) -> QuerySet["Project"]:
         """get Project queryset
 
@@ -523,90 +532,88 @@ class ProjectUser(
         if self._project_queryset is not None:
             return self._project_queryset
 
-        q_filter = Q(publication_status=Project.PublicationStatus.PUBLIC)
-        q_filter |= Q(
-            publication_status=Project.PublicationStatus.ORG,
-            organizations__in=get_objects_for_user(
-                self, "organizations.view_org_project"
-            ),
-        )
-        q_filter |= Q(
-            organizations__in=get_objects_for_user(self, "organizations.view_project")
-        )
-        q_filter |= Q(id__in=get_objects_for_user(self, "projects.view_project"))
-
-        # if user is superuser, we reset all preview filters ( to return all elements)
         if self.is_superuser:
-            q_filter = Q()
+            self._project_queryset = Project.objects.all()
+            return self._project_queryset
 
-        self._project_queryset = Project.objects.filter(q_filter).distinct()
+        queryset = Project.objects.filter(
+            Q(publication_status=Project.PublicationStatus.PUBLIC)
+            | Q(
+                publication_status=Project.PublicationStatus.ORG,
+                organizations__in=get_objects_for_user(
+                    self, "organizations.view_org_project"
+                ),
+            )
+            | Q(
+                organizations__in=get_objects_for_user(
+                    self, "organizations.view_project"
+                )
+            )
+            | Q(id__in=get_objects_for_user(self, "projects.view_project"))
+        ).distinct()
+        self._project_queryset = self._subquery_filter(queryset)
         return self._project_queryset
 
     def get_news_queryset(self) -> QuerySet["News"]:
-        if self._news_queryset is None:
-            if self.is_superuser:
-                self._news_queryset = News.objects.all()
-            else:
-                groups = PeopleGroup.objects.filter(groups__users=self)
-                organizations = self.get_organizations_queryset()
-                self._news_queryset = News.objects.filter(
-                    Q(visible_by_all=True)
-                    | Q(people_groups__in=groups)
-                    | (
-                        Q(organization__in=organizations)
-                        & Q(people_groups__isnull=True)
-                    )
-                    | Q(
-                        organization__in=get_objects_for_user(
-                            self, "organizations.view_news"
-                        )
-                    )
-                )
-        return self._news_queryset.distinct()
+        if self._news_queryset is not None:
+            return self._news_queryset
+
+        if self.is_superuser:
+            self._news_queryset = News.objects.all()
+            return self._news_queryset
+
+        groups = PeopleGroup.objects.filter(groups__users=self)
+        organizations = self.get_organizations_queryset()
+        queryset = News.objects.filter(
+            Q(visible_by_all=True)
+            | Q(people_groups__in=groups)
+            | (Q(organization__in=organizations) & Q(people_groups__isnull=True))
+            | Q(organization__in=get_objects_for_user(self, "organizations.view_news"))
+        ).distinct()
+        self._news_queryset = self._subquery_filter(queryset)
+        return self._news_queryset
 
     def get_instruction_queryset(self) -> QuerySet["Instruction"]:
-        if self._instruction_queryset is None:
-            if self.is_superuser:
-                self._instruction_queryset = Instruction.objects.all()
-            else:
-                groups = PeopleGroup.objects.filter(groups__users=self)
-                organizations = self.get_organizations_queryset()
-                self._instruction_queryset = Instruction.objects.filter(
-                    Q(visible_by_all=True)
-                    | Q(people_groups__in=groups)
-                    | (
-                        Q(organization__in=organizations)
-                        & Q(people_groups__isnull=True)
-                    )
-                    | Q(
-                        organization__in=get_objects_for_user(
-                            self, "organizations.view_instruction"
-                        )
-                    )
+        if self._instruction_queryset is not None:
+            return self._instruction_queryset
+
+        if self.is_superuser:
+            self._instruction_queryset = Instruction.objects.all()
+            return self._instruction_queryset
+
+        groups = PeopleGroup.objects.filter(groups__users=self)
+        organizations = self.get_organizations_queryset()
+        queryset = Instruction.objects.filter(
+            Q(visible_by_all=True)
+            | Q(people_groups__in=groups)
+            | (Q(organization__in=organizations) & Q(people_groups__isnull=True))
+            | Q(
+                organization__in=get_objects_for_user(
+                    self, "organizations.view_instruction"
                 )
-        return self._instruction_queryset.distinct()
+            )
+        ).distinct()
+        self._instruction_queryset = self._subquery_filter(queryset)
+        return self._instruction_queryset
 
     def get_event_queryset(self) -> QuerySet["Event"]:
-        if self._event_queryset is None:
-            if self.is_superuser:
-                self._event_queryset = Event.objects.all()
-            else:
-                groups = PeopleGroup.objects.filter(groups__users=self)
-                organizations = self.get_organizations_queryset()
-                self._event_queryset = Event.objects.filter(
-                    Q(visible_by_all=True)
-                    | Q(people_groups__in=groups)
-                    | (
-                        Q(organization__in=organizations)
-                        & Q(people_groups__isnull=True)
-                    )
-                    | Q(
-                        organization__in=get_objects_for_user(
-                            self, "organizations.view_event"
-                        )
-                    )
-                )
-        return self._event_queryset.distinct()
+        if self._event_queryset is not None:
+            return self._event_queryset
+
+        if self.is_superuser:
+            self._event_queryset = Event.objects.all()
+            return self._event_queryset
+
+        groups = PeopleGroup.objects.filter(groups__users=self)
+        organizations = self.get_organizations_queryset()
+        queryset = Event.objects.filter(
+            Q(visible_by_all=True)
+            | Q(people_groups__in=groups)
+            | (Q(organization__in=organizations) & Q(people_groups__isnull=True))
+            | Q(organization__in=get_objects_for_user(self, "organizations.view_event"))
+        ).distinct()
+        self._event_queryset = self._subquery_filter(queryset)
+        return self._event_queryset
 
     def get_user_queryset(self) -> QuerySet["ProjectUser"]:
         """get ProjectUser queryset
@@ -617,27 +624,28 @@ class ProjectUser(
         if self._user_queryset is not None:
             return self._user_queryset
 
-        q_filter = Q(id=self.id)
-        q_filter |= Q(
-            privacy_settings__publication_status=PrivacySettings.PrivacyChoices.PUBLIC
-        )
-        q_filter |= Q(
-            privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION
-        ) & Q(
-            groups__organizations__in=get_objects_for_user(
-                self, "organizations.view_org_projectuser"
-            )
-        )
-        q_filter |= Q(
-            groups__organizations__in=get_objects_for_user(
-                self, "organizations.view_projectuser"
-            )
-        )
-
-        # if user is superuser, we reset all preview filters ( to return all elements)
         if self.is_superuser:
-            q_filter = Q()
-        self._user_queryset = ProjectUser.objects.filter(q_filter).distinct()
+            self._user_queryset = ProjectUser.objects.all()
+            return self._user_queryset
+
+        queryset = ProjectUser.objects.filter(
+            Q(id=self.id)
+            | Q(
+                privacy_settings__publication_status=PrivacySettings.PrivacyChoices.PUBLIC
+            )
+            | Q(
+                privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
+                groups__organizations__in=get_objects_for_user(
+                    self, "organizations.view_org_projectuser"
+                ),
+            )
+            | Q(
+                groups__organizations__in=get_objects_for_user(
+                    self, "organizations.view_projectuser"
+                )
+            )
+        ).distinct()
+        self._user_queryset = self._subquery_filter(queryset)
         return self._user_queryset
 
     def get_people_group_queryset(self) -> QuerySet["PeopleGroup"]:
@@ -648,24 +656,26 @@ class ProjectUser(
         if self._people_group_queryset is not None:
             return self._people_group_queryset
 
-        q_filter = Q(publication_status=PeopleGroup.PublicationStatus.PUBLIC)
-        q_filter |= Q(id__in=get_objects_for_user(self, "accounts.view_peoplegroup"))
-        q_filter |= Q(publication_status=PeopleGroup.PublicationStatus.ORG) & Q(
-            organization__in=get_objects_for_user(
-                self, "organizations.view_org_peoplegroup"
-            )
-        )
-        q_filter |= Q(
-            organization__in=get_objects_for_user(
-                self, "organizations.view_peoplegroup"
-            )
-        )
-
-        # if user is superuser, we reset all preview filters ( to return all elements)
         if self.is_superuser:
-            q_filter = Q()
+            self._people_group_queryset = PeopleGroup.objects.all()
+            return self._people_group_queryset
 
-        self._people_group_queryset = PeopleGroup.objects.filter(q_filter).distinct()
+        queryset = PeopleGroup.objects.filter(
+            Q(publication_status=PeopleGroup.PublicationStatus.PUBLIC)
+            | Q(id__in=get_objects_for_user(self, "accounts.view_peoplegroup"))
+            | Q(
+                publication_status=PeopleGroup.PublicationStatus.ORG,
+                organization__in=get_objects_for_user(
+                    self, "organizations.view_org_peoplegroup"
+                ),
+            )
+            | Q(
+                organization__in=get_objects_for_user(
+                    self, "organizations.view_peoplegroup"
+                )
+            )
+        ).distinct()
+        self._people_group_queryset = self._subquery_filter(queryset)
         return self._people_group_queryset
 
     def get_project_related_queryset(
