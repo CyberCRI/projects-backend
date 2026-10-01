@@ -2,7 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import Any, TypeVar
 
-from django.db.models import CharField, QuerySet, Value
+from django.db.models import CharField, Q, QuerySet, Value
 from django.db.models.functions import Cast
 from rest_framework import serializers
 from rest_framework.utils import model_meta
@@ -102,24 +102,44 @@ def annotate_queryset_location(*querysets: QuerySet) -> QuerySet:
 def sync_project_tabs(projects: Iterable[Project], tabs: Iterable[TemplateTab]):
     """Update only projects/tabs (used in signal)"""
 
-    all_uuids = [tab.uuid for tab in tabs]
-    exists_tabs = defaultdict(set)
+    all_uuids = []
+    all_types = {}
+    for tab in tabs:
+        all_uuids.append(tab.uuid)
+        if tab.type in ProjectTab.PROJECT_TYPE_BRIDGE:
+            all_types[tab.type] = tab
 
-    for uuid, project_id in ProjectTab.objects.filter(
-        uuid__in=all_uuids, project__in=projects
-    ).values_list("uuid", "project"):
-        exists_tabs[project_id].add(uuid)
+    exists_tabs = defaultdict(set)
+    exists_tabs_types = defaultdict(lambda: defaultdict(None))
+    for tab in ProjectTab.objects.filter(
+        (Q(uuid__in=all_uuids) | Q(type__in=ProjectTab.PROJECT_TYPE_BRIDGE))
+        & Q(project__in=projects)
+    ):
+        if tab.type in ProjectTab.PROJECT_TYPE_BRIDGE:
+            exists_tabs_types[tab.project_id][tab.type] = tab
+        else:
+            exists_tabs[tab.project_id].add(tab.uuid)
 
     for project in projects:
         tabs_exists = exists_tabs[project.id]
+        tabs_type_exists = exists_tabs_types[project.id]
         for tab in tabs:
             # tab already exists
             if tab.uuid in tabs_exists:
                 continue
 
+            if (
+                tab.type in ProjectTab.PROJECT_TYPE_BRIDGE
+                and tab.type in tabs_type_exists
+            ):
+                new_tab = tabs_type_exists[tab.type]
+                new_tab.uuid = tab.uuid
+                new_tab.save()
+                continue
+
             # TODO: we use .save() to generate slug
             # we need to change that to use bulk_create, and generate slug in db
-            tab = ProjectTab(
+            new_tab = ProjectTab(
                 uuid=tab.uuid,
                 project=project,
                 title=tab.title,
@@ -130,7 +150,7 @@ def sync_project_tabs(projects: Iterable[Project], tabs: Iterable[TemplateTab]):
                 show_tab=tab.show_tab,
                 order=tab.order,
             )
-            tab.save()
+            new_tab.save()
 
 
 def sync_project_template():
