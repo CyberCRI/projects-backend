@@ -522,7 +522,7 @@ class TemplateTab(OrganizationRelated, models.Model):
                 name="unique_template_tab",
             ),
             models.UniqueConstraint(
-                fields=["type"],
+                fields=["template", "type"],
                 name="unique_tab_type_bridge",
                 # tab need to be unique only for defined type (PROJECT_TYPE_BRIDGE)
                 condition=~models.Q(type__in=("blog", "text")),
