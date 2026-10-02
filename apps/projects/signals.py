@@ -165,5 +165,5 @@ def on_edit_project(sender, instance: Project, created, **kw):
     template = instance.template
     if template:
         sync_project_tabs.apply_async(
-            [instance.pk], template.tabs.all().values_list("pk", flat=True)
+            ([instance.pk], list(template.tabs.all().values_list("pk", flat=True)))
         )

@@ -25,7 +25,9 @@ def update_project_tab(sender, instance: TemplateTab, created=False, **kwargs):
     template = instance.template
     sync_project_tabs.apply_async(
         (
-            Project.objects.filter(template=template).values_list("pk", flat=True),
+            list(
+                Project.objects.filter(template=template).values_list("pk", flat=True)
+            ),
             [instance.pk],
         )
     )
