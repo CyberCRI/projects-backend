@@ -507,6 +507,8 @@ class TemplateTab(OrganizationRelated, models.Model):
     )
     icon = models.CharField(max_length=255, blank=True, null=True)
     show_preview = models.BooleanField(default=True)
+    show_tab = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
 
     # content is all optional
     title_item = models.TextField(max_length=255, default="", blank=True, null=True)
@@ -519,7 +521,14 @@ class TemplateTab(OrganizationRelated, models.Model):
                 fields=["uuid"],
                 name="unique_template_tab",
             ),
+            models.UniqueConstraint(
+                fields=["template", "type"],
+                name="unique_tab_type_bridge",
+                # tab need to be unique only for defined type (PROJECT_TYPE_BRIDGE)
+                condition=~models.Q(type__in=("blog", "text")),
+            ),
         ]
+        ordering = ("order",)
 
     def get_related_organizations(self) -> Organization:
         """Return the organizations related to this model."""

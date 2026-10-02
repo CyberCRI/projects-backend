@@ -1,4 +1,5 @@
 import random
+from unittest import mock
 
 from django.urls import reverse
 from faker import Faker
@@ -269,8 +270,21 @@ class ProjectTabTemplate(JwtAPITestCase):
 
         self.assertEqual(project.modules.tabs().count(), 0)
 
-        project.template = self.template
-        project.save()
+        with mock.patch(
+            "apps.projects.signals.sync_project_tabs"
+        ) as mck_sync_project_tabs:
+            # check if signal called celery task
+            epxected_args = (
+                [project.id],
+                list(self.template.tabs.all().values_list("id", flat=True)),
+            )
+            project.template = self.template
+            project.save()
+
+            mck_sync_project_tabs.apply_async.assert_called_once_with(epxected_args)
+            from apps.projects.utils import sync_project_tabs
+
+            sync_project_tabs([project], self.template.tabs.all())
 
         self.assertEqual(project.modules.tabs().count(), 1)
 

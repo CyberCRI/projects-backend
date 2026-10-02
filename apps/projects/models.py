@@ -1028,7 +1028,8 @@ class ProjectTab(
 
     slugified_fields: list[str] = ["title"]
 
-    slug = models.SlugField(unique=True)
+    # slug is not unique, cause we add constraint to be slug unique by project
+    slug = models.SlugField()
     outdated_slugs = ArrayField(models.SlugField(), default=list)
 
     auto_translated_fields: list[str] = ["title", "html:description"]
@@ -1040,6 +1041,35 @@ class ProjectTab(
 
         TEXT = "text"
         BLOG = "blog"
+        # convert tabs to extras tabs
+        MEMBERS = "members"
+        GROUPS = "groups"
+        LINKED_PROJECTS = "linked_projects"
+        LOCATIONS = "locations"
+        COMMENTS = "comments"
+        GOALS = "goals"
+        RESOURCES = "resources"
+        BLOGS = "blogs"
+        ANNOUNCEMENTS = "announcements"
+        MESSAGES = "messages"
+        REVIEWS = "reviews"
+        DESCRIPTION = "description"
+
+    # which type is a "bridge between projects and tabs"
+    PROJECT_TYPE_BRIDGE = (
+        TabType.MEMBERS.value,
+        TabType.GROUPS.value,
+        TabType.LINKED_PROJECTS.value,
+        TabType.LOCATIONS.value,
+        TabType.COMMENTS.value,
+        TabType.GOALS.value,
+        TabType.RESOURCES.value,
+        TabType.BLOGS.value,
+        TabType.ANNOUNCEMENTS.value,
+        TabType.MESSAGES.value,
+        TabType.REVIEWS.value,
+        TabType.DESCRIPTION.value,
+    )
 
     project = models.ForeignKey(
         "projects.Project",
@@ -1054,6 +1084,8 @@ class ProjectTab(
     icon = models.CharField(max_length=255, blank=True, null=True)
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
     show_preview = models.BooleanField(default=True)
+    show_tab = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
 
     objects = MultipleIdsQuerySet.as_manager()
 
@@ -1066,10 +1098,21 @@ class ProjectTab(
                 # ignore uuid if tab is create by user (not template)
                 condition=models.Q(uuid__isnull=False),
             ),
+            models.UniqueConstraint(
+                fields=["type", "project"],
+                name="unique_project_tab_type_bridge",
+                # tab need to be unique only for defined type (PROJECT_TYPE_BRIDGE)
+                condition=~models.Q(type__in=("blog", "text")),
+            ),
+            models.UniqueConstraint(
+                fields=["slug", "project"],
+                name="unique_project_tab_slug",
+            ),
         ]
+        ordering = ("order",)
 
     def __repr__(self):
-        return f"<ProjectTab ({self.uuid=!r} {self.title!r})>"
+        return f"<ProjectTab ({self.uuid=!r} {self.title!r} {self.type!r})>"
 
     def get_related_project(self) -> Project:
         """Return the projects related to this model."""
@@ -1087,6 +1130,10 @@ class ProjectTab(
             return "id"
         except ValueError:
             return "slug"
+
+    def get_slug_exists_queryset(self, slug: str):
+        # overide to add constants to slug can't be duplicate in project
+        return super().get_slug_exists_queryset(slug).filter(project=self.project)
 
 
 class ProjectTabItem(HasAutoTranslatedFields, ProjectRelated, models.Model):
