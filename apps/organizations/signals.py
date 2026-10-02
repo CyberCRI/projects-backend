@@ -2,7 +2,7 @@ from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
 from apps.projects.models import Project
-from apps.projects.utils import sync_project_tabs
+from apps.projects.tasks import sync_project_tabs
 
 from .models import TemplateTab, TermsAndConditions
 
@@ -23,4 +23,9 @@ def create_terms_and_conditions(sender, instance, created, **kwargs):
 @receiver(post_save, sender="organizations.TemplateTab")
 def update_project_tab(sender, instance: TemplateTab, created=False, **kwargs):
     template = instance.template
-    sync_project_tabs(Project.objects.filter(template=template), [instance])
+    sync_project_tabs.apply_async(
+        (
+            Project.objects.filter(template=template).values_list("pk", flat=True),
+            [instance.pk],
+        )
+    )

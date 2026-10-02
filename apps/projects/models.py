@@ -1126,6 +1126,10 @@ class ProjectTab(
         except ValueError:
             return "slug"
 
+    def get_slug_exists_queryset(self, slug: str):
+        # overide to add constants to slug can't be duplicate in project
+        return super().get_slug_exists_queryset(slug).filter(project=self.project)
+
 
 class ProjectTabItem(HasAutoTranslatedFields, ProjectRelated, models.Model):
     """An item in a project tab.
