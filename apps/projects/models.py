@@ -1028,7 +1028,8 @@ class ProjectTab(
 
     slugified_fields: list[str] = ["title"]
 
-    slug = models.SlugField(unique=True)
+    # slug is not unique, cause we add constraint to be slug unique by project
+    slug = models.SlugField()
     outdated_slugs = ArrayField(models.SlugField(), default=list)
 
     auto_translated_fields: list[str] = ["title", "html:description"]
@@ -1102,6 +1103,10 @@ class ProjectTab(
                 name="unique_project_tab_type_bridge",
                 # tab need to be unique only for defined type (PROJECT_TYPE_BRIDGE)
                 condition=~models.Q(type__in=("blog", "text")),
+            ),
+            models.UniqueConstraint(
+                fields=["slug", "project"],
+                name="unique_project_tab_slug",
             ),
         ]
         ordering = ("order",)
