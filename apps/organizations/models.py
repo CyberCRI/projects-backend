@@ -473,6 +473,8 @@ class Template(
     project_tags = models.ManyToManyField(
         "skills.Tag", related_name="templates", blank=True
     )
+    # TODO(remi): remove project_description and all blogentry/review/comment/goal template
+    # this need to convert to TemplateTab with title/content template
     blogentry_title = models.TextField(max_length=255, default="", blank=True)
     blogentry_content = models.TextField(default="", blank=True)
     goal_title = models.CharField(max_length=255, default="", blank=True)
