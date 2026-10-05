@@ -754,12 +754,6 @@ class TemplateSerializer(
             for field, value in tab_data.items():
                 setattr(tab, field, value)
 
-            print(
-                tab.id,
-                tab.type,
-                tab_data,
-            )
-
             tab.save()
             received_ids.add(tab.id)
 

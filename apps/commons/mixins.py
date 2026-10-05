@@ -427,7 +427,6 @@ class HasMultipleIDs:
         return objects.filter(Q(slug=slug) | Q(outdated_slugs__contains=[slug]))
 
     def slug_exists(self, slug: str) -> bool:
-        # Handle soft-deleted objects
         return self.get_slug_exists_queryset(slug).exists()
 
     def generate_slug(self) -> str:

@@ -65,6 +65,43 @@ class CreateTabTestCase(JwtAPITestCase):
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["description"], payload["description"])
 
+    def test_create_project_tab_same_slug(self):
+        user = self.get_parameterized_test_user(
+            TestRoles.ORG_ADMIN, instances=[self.project]
+        )
+        self.client.force_authenticate(user)
+        payload = {
+            "type": ProjectTab.TabType.TEXT.value,  # nosec
+            "icon": faker.word(),
+            "title": "a tabs",
+            "description": faker.text(),
+        }
+        response = self.client.post(
+            reverse("ProjectTab-list", args=(self.project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        slug = response.json()["slug"]
+
+        project_2 = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
+        response = self.client.post(
+            reverse("ProjectTab-list", args=(project_2.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        slug_2 = response.json()["slug"]
+
+        # same slug but not from same project
+        self.assertEqual(slug, slug_2)
+
+        # create other same name tabs same project
+        response = self.client.post(
+            reverse("ProjectTab-list", args=(self.project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        slug = response.json()["slug"]
+
 
 class ListProjectTabsTestCase(JwtAPITestCase):
     @classmethod
