@@ -609,6 +609,8 @@ class Project(
             link.duplicate(project=project)
         for file in self.files.all():
             file.duplicate(project=project)
+        for tab in self.tabs.all():
+            tab.duplicate(project=project)
 
         Stat.objects.create(project=project)
 
@@ -1007,6 +1009,7 @@ class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.M
 
 class ProjectTab(
     HasRelatedModules,
+    DuplicableModel,
     HasAutoTranslatedFields,
     ProjectRelated,
     HasMultipleIDs,
@@ -1029,7 +1032,7 @@ class ProjectTab(
     slugified_fields: list[str] = ["title"]
 
     # slug is not unique, cause we add constraint to be slug unique by project
-    slug = models.SlugField()
+    slug = models.SlugField(unique=False)
     outdated_slugs = ArrayField(models.SlugField(), default=list)
 
     auto_translated_fields: list[str] = ["title", "html:description"]
@@ -1090,20 +1093,15 @@ class ProjectTab(
     objects = MultipleIdsQuerySet.as_manager()
 
     class Meta:
-        # tab need to be different uuid by project (to have "unique tab")
         constraints = [
-            models.UniqueConstraint(
-                fields=["uuid", "project"],
-                name="unique_project_tab",
-                # ignore uuid if tab is create by user (not template)
-                condition=models.Q(uuid__isnull=False),
-            ),
             models.UniqueConstraint(
                 fields=["type", "project"],
                 name="unique_project_tab_type_bridge",
                 # tab need to be unique only for defined type (PROJECT_TYPE_BRIDGE)
                 condition=~models.Q(type__in=("blog", "text")),
             ),
+            # we add constraints instead of SLugField(unique=True) to add "project to "
+            # you can't have 2 same slug for same projects
             models.UniqueConstraint(
                 fields=["slug", "project"],
                 name="unique_project_tab_slug",
@@ -1135,8 +1133,17 @@ class ProjectTab(
         # overide to add constants to slug can't be duplicate in project
         return super().get_slug_exists_queryset(slug).filter(project=self.project)
 
+    @transaction.atomic
+    def duplicate(self, **fields):
+        tab = super().duplicate(**fields)
+        for item in self.items.all():
+            item.duplicate(tab=tab)
+        return tab
 
-class ProjectTabItem(HasAutoTranslatedFields, ProjectRelated, models.Model):
+
+class ProjectTabItem(
+    DuplicableModel, HasAutoTranslatedFields, ProjectRelated, models.Model
+):
     """An item in a project tab.
 
     Attributes
