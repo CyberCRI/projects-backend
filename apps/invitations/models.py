@@ -16,6 +16,12 @@ from .exceptions import InvalidEmailTypeError
 class Invitation(HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.Model):
     """
     A link that allows a user to join an organization.
+
+    The person will receive a validation email that redirects:
+        - to redirect_uri if given. Do not allow regular users/admins to set this
+        parameter in the UI, the uri needs to be authorized by Keycloak. Only use this
+        as a superuser and handle the setup yourself
+        - to organization website_url otherwise (most common case)
     """
 
     auto_translated_fields: list[str] = ["description"]
