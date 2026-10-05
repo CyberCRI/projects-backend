@@ -203,6 +203,7 @@ class KeycloakService:
         email_type: str,
         actions: list[str] | None = None,
         redirect_organization_code: str = "DEFAULT",
+        redirect_uri: str = "",
     ) -> bool:
         """
         Send an email to a user to execute actions on his account.
@@ -227,6 +228,7 @@ class KeycloakService:
                 - if some actions are provided, they will be added to the currently required actions
             - redirect_organization_code: the code of the organization to redirect the user to after
                 executing the actions
+            - redirect_uri: If given, takes over redirect_organization_code
 
         Returns:
             - True if the email was sent successfully
@@ -248,7 +250,10 @@ class KeycloakService:
         user = keycloak_account.user
         organization = Organization.objects.get(code=redirect_organization_code)
         link = cls.get_user_execute_actions_link(
-            keycloak_account, email_type, actions, organization.website_url
+            keycloak_account,
+            email_type,
+            actions,
+            redirect_uri or organization.website_url,
         )
         link = cls.format_execute_action_link_for_template(
             link, keycloak_account, organization

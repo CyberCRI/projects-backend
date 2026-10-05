@@ -28,6 +28,7 @@ class Invitation(HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.
     )
     token = models.UUIDField(default=uuid.uuid4)
     description = models.CharField(max_length=255, blank=True)
+    redirect_uri = models.CharField(max_length=2048, blank=True)
     owner = models.ForeignKey(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
