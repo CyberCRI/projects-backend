@@ -427,12 +427,14 @@ class UserViewSet(
                 instance = serializer.save(groups=list(filter(lambda x: x, groups)))
                 email_type = KeycloakService.EmailType.INVITATION
                 redirect_organization_code = invitation.organization.code
+                redirect_uri = invitation.redirect_uri
             else:
                 instance = serializer.save()
                 email_type = KeycloakService.EmailType.ADMIN_CREATED
                 redirect_organization_code = self.request.query_params.get(
                     "organization", "DEFAULT"
                 )
+                redirect_uri = ""
 
             instance = self.google_sync(instance, self.request.data, True)
             keycloak_account = KeycloakService.create_user(
@@ -446,6 +448,7 @@ class UserViewSet(
             keycloak_account=keycloak_account,
             email_type=email_type,
             redirect_organization_code=redirect_organization_code,
+            redirect_uri=redirect_uri,
         )
         return instance
 
