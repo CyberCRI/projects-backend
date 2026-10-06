@@ -38,13 +38,13 @@ def calculate_projects_scores():
         )
         .all()
     ):
-        project.calculate_score()
-        if project.score.pk:
-            bulk_update.append(project.score)
+        score = project.calculate_score()
+        if score.pk:
+            bulk_update.append(score)
         else:
-            bulk_create.append(project.score)
+            bulk_create.append(score)
 
-    ProjectScore.objects.bulk_update(bulk_create)
+    ProjectScore.objects.bulk_create(bulk_create)
     ProjectScore.objects.bulk_update(
         bulk_update, ["completeness", "popularity", "activity", "score"]
     )
