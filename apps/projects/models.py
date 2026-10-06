@@ -609,7 +609,7 @@ class Project(
             link.duplicate(project=project)
         for file in self.files.all():
             file.duplicate(project=project)
-        for tab in self.tabs.all():
+        for tab in self.additional_tabs.all():
             tab.duplicate(project=project)
 
         Stat.objects.create(project=project)
