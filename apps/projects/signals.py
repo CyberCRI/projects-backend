@@ -11,7 +11,7 @@ from apps.projects.models import (
     Location,
     Project,
 )
-from apps.projects.utils import sync_project_tabs
+from apps.projects.tasks import sync_project_tabs
 
 
 @receiver(post_save, sender="projects.BlogEntry")
@@ -164,4 +164,6 @@ def on_edit_project(sender, instance: Project, created, **kw):
     # if project have a template, update projects-tabs
     template = instance.template
     if template:
-        sync_project_tabs([instance], template.tabs.all())
+        sync_project_tabs.apply_async(
+            ([instance.pk], list(template.tabs.all().values_list("pk", flat=True)))
+        )

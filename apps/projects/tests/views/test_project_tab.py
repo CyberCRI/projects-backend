@@ -1,4 +1,5 @@
 import random
+from unittest import mock
 
 from django.urls import reverse
 from faker import Faker
@@ -63,6 +64,43 @@ class CreateTabTestCase(JwtAPITestCase):
             self.assertEqual(content["icon"], payload["icon"])
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["description"], payload["description"])
+
+    def test_create_project_tab_same_slug(self):
+        user = self.get_parameterized_test_user(
+            TestRoles.ORG_ADMIN, instances=[self.project]
+        )
+        self.client.force_authenticate(user)
+        payload = {
+            "type": ProjectTab.TabType.TEXT.value,  # nosec
+            "icon": faker.word(),
+            "title": "a tabs",
+            "description": faker.text(),
+        }
+        response = self.client.post(
+            reverse("ProjectTab-list", args=(self.project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        slug = response.json()["slug"]
+
+        project_2 = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
+        response = self.client.post(
+            reverse("ProjectTab-list", args=(project_2.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        slug_2 = response.json()["slug"]
+
+        # same slug but not from same project
+        self.assertEqual(slug, slug_2)
+
+        # create other same name tabs same project
+        response = self.client.post(
+            reverse("ProjectTab-list", args=(self.project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        slug = response.json()["slug"]
 
 
 class ListProjectTabsTestCase(JwtAPITestCase):
@@ -269,8 +307,21 @@ class ProjectTabTemplate(JwtAPITestCase):
 
         self.assertEqual(project.modules.tabs().count(), 0)
 
-        project.template = self.template
-        project.save()
+        with mock.patch(
+            "apps.projects.signals.sync_project_tabs"
+        ) as mck_sync_project_tabs:
+            # check if signal called celery task
+            epxected_args = (
+                [project.id],
+                list(self.template.tabs.all().values_list("id", flat=True)),
+            )
+            project.template = self.template
+            project.save()
+
+            mck_sync_project_tabs.apply_async.assert_called_once_with(epxected_args)
+            from apps.projects.utils import sync_project_tabs
+
+            sync_project_tabs([project], self.template.tabs.all())
 
         self.assertEqual(project.modules.tabs().count(), 1)
 

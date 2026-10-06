@@ -416,16 +416,18 @@ class HasMultipleIDs:
         """Get the main IDs from a list of secondary IDs."""
         return [cls.get_main_id(object_id, returned_field) for object_id in objects_ids]
 
-    @classmethod
-    def slug_exists(cls, slug: str) -> bool:
+    def get_slug_exists_queryset(self, slug: str):
         # Handle soft-deleted objects
+        cls = type(self)
         if hasattr(cls.objects, "all_with_delete"):
             objects = cls.objects.all_with_delete()
         else:
             objects = cls.objects.all()
-        return objects.filter(
-            Q(slug=slug) | Q(outdated_slugs__contains=[slug])
-        ).exists()
+
+        return objects.filter(Q(slug=slug) | Q(outdated_slugs__contains=[slug]))
+
+    def slug_exists(self, slug: str) -> bool:
+        return self.get_slug_exists_queryset(slug).exists()
 
     def generate_slug(self) -> str:
         raw_slug = [getattr(self, field) for field in self.slugified_fields]

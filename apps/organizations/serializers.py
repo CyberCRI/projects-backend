@@ -22,7 +22,7 @@ from apps.commons.serializers import (
 )
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
-from apps.projects.models import Project
+from apps.projects.models import Project, ProjectTab
 from apps.skills.models import TagClassification
 from apps.skills.serializers import (
     TagClassificationMultipleIdRelatedField,
@@ -441,6 +441,8 @@ class TemplateTabSerializer(StringsImagesSerializer, serializers.ModelSerializer
             "show_preview",
             "title_item",
             "content_item",
+            "show_tab",
+            "order",
         )
 
 
@@ -730,14 +732,24 @@ class TemplateSerializer(
         if tabs_data is None:
             return instance
 
-        existing_tabs = {tab.id: tab for tab in instance.tabs.all()}
+        existing_tabs = {}
+        existing_tabs_bridge = {}
+        for tab in instance.tabs.all():
+            if tab.type in ProjectTab.PROJECT_TYPE_BRIDGE:
+                existing_tabs_bridge[tab.type] = tab
+            existing_tabs[tab.id] = tab
+
         received_ids = set()
 
         for tab_data in tabs_data:
             tab_id = tab_data.pop("id", None)
             tab_data["template"] = instance
 
-            tab = existing_tabs.get(tab_id, TemplateTab(**tab_data))
+            tab = None
+            if tab_data["type"] in existing_tabs_bridge:
+                tab = existing_tabs_bridge[tab_data["type"]]
+            if not tab:
+                tab = existing_tabs.get(tab_id, TemplateTab(**tab_data))
 
             for field, value in tab_data.items():
                 setattr(tab, field, value)
