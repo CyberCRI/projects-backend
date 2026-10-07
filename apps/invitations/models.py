@@ -1,3 +1,4 @@
+import typing
 import uuid
 
 from django.db import models, transaction
@@ -51,9 +52,10 @@ class Invitation(HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.
         """Get the owner of the object."""
         return self.owner
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return [self.organization]
+        return Organization.objects.filter(pk=self.organization_id)
 
 
 class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
@@ -186,6 +188,7 @@ class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         self.save()
         self.send_email(AccessRequest.EmailType.REQUEST_DECLINED)
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations(self):
         """Return the organizations related to this model."""
-        return [self.organization]
+        return Organization.objects.filter(pk=self.organization_id)

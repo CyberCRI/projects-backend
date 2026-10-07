@@ -1,3 +1,4 @@
+import typing
 import uuid
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -231,9 +232,9 @@ class Organization(
     def content_type(self):
         return ContentType.objects.get_for_model(Organization)
 
-    def get_related_organizations(self) -> list["Organization"]:
-        """Return the organization related to this model."""
-        return [self]
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return Organization.objects.filter(pk=self.pk)
 
     @classmethod
     def get_default_admins_permissions(cls) -> QuerySet[Permission]:
@@ -532,9 +533,10 @@ class TemplateTab(OrganizationRelated, models.Model):
         ]
         ordering = ("order",)
 
-    def get_related_organizations(self) -> Organization:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.template.get_related_organizations()
+        return self.template.get_related_organizations_queryset()
 
 
 class ProjectCategory(
@@ -688,9 +690,10 @@ class CategoryFollow(HasOwner, OrganizationRelated, models.Model):
         """Get the owner of the object."""
         return self.follower
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.category.get_related_organizations()
+        return self.category.get_related_organizations_queryset()
 
 
 class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Model):
@@ -721,5 +724,6 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
             )
         ]
 
-    def get_related_organizations(self) -> list["Organization"]:
-        return [self.organization]
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return Organization.objects.filter(pk=self.organization_id)

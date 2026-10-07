@@ -52,7 +52,7 @@ class FollowSerializer(
     def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
+            return self.validated_data["project"].get_related_organizations_queryset()
         return []
 
     def get_related_project(self) -> Optional["Project"]:
@@ -115,7 +115,7 @@ class ReviewSerializer(
     def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
+            return self.validated_data["project"].get_related_organizations_queryset()
         return []
 
     def get_related_project(self) -> Project | None:
@@ -208,7 +208,7 @@ class CommentSerializer(
     def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
+            return self.validated_data["project"].get_related_organizations_queryset()
         return []
 
     def get_related_project(self) -> Project | None:

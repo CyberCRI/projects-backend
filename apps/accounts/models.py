@@ -1,4 +1,5 @@
 import math
+import typing
 import uuid
 from contextlib import suppress
 from datetime import date
@@ -65,8 +66,9 @@ class PeopleGroupLocation(
     def get_related_content(cls):
         return cls.people_group.field.name
 
-    def get_related_organizations(self) -> list["Organization"]:
-        return [self.people_group.organization]
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return Organization.objects.filter(pk=self.people_group.organization_id)
 
 
 class PeopleGroup(
@@ -200,9 +202,10 @@ class PeopleGroup(
         except ValueError:
             return "slug"
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return [self.organization] if self.organization else []
+        return Organization.objects.filter(pk=self.organization_id)
 
     @property
     def content_type(self) -> ContentType:
@@ -502,13 +505,7 @@ class ProjectUser(
         """Get the owner of the object."""
         return self
 
-    def get_related_organizations(self) -> list["Organization"]:
-        """Return the organizations related to this model."""
-        if self._related_organizations is None:
-            self._related_organizations = list(self.get_organizations_queryset())
-        return self._related_organizations
-
-    def get_organizations_queryset(self) -> QuerySet["Organization"]:
+    def get_organizations_queryset(self) -> QuerySet[Organization]:
         qs = Organization.objects.filter(groups__users=self).distinct()
         if self.is_superuser:
             return Organization.objects.all()
@@ -1036,10 +1033,6 @@ class AnonymousUser:
     def get_organizations_queryset(self) -> QuerySet[Organization]:
         """Return the organizations related to this model."""
         return Organization.objects.none()
-
-    def get_related_organizations(self) -> list["Organization"]:
-        """Return the organizations related to this model."""
-        return list(self.get_organizations_queryset())
 
     def get_skills_queryset(self) -> QuerySet["Skill"]:
         return Skill.objects.filter(

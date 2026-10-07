@@ -33,7 +33,9 @@ class OrganizationRelatedPermission(IgnoreCall):
                 view.lookup_field
             )
             if pk is not None:
-                return get_object_or_404(Project, pk=pk).get_related_organizations()
+                return get_object_or_404(
+                    Project, pk=pk
+                ).get_related_organizations_queryset()
         if model in [ProjectUser, PrivacySettings]:
             user_id = view.kwargs.get(view.lookup_url_kwarg) or view.kwargs.get(
                 view.lookup_field
@@ -59,9 +61,9 @@ class OrganizationRelatedPermission(IgnoreCall):
         if obj is None and "organization" in view.request.data:
             return Organization.objects.filter(code=view.request.data["organization"])
         if obj is not None and isinstance(obj, OrganizationRelated):
-            return obj.get_related_organizations()
+            return obj.get_related_organizations_queryset()
         if obj is not None and isinstance(obj, ProjectRelated):
-            return obj.get_related_project().get_related_organizations()
+            return obj.get_related_project().get_related_organizations_queryset()
 
         serializer_class = view.get_serializer_class()
         if issubclass(serializer_class, OrganizationRelatedSerializer):
@@ -69,13 +71,13 @@ class OrganizationRelatedPermission(IgnoreCall):
                 data=request.data, context=view.get_serializer_context()
             )
             serializer.is_valid()
-            return serializer.get_related_organizations()
+            return serializer.get_related_organizations_queryset()
         if issubclass(serializer_class, ProjectRelatedSerializer):
             serializer = serializer_class(
                 data=request.data, context=view.get_serializer_context()
             )
             serializer.is_valid()
-            return serializer.get_related_project().get_related_organizations()
+            return serializer.get_related_project().get_related_organizations_queryset()
 
         return []
 

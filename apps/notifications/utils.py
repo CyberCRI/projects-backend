@@ -48,11 +48,13 @@ class NotificationTaskManager:
         elif (
             item
             and isinstance(item, OrganizationRelated)
-            and len(item.get_related_organizations()) > 0
+            and item.get_related_organizations_queryset().exists()
         ):
-            self.organization = item.get_related_organizations()[0]
+            self.organization = item.get_related_organizations_queryset().first()
         elif self.project:
-            self.organization = self.project.organizations.first()
+            self.organization = (
+                self.project.get_related_organizations_queryset().first()
+            )
         else:
             self.organization = None
         self.base_context = kwargs

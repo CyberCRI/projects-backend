@@ -1,4 +1,5 @@
 import datetime
+import typing
 import uuid
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Optional, Self
@@ -126,9 +127,10 @@ class AttachmentLink(
         if hasattr(project, "stat"):
             project.stat.update_links()
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
     def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
@@ -160,9 +162,10 @@ class OrganizationAttachmentFile(
     description = models.TextField(blank=True)
     hashcode = models.CharField(max_length=64, default="")
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return [self.organization]
+        return Organization.objects.filter(pk=self.organization_id)
 
 
 class AttachmentFile(
@@ -203,9 +206,10 @@ class AttachmentFile(
         if hasattr(project, "stat"):
             project.stat.update_files()
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
     def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
@@ -413,33 +417,33 @@ class Image(BaseImage, HasOwner, ProjectRelated, OrganizationRelated):
             | Q(**{f"events__organization{query}": value})
         )
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
         related_project = self.get_related_project()
         if related_project:
-            return related_project.get_related_organizations()
+            return related_project.get_related_organizations_queryset()
 
         from apps.accounts.models import ProjectUser
 
         with suppress(ProjectUser.DoesNotExist):
-            return self.user.get().get_related_organizations()
+            return self.user.get().get_related_organizations_queryset()
 
-        Organization = apps.get_model("organizations", "Organization")  # noqa
-        return list(
-            Organization.objects.filter(
-                Q(images=self)
-                | Q(logo_image=self)
-                | Q(banner_image=self)
-                | Q(project_categories__background_image=self)
-                | Q(templates__images=self)
-                | Q(people_groups__header_image=self)
-                | Q(people_groups__logo_image=self)
-                | Q(news__header_image=self)
-                | Q(news__images=self)
-                | Q(instructions__images=self)
-                | Q(events__images=self)
-            ).distinct()
-        )
+        from apps.organizations.models import Organization
+
+        return Organization.objects.filter(
+            Q(images=self)
+            | Q(logo_image=self)
+            | Q(banner_image=self)
+            | Q(project_categories__background_image=self)
+            | Q(templates__images=self)
+            | Q(people_groups__header_image=self)
+            | Q(people_groups__logo_image=self)
+            | Q(news__header_image=self)
+            | Q(news__images=self)
+            | Q(instructions__images=self)
+            | Q(events__images=self)
+        ).distinct()
 
     def get_related_project(self) -> Optional["Project"]:
         """
@@ -498,8 +502,9 @@ class ProjectUserAttachmentFile(
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return user == self.get_owner()
 
-    def get_related_organizations(self) -> list["Organization"]:
-        return self.get_owner().get_related_organizations()
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return self.get_owner().get_related_organizations_queryset()
 
 
 class ProjectUserAttachmentLink(
@@ -540,8 +545,9 @@ class ProjectUserAttachmentLink(
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return user == self.get_owner()
 
-    def get_related_organizations(self) -> list["Organization"]:
-        return self.get_owner().get_related_organizations()
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return self.get_owner().get_related_organizations_queryset()
 
 
 class PeopleGroupImage(BaseImage, HasOwners, OrganizationRelated):
@@ -569,6 +575,7 @@ class PeopleGroupImage(BaseImage, HasOwners, OrganizationRelated):
 
         return list(members)
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.people_group.get_related_organizations()
+        return self.people_group.get_related_organizations_queryset()

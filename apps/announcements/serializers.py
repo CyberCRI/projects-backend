@@ -71,7 +71,7 @@ class AnnouncementSerializer(
         if "organizations" in self.validated_data:
             return self.validated_data["organizations"]
         if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
+            return self.validated_data["project"].get_related_organizations_queryset()
         return []
 
     def get_related_project(self) -> Project | None:

@@ -1,3 +1,4 @@
+from django.contrib.postgres.aggregates import StringAgg
 from import_export import fields, resources  # type: ignore
 
 from .models import PeopleGroup, ProjectUser
@@ -26,8 +27,13 @@ class UserResource(resources.ModelResource):
         model = ProjectUser
 
     def dehydrate_portals(self, user: ProjectUser) -> str:
-        organizations = user.get_related_organizations()
-        return ",".join([f"{o.code}" for o in organizations])
+        """return all organizationscode, separete by comas"""
+        return (
+            user.get_related_organizations_queryset().aggregate(
+                codes=StringAgg("code", delimiter=",")
+            )["codes"]
+            or ""
+        )
 
 
 class PeopleGroupResource(resources.ModelResource):

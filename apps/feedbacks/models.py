@@ -1,3 +1,4 @@
+import typing
 from typing import TYPE_CHECKING, Optional
 
 from django.db import models, transaction
@@ -9,7 +10,6 @@ from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
-    from apps.organizations.models import Organization
     from apps.projects.models import Project
 
 
@@ -79,9 +79,10 @@ class Follow(HasOwner, ProjectRelated, models.Model):
         """Return the project related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
 
 class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
@@ -176,9 +177,10 @@ class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
 
 class Review(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
@@ -230,6 +232,7 @@ class Review(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()

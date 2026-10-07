@@ -1,4 +1,5 @@
 import datetime
+import typing
 import uuid
 from typing import TYPE_CHECKING, Any
 
@@ -14,6 +15,7 @@ from apps.commons.mixins import (
     HasOwners,
     OrganizationRelated,
 )
+from apps.organizations.models import Organization
 from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
@@ -103,11 +105,12 @@ class Tag(models.Model, OrganizationRelated):
             update_fields=update_fields,
         )
 
-    def get_related_organizations(self):
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
         if self.type == self.TagType.CUSTOM:
-            return [self.organization]
-        return []
+            return Organization.objects.filter(pk=self.organization_id)
+        return Organization.objects.none()
 
     @classmethod
     def get_orphan_tags(
@@ -180,11 +183,12 @@ class TagClassification(
     def __str__(self):
         return f"Tags classification - {self.title}"
 
-    def get_related_organizations(self):
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
         if self.type == self.TagClassificationType.CUSTOM:
-            return [self.organization]
-        return []
+            return Organization.objects.filter(pk=self.organization_id)
+        return Organization.objects.none()
 
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
@@ -244,9 +248,10 @@ class Skill(models.Model, HasOwner, OrganizationRelated):
         """Get the owner of the object."""
         return self.user
 
-    def get_related_organizations(self):
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.get_owner().get_related_organizations()
+        return self.get_owner().get_related_organizations_queryset()
 
 
 class Mentoring(models.Model, HasOwners, OrganizationRelated):
@@ -300,8 +305,9 @@ class Mentoring(models.Model, HasOwners, OrganizationRelated):
         """
         return [self.mentor, self.mentoree]
 
-    def get_related_organizations(self):
-        return [self.organization]
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return Organization.objects.filter(pk=self.organization_id)
 
 
 class MentoringMessage(
@@ -339,8 +345,9 @@ class MentoringMessage(
     class Meta:
         ordering = ["-created_at"]
 
-    def get_related_organizations(self):
-        return [self.mentoring.organization]
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return self.mentoring.get_related_organizations_queryset()
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""

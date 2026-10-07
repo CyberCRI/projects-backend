@@ -1,6 +1,7 @@
 import logging
 import math
 import os
+import typing
 from functools import reduce
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -383,11 +384,10 @@ class Project(
         """Return the project related to this model."""
         return self
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        if self._related_organizations is None:
-            self._related_organizations = list(self.organizations.all())
-        return self._related_organizations
+        return self.organizations.all()
 
     @classmethod
     def get_default_owners_permissions(cls) -> QuerySet[Permission]:
@@ -630,8 +630,10 @@ class ProjectScore(models.Model, ProjectRelated):
     def get_related_project(self) -> Project:
         return self.project
 
-    def get_related_organizations(self) -> list["Organization"]:
-        return self.project.get_related_organizations()
+    @typing.override
+    def get_related_organizations_queryset(self):
+        """Return the organizations related to this model."""
+        return self.project.get_related_organizations_queryset()
 
     def get_completeness(self) -> float:
         has_ressources = self.project.links.exists() or self.project.files.exists()
@@ -716,9 +718,10 @@ class LinkedProject(models.Model, ProjectRelated):
         """Return the projects related to this model."""
         return self.target
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.target.get_related_organizations()
+        return self.target.get_related_organizations_queryset()
 
 
 class BlogEntry(HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models.Model):
@@ -773,9 +776,10 @@ class BlogEntry(HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
     def duplicate(
         self,
@@ -850,9 +854,10 @@ class Goal(HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models.Mode
         if hasattr(project, "stat"):
             project.stat.update_goals()
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
     def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
@@ -927,9 +932,10 @@ class Location(ProjectRelated, HasRelatedLocationContent, AbstractLocation):
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
 
 class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.Model):
@@ -989,9 +995,10 @@ class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.M
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
     def soft_delete(self):
         self.deleted_at = timezone.localtime(timezone.now())
@@ -1116,9 +1123,10 @@ class ProjectTab(
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
@@ -1177,6 +1185,7 @@ class ProjectTabItem(
         """Return the projects related to this model."""
         return self.tab.project
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.tab.project.get_related_organizations()
+        return self.tab.get_related_organizations_queryset()

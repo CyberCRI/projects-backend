@@ -241,13 +241,10 @@ class UserSerializer(
                     f"{content_type.app_label}.change_{content_type.model}",
                     instance,
                 ),
-                *[
-                    request_user.has_perm(
-                        f"organizations.change_{content_type.model}",
-                        organization,
-                    )
-                    for organization in instance.get_related_organizations()
-                ],
+                request_user.has_perm(
+                    f"organizations.change_{content_type.model}",
+                    instance.get_related_organizations_queryset(),
+                ),
             ]
         ):
             raise UserRolePermissionDeniedError(group.name)

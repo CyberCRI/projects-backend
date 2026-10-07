@@ -1,3 +1,4 @@
+import typing
 from collections.abc import Generator
 
 from django import forms
@@ -247,14 +248,13 @@ class Document(
         self.vectorize()
         return md
 
-    def get_related_organizations(self):
+    @typing.override
+    def get_related_organizations_queryset(self):
         """organizations from user"""
-        return list(
-            Organization.objects.filter(
-                id__in=self.contributors.all()
-                .values_list("user__groups__organizations", flat=True)
-                .distinct("id")
-            )
+        return Organization.objects.filter(
+            id__in=self.contributors.all()
+            .values_list("user__groups__organizations", flat=True)
+            .distinct("id")
         )
 
     @property

@@ -1,3 +1,4 @@
+import typing
 from typing import TYPE_CHECKING, Optional
 
 from django.db import models
@@ -6,7 +7,6 @@ from apps.commons.mixins import DuplicableModel, ProjectRelated
 from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
-    from apps.organizations.models import Organization
     from apps.projects.models import Project
 
 
@@ -74,9 +74,10 @@ class Announcement(
     def __str__(self):
         return str(self.title)
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
+        return self.project.get_related_organizations_queryset()
 
     def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""

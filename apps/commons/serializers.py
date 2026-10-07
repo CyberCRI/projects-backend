@@ -4,7 +4,7 @@ from functools import cache
 from typing import Any, Optional
 
 from django.contrib.auth.models import Group
-from django.db.models import Model, Q
+from django.db.models import Model, Q, QuerySet
 from django.utils.translation import gettext_lazy as _
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import import_from_string
@@ -31,7 +31,9 @@ class ProjectRelatedSerializer(serializers.ModelSerializer):
 class OrganizationRelatedSerializer(serializers.ModelSerializer):
     """Base serializer for serializers related to organizations."""
 
-    def get_related_organizations(self) -> list[Organization]:
+    def get_related_organizations(
+        self,
+    ) -> QuerySet[Organization] | list[Organization] | None:
         """Retrieve the related organizations"""
         raise NotImplementedError()
 

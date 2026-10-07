@@ -1,3 +1,4 @@
+import typing
 from typing import Any
 
 from django.apps import apps
@@ -122,11 +123,12 @@ class BlogEntrySerializer(
             instance.refresh_from_db()
         return super().update(instance, validated_data)
 
-    def get_related_organizations(self) -> list[Organization]:
+    @typing.override
+    def get_related_organizations(self):
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
-        return []
+            return self.validated_data["project"].get_related_organizations_queryset()
+        return None
 
     def get_related_project(self) -> Project | None:
         """Retrieve the related projects"""
@@ -168,11 +170,12 @@ class GoalSerializer(
             "project_id",
         ]
 
-    def get_related_organizations(self) -> list[Organization]:
+    @typing.override
+    def get_related_organizations(self):
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
-        return []
+            return self.validated_data["project"].get_related_organizations_queryset()
+        return None
 
     def get_related_project(self) -> Project | None:
         """Retrieve the related projects"""
@@ -291,6 +294,7 @@ class ProjectSerializer(
     ) -> dict[str, Any]:
         return {"project_id": instance.id}
 
+    @typing.override
     def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "organizations" in self.validated_data:

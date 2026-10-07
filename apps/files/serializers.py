@@ -1,5 +1,6 @@
 import hashlib
 import re
+import typing
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -196,11 +197,12 @@ class AttachmentLinkSerializer(
             raise ChangeLinkProjectError
         return project
 
-    def get_related_organizations(self) -> list[Organization]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
-        return []
+            return self.validated_data["project"].get_related_organizations_queryset()
+        return Organization.objects.none()
 
 
 @auto_translated
@@ -328,11 +330,12 @@ class AttachmentFileSerializer(
             raise FileTooLargeError
         return file
 
-    def get_related_organizations(self) -> list[Organization]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
-        return []
+            return self.validated_data["project"].get_related_organizations_queryset()
+        return Organization.objects.none()
 
     def get_related_project(self) -> Optional["Project"]:
         """Retrieve the related projects"""

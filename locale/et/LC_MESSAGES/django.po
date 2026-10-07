@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-29 10:55+0200\n"
+"POT-Creation-Date: 2026-10-07 15:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "Sa ei saa seda rolli kasutajale määrata"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sa ei saa seda rolli kasutajale määrata: {role}"
 
-#: apps/accounts/models.py:171 apps/projects/models.py:170
+#: apps/accounts/models.py:173 apps/projects/models.py:171
 msgid "visibility"
 msgstr "nähtavus"
 
@@ -189,7 +189,7 @@ msgstr "Vigane ID \"{user_id}\" - objekti ei eksisteeri."
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Vale tüüp. Oodati stringi väärtust, saadi {data_type}."
 
-#: apps/commons/serializers.py:217
+#: apps/commons/serializers.py:219
 msgid "The value must be between -90 and 90."
 msgstr ""
 
@@ -1444,7 +1444,7 @@ msgstr ""
 msgid "New highlights on Projects"
 msgstr "Uued esiletõstud projektides"
 
-#: apps/notifications/utils.py:294
+#: apps/notifications/utils.py:296
 msgid " and "
 msgstr " ja "
 
@@ -1546,23 +1546,23 @@ msgstr "Sõnum ei saa olla vastus iseendale"
 msgid "You cannot change the type of a project's tab"
 msgstr "Sa ei saa muuta projekti vahelehe tüüpi"
 
-#: apps/projects/models.py:153
+#: apps/projects/models.py:154
 msgid "title"
 msgstr "pealkiri"
 
-#: apps/projects/models.py:163
+#: apps/projects/models.py:164
 msgid "main goal"
 msgstr "peamine eesmärk"
 
-#: apps/projects/models.py:176
+#: apps/projects/models.py:177
 msgid "life status"
 msgstr "elutsükli olek"
 
-#: apps/projects/models.py:187
+#: apps/projects/models.py:188
 msgid "categories"
 msgstr "kategooriad"
 
-#: apps/projects/models.py:204
+#: apps/projects/models.py:205
 msgid "sustainable development goals"
 msgstr "säästva arengu eesmärgid"
 
@@ -2602,63 +2602,63 @@ msgstr ""
 "\n"
 "Kas soovite, et teid juhendataks %(skill)s valdkonnas? (meeldetuletus)\n"
 
-#: services/crisalid/models.py:198
+#: services/crisalid/models.py:199
 msgid "Document"
 msgstr ""
 
-#: services/crisalid/models.py:199
+#: services/crisalid/models.py:200
 msgid "Scholarly Publication"
 msgstr ""
 
-#: services/crisalid/models.py:200
+#: services/crisalid/models.py:201
 msgid "Article"
 msgstr ""
 
-#: services/crisalid/models.py:201
+#: services/crisalid/models.py:202
 msgid "Journal Article"
 msgstr ""
 
-#: services/crisalid/models.py:202
+#: services/crisalid/models.py:203
 msgid "Conference Article"
 msgstr "Konverentsiartikkel"
 
-#: services/crisalid/models.py:203
+#: services/crisalid/models.py:204
 msgid "Conference Abstract"
 msgstr ""
 
-#: services/crisalid/models.py:204
+#: services/crisalid/models.py:205
 msgid "Preface"
 msgstr ""
 
-#: services/crisalid/models.py:205
+#: services/crisalid/models.py:206
 msgid "Comment"
 msgstr "Kommentaar"
 
-#: services/crisalid/models.py:206
+#: services/crisalid/models.py:207
 msgid "Book Chapter"
 msgstr ""
 
-#: services/crisalid/models.py:207
+#: services/crisalid/models.py:208
 msgid "Book"
 msgstr ""
 
-#: services/crisalid/models.py:208
+#: services/crisalid/models.py:209
 msgid "Monograph"
 msgstr ""
 
-#: services/crisalid/models.py:209
+#: services/crisalid/models.py:210
 msgid "Proceedings"
 msgstr ""
 
-#: services/crisalid/models.py:210
+#: services/crisalid/models.py:211
 msgid "Book Of Chapters"
 msgstr ""
 
-#: services/crisalid/models.py:211
+#: services/crisalid/models.py:212
 msgid "Presentation"
 msgstr ""
 
-#: services/crisalid/models.py:212
+#: services/crisalid/models.py:213
 msgid "Unknown"
 msgstr ""
 

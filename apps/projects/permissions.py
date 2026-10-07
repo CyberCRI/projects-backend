@@ -91,10 +91,10 @@ class ProjectIsNotLocked(permissions.BasePermission, ProjectRelatedPermission):
             [
                 user.has_perm("projects.change_locked_project"),
                 user.has_perm("projects.change_locked_project", project),
-                *[
-                    user.has_perm("organizations.change_locked_project", o)
-                    for o in project.get_related_organizations()
-                ],
+                user.has_perm(
+                    "organizations.change_locked_project",
+                    project.get_related_organizations_queryset(),
+                ),
             ]
         )
 

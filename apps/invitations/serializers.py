@@ -1,3 +1,5 @@
+import typing
+
 from django.db.models import Q
 from rest_framework import serializers
 
@@ -78,7 +80,8 @@ class InvitationSerializer(
             raise InvitationOrganizationChangeError
         return value
 
-    def get_related_organizations(self):
+    @typing.override
+    def get_related_organizations_queryset(self):
         return Organization.objects.filter(code=self.context.get("organization_code"))
 
 

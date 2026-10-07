@@ -1,3 +1,4 @@
+import typing
 from typing import TYPE_CHECKING
 
 from django.db import models
@@ -81,9 +82,10 @@ class NewsLocation(HasRelatedLocationContent, OrganizationRelated, AbstractLocat
     def get_related_content(cls):
         return cls.news.field.name
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.news.get_related_organizations()
+        return self.news.get_related_organizations_queryset()
 
 
 class News(HasAutoTranslatedFields, OrganizationRelated, models.Model):
@@ -137,8 +139,9 @@ class News(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     visible_by_all = models.BooleanField(default=False)
     images = models.ManyToManyField("files.Image", related_name="news")
 
-    def get_related_organizations(self):
-        return [self.organization]
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return Organization.objects.filter(pk=self.organization_id)
 
 
 class Instruction(HasAutoTranslatedFields, OrganizationRelated, HasOwner, models.Model):
@@ -197,8 +200,9 @@ class Instruction(HasAutoTranslatedFields, OrganizationRelated, HasOwner, models
     visible_by_all = models.BooleanField(default=False)
     images = models.ManyToManyField("files.Image", related_name="instructions")
 
-    def get_related_organizations(self):
-        return [self.organization]
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return Organization.objects.filter(pk=self.organization_id)
 
     def get_owner(self):
         """Get the owner of the object."""
@@ -224,9 +228,10 @@ class EventLocation(HasRelatedLocationContent, OrganizationRelated, AbstractLoca
     def get_related_content(cls):
         return cls.event.field.name
 
-    def get_related_organizations(self) -> list["Organization"]:
+    @typing.override
+    def get_related_organizations_queryset(self):
         """Return the organizations related to this model."""
-        return self.event.get_related_organizations()
+        return self.event.get_related_organizations_queryset()
 
 
 class Event(HasAutoTranslatedFields, OrganizationRelated, models.Model):
@@ -275,5 +280,6 @@ class Event(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     visible_by_all = models.BooleanField(default=False)
     images = models.ManyToManyField("files.Image", related_name="events")
 
-    def get_related_organizations(self) -> list["Organization"]:
-        return [self.organization]
+    @typing.override
+    def get_related_organizations_queryset(self):
+        return Organization.objects.filter(pk=self.organization_id)

@@ -1,4 +1,5 @@
 import logging
+import typing
 import uuid
 from types import SimpleNamespace
 from typing import Any
@@ -416,8 +417,13 @@ class TemplateLightSerializer(
         model = Template
         fields = ["id", "name", "description", "organization"]
 
-    def get_related_organizations(self) -> list[Organization]:
-        return [self.instance.organization] if self.instance else []
+    @typing.override
+    def get_related_organizations(self):
+        return (
+            self.instance.get_related_organizations_queryset()
+            if self.instance
+            else Organization.objects.none()
+        )
 
 
 class TemplateTabSerializer(StringsImagesSerializer, serializers.ModelSerializer):

@@ -1,4 +1,5 @@
 import re
+from itertools import chain
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -101,25 +102,19 @@ class AutoTranslatedField(models.Model):
                 f"{instance._meta.model.__name__} does not support translations. "
                 "`OrganizationRelated` mixin is required for automatic translations."
             )
+
+        organizations_qs = instance.get_related_organizations_queryset().filter(
+            auto_translate_content=True
+        )
         if getattr(instance, "auto_translate_all_languages", False):
             languages = (
-                settings.REQUIRED_LANGUAGES
-                if any(
-                    o.auto_translate_content
-                    for o in instance.get_related_organizations()
-                )
-                else {}
+                settings.REQUIRED_LANGUAGES if organizations_qs.exsists() else {}
             )
         else:
-            organizations = [
-                o
-                for o in instance.get_related_organizations()
-                if o.auto_translate_content
-            ]
             # iter over languages in set (remove duplicate language)
-            languages: set[str] = {
-                lang for org in organizations for lang in org.languages
-            }
+            languages: set[str] = set(
+                chain(*list(organizations_qs.values_list("languages", flat=True)))
+            )
         if languages:
             base_max_length = AZURE_MAX_LENGTH * 0.8  # Safety margin
             max_length = int(base_max_length // len(languages))
