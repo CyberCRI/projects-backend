@@ -21,16 +21,17 @@ class CrisalidBusClient:
 
     # queue create by ikg for send messages
     CRISALID_EXCHANGE = "graph"
-    # routing key ikg send event (the * is for listen on all event (updated,created,deleted))
-    CRISALID_ROUTING_KEYS = []
-    for event in CrisalidEventEnum:
-        CRISALID_ROUTING_KEYS.extend(
-            (
-                f"event.people.person.{event.value}",
-                f"event.structures.structure.{event.value}",
-                f"event.documents.document.{event.value}",
-            )
+    # routing keys ikg send events on, suffixed by a mode (".batch" or ".interactive")
+    # the "#" matches zero or more words: with or without mode, and both modes
+    CRISALID_ROUTING_KEYS = [
+        f"event.{entity}.{event.value}.#"
+        for entity in (
+            "people.person",
+            "structures.structure",
+            "documents.document",
         )
+        for event in CrisalidEventEnum
+    ]
 
     def __init__(self, config: CrisalidConfig):
         self.config = config
@@ -192,7 +193,7 @@ class CrisalidBusClient:
 
         crisalid_type = payload["type"]
         crisalid_event = payload["event"]
-        if not crisalid_consumer[crisalid_type][crisalid_event]:
+        if not [crisalid_type][crisalid_event]:
             self.logger.info(
                 "Not listener for event: %s::%s", crisalid_type, crisalid_event
             )

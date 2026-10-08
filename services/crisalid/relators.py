@@ -1,6 +1,10 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+"""
+    this file is a generated file from command `generate_crisalid_relators`
+"""
+
 raw = {
     "http://id.loc.gov/vocabulary/relators/fmo": {
         "key": "fmo",
@@ -417,6 +421,10 @@ raw = {
     "http://id.loc.gov/vocabulary/relators/rst": {
         "key": "rst",
         "value": "respondent-appellant",
+    },
+    "http://id.loc.gov/vocabulary/organizations/dlc": {
+        "key": "dlc",
+        "value": "United States, Library of Congress",
     },
     "http://id.loc.gov/vocabulary/relators/bdd": {
         "key": "bdd",
@@ -863,6 +871,7 @@ class RolesChoices(models.TextChoices):
     DGS = "dgs", _("degree supervisor")
     DIS = "dis", _("dissertant")
     DJO = "djo", _("dj")
+    DLC = "dlc", _("United States, Library of Congress")
     DLN = "dln", _("delineator")
     DNC = "dnc", _("dancer")
     DNR = "dnr", _("donor")
