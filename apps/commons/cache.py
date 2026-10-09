@@ -1,11 +1,18 @@
+from typing import cast
+
 from django.conf import settings
-from django.core.cache import cache
+from django.core.cache import cache as django_cache
 from django.db import models
+from django_redis.cache import RedisCache
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 # Returned by `cache.get` on a cache miss, so cached `None` values are still hits
 _MISSING = object()
+
+# The default cache is django-redis: typed access to its extra methods
+# (e.g. `delete_pattern`), unknown to Django's generic cache type
+cache = cast(RedisCache, django_cache)
 
 
 def redis_cache_view(

@@ -30,11 +30,12 @@ config:
     INSTANCE: "{{ .Values.instance }}"
     PUBLIC_URL: "https://{{ .Values.hostname }}"
     PORT: "{{ .Values.backend.port | toString }}"
-    GUNICORN_WORKERS_COUNT: "4"
+    GUNICORN_WORKERS_COUNT: "2"
+    GUNICORN_THREADS: "4"
     GUNICORN_MAX_REQUESTS: "1000"
     GUNICORN_MAX_REQUESTS_JITTER: "50"
     GUNICORN_LOG_LEVEL: "info"
-    # Limit glibc malloc arenas: with many threads (one per request under ASGI)
+    # Limit glibc malloc arenas: with many threads (gunicorn threads, celery...)
     # the default (8 x cores) fragments memory and inflates RSS
     MALLOC_ARENA_MAX: "2"
     KEYCLOAK_REALM: lp
@@ -189,12 +190,3 @@ sablier:
   enabled: false
   groupName: projects
   traefikMiddleware: "{{.Values.namespace}}-{{.Values.sablier.groupName}}-sablier@kubernetescrd"
-
-uvicorn:
-  entrypoint: projects.asgi:application
-  workers: 2
-  host: 0.0.0.0
-  limitRequests: true
-  maxRequests: 1000
-  # Max concurrent requests per worker, extra requests get a 503 (unset = unlimited)
-  limitConcurrency: null

@@ -12,6 +12,11 @@ loglevel = os.environ.get("GUNICORN_LOG_LEVEL", "info")
 # Gunicorn concurrent workers, used to handle web requests in parallel
 # and allowing continuous service on worker request
 workers = os.environ.get("GUNICORN_WORKERS_COUNT", "3")
+# Threads per worker: requests handled concurrently by a worker, sharing its memory
+worker_class = "gthread"
+threads = int(os.environ.get("GUNICORN_THREADS", "4"))
+# Workers silent for more than this many seconds are killed and restarted
+timeout = int(os.environ.get("GUNICORN_TIMEOUT", "60"))
 # Max requests after which a worker is restarted
 max_requests = int(os.environ.get("GUNICORN_MAX_REQUESTS", "1000"))
 # Random component added to the max_requests to avoid workers to restart at the same time

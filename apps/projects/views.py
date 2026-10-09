@@ -2,7 +2,6 @@ import uuid
 
 from django.apps import apps
 from django.conf import settings
-from django.core.cache import cache
 from django.db import transaction
 from django.db.models import QuerySet
 from django.shortcuts import redirect
@@ -22,7 +21,7 @@ from simple_history.utils import update_change_reason
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.analytics.models import Stat
-from apps.commons.cache import clear_cache_with_key, redis_cache_view
+from apps.commons.cache import cache, clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
