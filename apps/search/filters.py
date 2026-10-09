@@ -11,13 +11,12 @@ from django.db.models import (
     When,
 )
 from django_filters import rest_framework as filters
-from numpy import number
 from opensearchpy.helpers.response import Response
 from rest_framework.filters import SearchFilter
-from rest_framework.settings import api_settings
 
 from apps.accounts.models import PeopleGroup
 from apps.commons.filters import MultiValueCharFilter, UserMultipleIDFilter
+from apps.commons.pagination import PageInfoLimitOffsetPagination
 from apps.commons.utils import ArrayPosition
 from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.models import Project
@@ -52,7 +51,7 @@ class AbstractOpensearch(SearchFilter):
         return query
 
     def opensearch(
-        self, queryset: QuerySet, query: str, limit: number, offset: number
+        self, queryset: QuerySet, query: str, limit: int, offset: int
     ) -> Response:
         """method to return result from opensearch"""
         raise NotImplementedError
@@ -62,8 +61,10 @@ class AbstractOpensearch(SearchFilter):
         if not search:
             return queryset
 
-        limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
-        offset = request.query_params.get("offset", 0)
+        # parsed and bounded (`max_limit`) like the paginated responses
+        pagination = PageInfoLimitOffsetPagination()
+        limit = pagination.get_limit(request)
+        offset = pagination.get_offset(request)
 
         response = self.opensearch(queryset, search, limit, offset)
 

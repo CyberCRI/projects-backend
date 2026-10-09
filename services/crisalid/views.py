@@ -144,12 +144,17 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
         # use only here the filter_queryset,
         # the next years values need to have all document_types (non filtered)
 
+        # counted in SQL instead of loading one row per document
         document_types = Counter(
-            Document.objects.filter(
-                id__in=self.filter_queryset(qs, document_type_enabled=False)
+            dict(
+                Document.objects.filter(
+                    id__in=self.filter_queryset(qs, document_type_enabled=False)
+                )
+                .order_by("document_type")
+                .values("document_type")
+                .annotate(count=Count("id"))
+                .values_list("document_type", "count")
             )
-            .order_by("document_type")
-            .values_list("document_type", flat=True)
         )
 
         # order all buplications by years
@@ -167,10 +172,13 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
             years = years[: int(limit)]
 
         roles = Counter(
-            chain(
-                *DocumentContributor.objects.filter(
+            chain.from_iterable(
+                DocumentContributor.objects.filter(
                     document__in=self.filter_queryset(qs, roles_enabled=False)
-                ).values_list("roles", flat=True)
+                )
+                .values_list("roles", flat=True)
+                # stream rows instead of loading them all at once
+                .iterator(chunk_size=2000)
             )
         )
 
@@ -237,11 +245,14 @@ class AbstractResearcherDocumentViewSet(
         document_types, years, _ = super().get_analytics()
         qs = self.get_queryset()
         roles = Counter(
-            chain(
-                *DocumentContributor.objects.filter(
+            chain.from_iterable(
+                DocumentContributor.objects.filter(
                     document__in=self.filter_queryset(qs, roles_enabled=False),
                     researcher=self.researcher,
-                ).values_list("roles", flat=True)
+                )
+                .values_list("roles", flat=True)
+                # stream rows instead of loading them all at once
+                .iterator(chunk_size=2000)
             )
         )
 

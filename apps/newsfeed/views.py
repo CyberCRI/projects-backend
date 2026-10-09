@@ -35,6 +35,39 @@ from .serializers import (
 )
 
 
+class RoundRobinMerge:
+    """
+    Lazy round-robin merge of querysets, used for pagination.
+
+    Slicing only fetches the rows needed for the requested slice: the first `n`
+    merged items come from at most the first `n` items of each queryset.
+    """
+
+    def __init__(self, *querysets: QuerySet):
+        self.querysets = querysets
+
+    def count(self) -> int:
+        return sum(queryset.count() for queryset in self.querysets)
+
+    def __len__(self) -> int:
+        return self.count()
+
+    def __iter__(self):
+        return iter(self[:])
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self[key : key + 1][0]
+        stop = key.stop
+        querysets = (
+            self.querysets
+            if stop is None
+            else [queryset[:stop] for queryset in self.querysets]
+        )
+        merged = chain.from_iterable(zip_longest(*querysets, fillvalue=None))
+        return [item for item in merged if item is not None][key]
+
+
 class NewsfeedViewSet(ListViewSet):
     serializer_class = NewsfeedSerializer
     permission_classes = [ReadOnly]
@@ -95,7 +128,7 @@ class NewsfeedViewSet(ListViewSet):
             .distinct()
         )
 
-    def merge_querysets(self, *querysets: QuerySet[Newsfeed]) -> QuerySet[Newsfeed]:
+    def merge_querysets(self, *querysets: QuerySet[Newsfeed]) -> "RoundRobinMerge":
         """
         Merge the querysets into a single queryset using a round-robin strategy.
         The order of the querysets is preserved, as well as the order of the items in each queryset.
@@ -108,8 +141,7 @@ class NewsfeedViewSet(ListViewSet):
         merge_querysets(queryset_a, queryset_b, queryset_c) returns:
         [a1, b1, c1, a2, b2, c2, a3, b3, b4, b5]
         """
-        merged = list(chain.from_iterable(zip_longest(*querysets, fillvalue=None)))
-        return [item for item in merged if item is not None]
+        return RoundRobinMerge(*querysets)
 
     def get_queryset(self):
         announcements = self.get_announcements_queryset()

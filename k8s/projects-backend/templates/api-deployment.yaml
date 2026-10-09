@@ -69,19 +69,11 @@ spec:
       {{- end }}
         imagePullPolicy: IfNotPresent
         name: projects-backend
-        {{- with .Values.uvicorn }}
         args:
-        - uvicorn
-        - {{ .entrypoint }}
-        - '--workers'
-        - {{ .workers | quote}}
-        - '--host'
-        - {{ .host | quote}}
-        {{- if .limitRequests }}
-        - '--limit-max-requests'
-        -  {{.maxRequests | quote}}
-        {{- end }}
-        {{- end }}
+        - gunicorn
+        - '--config'
+        - ./gunicorn.conf.py
+        - projects.wsgi:application
         ports:
           - name: http
             containerPort: {{ .Values.backend.port }}

@@ -1,7 +1,7 @@
 import datetime
 from collections import defaultdict
 
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -49,10 +49,7 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
 
     def get_organization(self) -> Organization:
         organization_code = self.kwargs["organization_code"]
-        return get_object_or_404(
-            Organization.objects.prefetch_related("projects"),
-            code=organization_code,
-        )
+        return get_object_or_404(Organization, code=organization_code)
 
     def get_queryset(self):
         current_organization = self.get_organization()
@@ -100,7 +97,8 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
                 project_count=Count("projects", filter=Q(projects__in=projects_qs))
             )
             .filter(project_count__gt=0)
-            .prefetch_related("projects")
+            # only the ids are serialized, don't load whole projects
+            .prefetch_related(Prefetch("projects", Project.objects.only("id")))
             .order_by("-project_count")[:10]
         )
 

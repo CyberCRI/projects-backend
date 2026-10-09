@@ -133,6 +133,9 @@ class CrisalidBusClient:
             if self._stop_event.is_set():
                 break
 
+            # close the failed connection before retrying, or it leaks
+            self._disconnect()
+
             # incremental retry (max 60s)
             retry = min(retry * 2, 60)
             time.sleep(retry)
@@ -143,11 +146,19 @@ class CrisalidBusClient:
     def _disconnect(self):
         """disconnect rabitmqt connection"""
         if self._channel is not None:
-            self._channel.close()
+            try:
+                if self._channel.is_open:
+                    self._channel.close()
+            except pika.exceptions.AMQPError as e:
+                self.logger.warning("Error while closing channel: %s", str(e))
             self._channel = None
 
         if self._conn is not None:
-            self._conn.close()
+            try:
+                if self._conn.is_open:
+                    self._conn.close()
+            except pika.exceptions.AMQPError as e:
+                self.logger.warning("Error while closing connection: %s", str(e))
             self._conn = None
 
         self.logger.info("CrisalidBus connection closed")
@@ -156,7 +167,7 @@ class CrisalidBusClient:
         if self._stop_event is not None:
             self._stop_event.set()
 
-    def __delete__(self):
+    def __del__(self):
         # for disconnect when class is deleted
         self._disconnect()
 
