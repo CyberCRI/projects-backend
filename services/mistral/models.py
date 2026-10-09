@@ -104,7 +104,9 @@ class Embedding(models.Model):
         queryset: QuerySet | None = None,
         thresold: float | None = None,
     ) -> QuerySet:
-        queryset = queryset or cls.item.field.related_model.objects
+        # don't use `queryset or ...`: it would evaluate (load) the whole queryset
+        if queryset is None:
+            queryset = cls.item.field.related_model.objects.all()
         if not queryset.model == cls.item.field.related_model:
             raise VectorSearchWrongQuerysetError
         related_name = cls.item.field.related_query_name()

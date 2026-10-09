@@ -154,14 +154,14 @@ class ProjectViewSet(
             and changes.get("publication_status")
             and project.announcements.exists()
         ):
-            cache.delete_many(cache.keys("announcements_list_cache*"))
+            cache.delete_pattern("announcements_list_cache*")
         if changes.get("life_status", "") == Project.LifeStatus.TO_REVIEW:
             notify_ready_for_review.delay(project.pk, self.request.user.pk)
         return project
 
     def perform_destroy(self, instance):
         if settings.ENABLE_CACHE and instance.announcements.exists():
-            cache.delete_many(cache.keys("announcements_list_cache*"))
+            cache.delete_pattern("announcements_list_cache*")
         super().perform_destroy(instance)
 
     @extend_schema(

@@ -81,6 +81,10 @@ spec:
         - '--limit-max-requests'
         -  {{.maxRequests | quote}}
         {{- end }}
+        {{- if .limitConcurrency }}
+        - '--limit-concurrency'
+        - {{ .limitConcurrency | quote }}
+        {{- end }}
         {{- end }}
         ports:
           - name: http

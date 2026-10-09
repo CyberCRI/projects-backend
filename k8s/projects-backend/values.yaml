@@ -34,6 +34,9 @@ config:
     GUNICORN_MAX_REQUESTS: "1000"
     GUNICORN_MAX_REQUESTS_JITTER: "50"
     GUNICORN_LOG_LEVEL: "info"
+    # Limit glibc malloc arenas: with many threads (one per request under ASGI)
+    # the default (8 x cores) fragments memory and inflates RSS
+    MALLOC_ARENA_MAX: "2"
     KEYCLOAK_REALM: lp
     VERSION: "{{ .Values.application.revision }}"
     OPENSEARCH_DSL_AUTO_REFRESH: "True"
@@ -193,3 +196,5 @@ uvicorn:
   host: 0.0.0.0
   limitRequests: true
   maxRequests: 1000
+  # Max concurrent requests per worker, extra requests get a 503 (unset = unlimited)
+  limitConcurrency: null

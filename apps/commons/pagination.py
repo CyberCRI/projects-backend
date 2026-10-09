@@ -11,6 +11,9 @@ class PageInfoLimitOffsetPagination(LimitOffsetPagination):
     previous and next page to the response.
     """
 
+    # Prevent clients from loading whole tables with a huge `?limit=`
+    max_limit = 1000
+
     def get_current_page(self) -> int:
         return self.offset // self.limit + 1
 
