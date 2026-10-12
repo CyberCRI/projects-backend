@@ -12,6 +12,7 @@ from apps.commons.mixins import (
     HasOwner,
     HasRelatedModules,
     OrganizationRelated,
+    TimestampedModelMixin,
 )
 from apps.organizations.models import Organization
 from services.crisalid.relators import RolesChoices
@@ -172,7 +173,14 @@ class ResearcherDomains(models.Model):
         )
 
 
-class Researcher(HasOwner, CrisalidDataModel):
+class Researcher(
+    HasRelatedModules,
+    HasEmbedding,
+    HasOwner,
+    TimestampedModelMixin,
+    HasAutoTranslatedFields,
+    CrisalidDataModel,
+):
     """Link to a crisalid"""
 
     PRIVACY_HARVESTER = (
@@ -180,6 +188,7 @@ class Researcher(HasOwner, CrisalidDataModel):
         Identifier.Harvester.PPN,
         Identifier.Harvester.LOCAL,
     )
+    auto_translated_fields = ["bio:html"]
 
     user = models.OneToOneField(
         "accounts.ProjectUser",
@@ -200,6 +209,7 @@ class Researcher(HasOwner, CrisalidDataModel):
     bio = models.TextField(blank=True, null=True, default="")
 
     objects = CrisalidQuerySet.as_manager()
+    organization_query_string = "user__groups__organizations"
 
     def __str__(self):
         if hasattr(self, "user") and self.user is not None:

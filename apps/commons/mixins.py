@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Optional, Self
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import DateTimeField, Model, Q, QuerySet
+from django.db.models import BaseManager, DateTimeField, Model, Q, QuerySet
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
@@ -500,7 +500,7 @@ class HasEmbedding:
             self.embedding.save()
         self.embedding.vectorize()
 
-    def similars(self, threshold: float = 0.15) -> QuerySet[Self]:
+    def similars(self, threshold: float = 0.15) -> BaseManager[Self]:
         """return similars documents"""
         if getattr(self, "embedding", None):
             vector = self.embedding.embedding
