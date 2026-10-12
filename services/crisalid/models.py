@@ -2,6 +2,7 @@ from collections.abc import Generator
 
 from django import forms
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
@@ -124,6 +125,53 @@ class Identifier(models.Model):
         return f"{self.harvester} :: {self.value}"
 
 
+class Domains(HasAutoTranslatedFields, models.Model):
+    auto_translated_fields = ("name",)
+    name = models.CharField(max_length=255)
+    identifier = models.ForeignKey(
+        Identifier, on_delete=models.CASCADE, related_name="domains"
+    )
+
+    class Meta:
+        constraints = (
+            # only one identifiers by domains
+            models.UniqueConstraint(
+                "identifier",
+                name="unique_identifier",
+            ),
+        )
+
+    # add check to identifier is only openalex
+    def clean(self):
+        super().clean()
+
+        if (
+            self.identifier_id
+            and self.identifier.harvester != Identifier.Harvester.OPENALEX
+        ):
+            raise ValidationError(
+                {"identifier": "The identifier must be of type OpenAlex."}
+            )
+
+
+class ResearcherDomains(models.Model):
+    domain = models.ForeignKey(Domains, on_delete=models.CASCADE)
+    researcher = models.ForeignKey(
+        "services.crisalid.Researcher", on_delete=models.CASCADE
+    )
+    percentage = models.SmallIntegerField(choices=list(range(101)))
+
+    class Meta:
+        constraints = (
+            # only one researcher by domains
+            models.UniqueConstraint(
+                "domain",
+                "researcher",
+                name="unique_domain_researcher",
+            ),
+        )
+
+
 class Researcher(HasOwner, CrisalidDataModel):
     """Link to a crisalid"""
 
@@ -145,6 +193,11 @@ class Researcher(HasOwner, CrisalidDataModel):
     identifiers = models.ManyToManyField(
         "crisalid.Identifier", related_name="researchers"
     )
+
+    domains = models.ManyToManyField(
+        Domains, through=ResearcherDomains, related_name="researchers"
+    )
+    bio = models.TextField(blank=True, null=True, default="")
 
     objects = CrisalidQuerySet.as_manager()
 
@@ -175,6 +228,12 @@ class DocumentContributor(models.Model):
                 name="unique_researcher_document",
             )
         ]
+
+
+class DocumentDomains(models.Model):
+    domain = models.ForeignKey(Domains, on_delete=models.CASCADE)
+    document = models.ForeignKey("services.crisalid.Document", on_delete=models.CASCADE)
+    percentage = models.SmallIntegerField(choices=list(range(101)))
 
 
 class Document(
@@ -228,6 +287,10 @@ class Document(
     )
     identifiers = models.ManyToManyField(
         "crisalid.Identifier", related_name="documents"
+    )
+
+    domains = models.ManyToManyField(
+        Domains, through=DocumentDomains, related_name="documents"
     )
 
     organization_query_string = "contributors__user__groups__organizations"

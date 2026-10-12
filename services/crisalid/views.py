@@ -385,3 +385,19 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
                     final[identifier["value"]] = user
 
         return self.get_paginated_response(final)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="affiliated")
+    def affiliated(self, request, *args, **kwargs):
+        """Method to return affiliated researchers"""
+        researcher = self.get_object()
+
+        qs = researcher.modules_by_user(request.user, self.organization).affiliated()
+        return self.get_paginated_response(qs)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="similars")
+    def similars(self, request, *args, **kwargs):
+        """Method to return similars researchers"""
+        researcher = self.get_object()
+
+        qs = researcher.modules_by_user(request.user, self.organization).similars()
+        return self.get_paginated_response(qs)
