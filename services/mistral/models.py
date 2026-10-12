@@ -4,12 +4,13 @@ import traceback
 from typing import TYPE_CHECKING
 
 from django.db import models, transaction
-from django.db.models import QuerySet
+from django.db.models import F, QuerySet, Value
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
 from apps.commons.models import GroupData
 from apps.projects.models import Project
+from services.crisalid.models import Researcher
 
 from .exceptions import VectorSearchWrongQuerysetError
 from .interface import MistralService
@@ -455,6 +456,50 @@ class DocumentEmbedding(MistralEmbedding):
             self.item.title,
             self.item.description,
             self.item.document_type,
+        ]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
+        return self
+
+
+class ResearcherEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "crisalid.Researcher",
+        on_delete=models.CASCADE,
+        related_name="embedding",
+    )
+
+    def get_is_visible(self) -> bool:
+        # generate embeding only if researcher is linked to a user
+        return self.item.user_id is not None
+
+    @classmethod
+    def get_summary_chat_system(cls) -> list[str]:
+        return [
+            "CONTEXT : TODO add context to generate bio from researcher",
+        ]
+
+    def get_summary_chat_prompt(self) -> list[str]:
+        """
+        Return the prompt for the embedding model.
+        """
+
+        identifiers = (
+            self.item.modules.identifiers()
+            .exclude(harvester__in=Researcher.PRIVACY_HARVESTER)
+            .annotate(formated=(F("harvester") + Value(" : ") + F("value")))
+            .values_list("formated", flat=True)
+        )
+        return [f"full name: {self.item.display_name()}", f"identifiers: {identifiers}"]
+
+    def set_embedding(self, *args, **kwargs) -> "ResearcherEmbedding":
+        prompt = [
+            self.item.bio,
+            "domains :" + ", ".join(self.item.domains.values_list("name", flat=True)),
         ]
         prompt_hashcode = self.hash_prompt(prompt)
         if self.prompt_hashcode != prompt_hashcode:

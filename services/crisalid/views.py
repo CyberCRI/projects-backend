@@ -14,7 +14,9 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
+from apps.commons.permissions import IsOwner
 from apps.commons.views import (
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
@@ -32,6 +34,7 @@ from services.crisalid.serializers import (
     DocumentSerializer,
     ResearcherSerializer,
 )
+from services.crisalid.utils import generate_bio_from_researcher
 from services.crisalid.utils.views import NestedResearcherViewMixins
 
 OPENAPI_PARAMTERS_DOCUMENTS = [
@@ -412,3 +415,15 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
 
         qs = researcher.modules_by_user(request.user, self.organization).similars()
         return self.get_paginated_response(qs)
+
+    @action(
+        detail=True, methods=[HTTPMethod.GET], permissions=[IsOwner], url_path="bio-ia"
+    )
+    def bio_ia(self, request, *args, **kwargs):
+        """Method to return new generate bio ia from researcher"""
+        researcher = self.get_object()
+        bio = generate_bio_from_researcher(researcher)
+
+        return Response(
+            data=bio,
+        )

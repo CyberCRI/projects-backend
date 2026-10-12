@@ -8,6 +8,9 @@ from services.crisalid.models import Document, DocumentTypeCentralized, Research
 class ResearcherModules(AbstractModules):
     instance: Researcher
 
+    def identifiers(self):
+        return self.instance.identifiers.all()
+
     @ignore_method
     def documents(self) -> BaseManager[Document]:
         return self.instance.documents.all()
@@ -22,8 +25,7 @@ class ResearcherModules(AbstractModules):
         locals()[name] = _name
 
     def similars(self) -> BaseManager[Researcher]:
-        # TODO: add similars by researcher
-        return Researcher.objects.none()
+        return self.instance.similars()
 
     def affiliated(self) -> BaseManager[Researcher]:
         # TODO: filter documents by only where researcher is Authors/Co-Authors ...ect
