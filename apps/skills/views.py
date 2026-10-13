@@ -23,7 +23,6 @@ from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
 )
-from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.accounts.models import ProjectUser
@@ -42,15 +41,14 @@ from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.search.filters import MultiMatchPrefixSearchFieldsFilter
-from services.wikipedia.interface import WikipediaService
 
 from .exceptions import (
     DuplicatedMentoringError,
     MentoringCreatorStatusChangeError,
     SkillAlreadyAddedError,
+    TagSearchLimitError,
     UserCannotMentorError,
     UserDoesNotNeedMentorError,
-    WikipediaTagSearchLimitError,
 )
 from .filters import TagClassificationFilter, TagFilter
 from .models import Mentoring, MentoringMessage, Skill, Tag, TagClassification
@@ -66,8 +64,8 @@ from .serializers import (
     UserSkillLightSerializer,
 )
 from .utils import (
+    search_tags,
     set_default_language_title_and_description,
-    update_or_create_wikipedia_tags,
 )
 
 
@@ -268,25 +266,29 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if organization_code and not tag_classification_id:
             return Tag.objects.filter(organization__code=organization_code)
 
-        if organization_code and tag_classification_id:
-            if tag_classification_id in TagClassification.reserved_slugs:
-                tag_classification_ids = self.get_enabled_classifications(
-                    organization_code, tag_classification_id
-                ).values_list("id", flat=True)
-            else:
-                tag_classification_ids = [tag_classification_id]
-            wikipedia_classification = TagClassification.get_or_create_default_classification(
-                classification_type=TagClassification.TagClassificationType.WIKIPEDIA
+        if not organization_code or not tag_classification_id:
+            return Tag.objects.all()
+
+        if tag_classification_id in TagClassification.reserved_slugs:
+            tag_classification_ids = self.get_enabled_classifications(
+                organization_code, tag_classification_id
+            ).values_list("id", flat=True)
+        else:
+            tag_classification_ids = [tag_classification_id]
+
+        # check if search is set and type in wich classifications is set to search/set
+        if self.request.query_params.get("search"):
+            search_type = self.request.query_params.get(
+                "search_type", Tag.TagType.WIKIPEDIA.value
             )
-            if (
-                wikipedia_classification.id in tag_classification_ids
-                and self.request.query_params.get("search")
-            ):
-                self.wikipedia_search(self.request)
-            return Tag.objects.filter(
-                tag_classifications__id__in=tag_classification_ids
-            ).distinct()
-        return Tag.objects.all()
+            if TagClassification.objects.filter(
+                pk__in=tag_classification_ids, type=search_type
+            ).exists():
+                self.search_and_set_tags()
+
+        return Tag.objects.filter(
+            tag_classifications__id__in=tag_classification_ids
+        ).distinct()
 
     def create(self, request, *args, **kwargs):
         data = set_default_language_title_and_description(request.data)
@@ -313,17 +315,20 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 )
                 classification.tags.add(instance)
 
-    def wikipedia_search(self, request: Request) -> Response:
+    def search_and_set_tags(self):
         params = {
             "query": str(self.request.query_params.get("search", "")),
             "language": str(self.request.query_params.get("language", "en")),
             "limit": int(self.request.query_params.get("limit", 50)),
             "offset": int(self.request.query_params.get("offset", 0)),
+            "type": self.request.query_params.get(
+                "search_type", Tag.TagType.WIKIPEDIA.value
+            ),
         }
         if params["limit"] > 50:
-            raise WikipediaTagSearchLimitError
-        wikipedia_qids, _ = WikipediaService.search(**params)
-        update_or_create_wikipedia_tags(wikipedia_qids)
+            raise TagSearchLimitError
+
+        search_tags(**params)
 
     @extend_schema(
         parameters=[

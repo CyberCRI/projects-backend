@@ -4,7 +4,14 @@ from apps.accounts.models import ProjectUser
 from apps.commons.fields import PrivacySettingProtectedMethodField
 from apps.commons.serializers import PrivacySerializer
 from apps.modules.serializers import ModulesSerializers
-from services.crisalid.models import Document, Identifier, Researcher
+from apps.skills.serializers import TagSerializer
+from services.crisalid.models import (
+    Document,
+    DocumentDomains,
+    Identifier,
+    Researcher,
+    ResearcherDomains,
+)
 from services.translator.serializers import auto_translated
 
 
@@ -25,14 +32,37 @@ class IdentifierSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
+class ResearcherDomainsSerializer(serializers.ModelSerializer):
+    domain = TagSerializer()
+
+    class Meta:
+        model = ResearcherDomains
+        fields = (
+            "domain",
+            "level",
+        )
+
+
+@auto_translated
 class ResearcherSerializer(PrivacySerializer, serializers.ModelSerializer):
     user = ProjectUserMinimalSerializer()
     # TODO(remi): change privacy field for identifiers (not based in socials)
     identifiers = PrivacySettingProtectedMethodField(privacy_field="socials")
 
+    domains = ResearcherDomainsSerializer(source="researcher_domains", many=True)
+
     class Meta:
         model = Researcher
-        fields = ("id", "display_name", "identifiers", "user")
+        fields = (
+            "id",
+            "display_name",
+            "identifiers",
+            "user",
+            "bio",
+            "h_index",
+            "i10_index",
+            "domains",
+        )
 
     def get_identifiers(self, instance):
         """remove privacy identifiers (eppn/local)"""
@@ -46,12 +76,28 @@ class ResearcherSerializer(PrivacySerializer, serializers.ModelSerializer):
 
 class ResearcherSerializerLight(ResearcherSerializer):
     class Meta(ResearcherSerializer.Meta):
-        fields = ("id", "display_name", "identifiers")
+        fields = (
+            "id",
+            "display_name",
+            "identifiers",
+            "bio",
+            "h_index",
+            "i10_index",
+            "domains",
+        )
 
 
 class ResearcherDocumentsSerializer(ResearcherSerializer):
     class Meta(ResearcherSerializer.Meta):
         fields = ("id", "user", "display_name")
+
+
+class DocumentDomainsSerializer(serializers.ModelSerializer):
+    domains = ResearcherDomainsSerializer(source="document_domains", many=True)
+
+    class Meta:
+        model = DocumentDomains
+        fields = ("id", "level", "domain")
 
 
 @auto_translated

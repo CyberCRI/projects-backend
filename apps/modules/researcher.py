@@ -1,7 +1,11 @@
 from django.db.models import BaseManager, Count, Q
 
 from apps.modules.base import AbstractModules, ignore_method, register_module
-from services.crisalid.models import Document, DocumentTypeCentralized, Researcher
+from services.crisalid.models import (
+    Document,
+    DocumentTypeCentralized,
+    Researcher,
+)
 
 
 @register_module(Researcher)
