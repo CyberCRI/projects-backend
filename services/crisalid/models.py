@@ -2,7 +2,6 @@ from collections.abc import Generator
 
 from django import forms
 from django.contrib.postgres.fields import ArrayField
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
@@ -15,6 +14,7 @@ from apps.commons.mixins import (
     TimestampedModelMixin,
 )
 from apps.organizations.models import Organization
+from apps.skills.models import Tag
 from services.crisalid.relators import RolesChoices
 from services.translator.mixins import HasAutoTranslatedFields
 
@@ -126,43 +126,15 @@ class Identifier(models.Model):
         return f"{self.harvester} :: {self.value}"
 
 
-class Domains(HasAutoTranslatedFields, models.Model):
-    auto_translated_fields = ("name",)
-    name = models.CharField(max_length=255)
-    identifier = models.ForeignKey(
-        Identifier, on_delete=models.CASCADE, related_name="domains"
-    )
-
-    class Meta:
-        constraints = (
-            # only one identifiers by domains
-            models.UniqueConstraint(
-                "identifier",
-                name="unique_identifier",
-            ),
-        )
-
-    # add check to identifier is only openalex
-    def clean(self):
-        super().clean()
-
-        if (
-            self.identifier_id
-            and self.identifier.harvester != Identifier.Harvester.OPENALEX
-        ):
-            raise ValidationError(
-                {"identifier": "The identifier must be of type OpenAlex."}
-            )
-
-
-class ResearcherDomains(models.Model):
-    domain = models.ForeignKey(Domains, on_delete=models.CASCADE)
+class ResearcherDomains(TimestampedModelMixin, models.Model):
+    domain = models.ForeignKey(Tag, on_delete=models.CASCADE)
     researcher = models.ForeignKey(
         "services.crisalid.Researcher", on_delete=models.CASCADE
     )
-    percentage = models.SmallIntegerField(choices=list(range(101)))
+    level = models.SmallIntegerField(choices=list(range(101)))
 
     class Meta:
+        ordering = ("level",)
         constraints = (
             # only one researcher by domains
             models.UniqueConstraint(
@@ -204,7 +176,7 @@ class Researcher(
     )
 
     domains = models.ManyToManyField(
-        Domains, through=ResearcherDomains, related_name="researchers"
+        Tag, through=ResearcherDomains, related_name="researchers"
     )
     bio = models.TextField(blank=True, null=True, default="")
 
@@ -225,6 +197,10 @@ class Researcher(
 
 
 class DocumentContributor(models.Model):
+    """
+    models to add which role researcher have in document
+    """
+
     roles = ChoiceArrayField(
         models.CharField(max_length=255, choices=RolesChoices), default=list
     )
@@ -241,9 +217,24 @@ class DocumentContributor(models.Model):
 
 
 class DocumentDomains(models.Model):
-    domain = models.ForeignKey(Domains, on_delete=models.CASCADE)
+    """
+    models to add domain to a document
+    """
+
+    domain = models.ForeignKey(Tag, on_delete=models.CASCADE)
     document = models.ForeignKey("services.crisalid.Document", on_delete=models.CASCADE)
-    percentage = models.SmallIntegerField(choices=list(range(101)))
+    level = models.SmallIntegerField(choices=list(range(101)))
+
+    class Meta:
+        ordering = ("level",)
+        constraints = (
+            # only one researcher by domains
+            models.UniqueConstraint(
+                "domain",
+                "document",
+                name="unique_domain_document",
+            ),
+        )
 
 
 class Document(
@@ -300,7 +291,7 @@ class Document(
     )
 
     domains = models.ManyToManyField(
-        Domains, through=DocumentDomains, related_name="documents"
+        Tag, through=DocumentDomains, related_name="documents"
     )
 
     organization_query_string = "contributors__user__groups__organizations"
