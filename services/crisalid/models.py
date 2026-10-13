@@ -129,7 +129,9 @@ class Identifier(models.Model):
 class ResearcherDomains(TimestampedModelMixin, models.Model):
     domain = models.ForeignKey(Tag, on_delete=models.CASCADE)
     researcher = models.ForeignKey(
-        "services.crisalid.Researcher", on_delete=models.CASCADE
+        "services.crisalid.Researcher",
+        on_delete=models.CASCADE,
+        related_name="researcher_domains",
     )
     level = models.SmallIntegerField(choices=list(range(101)))
 
@@ -180,6 +182,9 @@ class Researcher(
     )
     bio = models.TextField(blank=True, null=True, default="")
 
+    h_index = models.PositiveIntegerField(default=None, null=True, blank=True)
+    i10_index = models.PositiveIntegerField(default=None, null=True, blank=True)
+
     objects = CrisalidQuerySet.as_manager()
     organization_query_string = "user__groups__organizations"
 
@@ -222,7 +227,11 @@ class DocumentDomains(models.Model):
     """
 
     domain = models.ForeignKey(Tag, on_delete=models.CASCADE)
-    document = models.ForeignKey("services.crisalid.Document", on_delete=models.CASCADE)
+    document = models.ForeignKey(
+        "services.crisalid.Document",
+        on_delete=models.CASCADE,
+        related_name="document_domains",
+    )
     level = models.SmallIntegerField(choices=list(range(101)))
 
     class Meta:

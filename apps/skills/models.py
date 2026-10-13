@@ -52,6 +52,7 @@ class Tag(models.Model, OrganizationRelated):
         WIKIPEDIA = "Wikipedia"
         ESCO = "ESCO"
         CUSTOM = "Custom"
+        OPENALEX = "openalex"
 
     class SecondaryTagType(models.TextChoices):
         """Secondary type of a tag,"""
@@ -157,7 +158,7 @@ class TagClassification(
 
         WIKIPEDIA = "Wikipedia"
         ESCO = "ESCO"
-        OPENALEX = "openhalex"
+        OPENALEX = "openalex"
         CUSTOM = "Custom"
 
     type = models.CharField(

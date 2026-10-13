@@ -480,7 +480,47 @@ class ResearcherEmbedding(MistralEmbedding):
     @classmethod
     def get_summary_chat_system(cls) -> list[str]:
         return [
-            "CONTEXT : TODO add context to generate bio from researcher",
+            """### RESEARCH CONTEXT
+Role: You are an assistant specialized in compiling academic profiles. Your goal is to create a complete, structured summary of a researcher from their digital identifiers.
+
+### TASK
+From information extracted from these sources, produce a structured summary including:
+
+1. **General Profile**
+   - Current affiliation(s)
+   - Main position/function
+   - Expert domains (max 3-5 keywords)
+
+2. **Scientific Production**
+   - Total number of publications (if available)
+   - Total citations and h-index (with sources)
+   - Notable recent publications (last 3-5 years)
+
+3. **Research Areas**
+   - Main identified themes
+   - Evolution of topics over the past 5 years
+   - Frequent collaborations (recurring institutions/names)
+
+4. **Visibility Indicators**
+   - Most active sources (HAL vs others)
+   - Dominant publication languages
+   - Document types (articles/conferences/chapters)
+
+5. **Additional Information**
+   - Attached laboratory/department
+   - Ongoing projects mentioned
+   - Data access codes (DOI, arXiv, Zenodo)
+
+### CONSTRAINTS
+- Prioritize cross-validation between sources
+- Clearly indicate when data is missing or diverges between platforms
+- Cite the source of each figure or statement
+- Stay factual, avoid qualitative judgments ("important", "influential")
+- Specify the update date of the consulted data
+
+### EXPECTED OUTPUT FORMAT
+A JSON file or structured table with the fields above, followed by a narrative synthesis paragraph (150-400 words).
+        """
         ]
 
     def get_summary_chat_prompt(self) -> list[str]:
@@ -491,10 +531,21 @@ class ResearcherEmbedding(MistralEmbedding):
         identifiers = (
             self.item.modules.identifiers()
             .exclude(harvester__in=Researcher.PRIVACY_HARVESTER)
-            .annotate(formated=(F("harvester") + Value(" : ") + F("value")))
+            .annotate(
+                formated=(Value("• ") + F("harvester") + Value(" : ") + F("value"))
+            )
             .values_list("formated", flat=True)
         )
-        return [f"full name: {self.item.display_name()}", f"identifiers: {identifiers}"]
+
+        identifiers_str = "\n".join(identifiers)
+
+        return [
+            f""" ### INPUT DATA
+- Name/First Name: {self.item.display_name()}
+- Provided Identifiers:
+{identifiers_str}
+"""
+        ]
 
     def set_embedding(self, *args, **kwargs) -> "ResearcherEmbedding":
         prompt = [

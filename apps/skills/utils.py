@@ -5,6 +5,7 @@ from django.conf import settings
 
 from apps.search.documents import TagDocument
 from services.esco.interface import EscoService
+from services.openalex.interface import OpenAlexService
 from services.wikipedia.interface import WikipediaService
 
 from .models import Tag, TagClassification
@@ -86,17 +87,16 @@ def set_default_language_title_and_description(
     return tag_data
 
 
-def update_or_create_wikipedia_tags(wikipedia_qids: list[str]) -> list[Tag]:
-    tags = WikipediaService.get_by_ids(wikipedia_qids)
-    tags = [set_default_language_title_and_description(tag) for tag in tags]
-
+def update_or_create_any_tags(
+    tags: list[dict], classification_type: Tag.TagType
+) -> list[Tag]:
     tags_to_create = []
     all_fields = set()
     for tag in tags:
         external_id = tag.pop("external_id")
         all_fields |= set(tag.keys())
         tags_to_create.append(
-            Tag(external_id=external_id, type=Tag.TagType.WIKIPEDIA, **tag)
+            Tag(external_id=external_id, type=classification_type, **tag)
         )
     all_ids = [tag.external_id for tag in tags_to_create]
 
@@ -111,7 +111,7 @@ def update_or_create_wikipedia_tags(wikipedia_qids: list[str]) -> list[Tag]:
     )
 
     classification = TagClassification.get_or_create_default_classification(
-        classification_type=TagClassification.TagClassificationType.WIKIPEDIA
+        classification_type=classification_type
     )
     to_adds = list(Tag.objects.filter(external_id__in=all_ids))
     classification.tags.add(*to_adds)
@@ -119,6 +119,20 @@ def update_or_create_wikipedia_tags(wikipedia_qids: list[str]) -> list[Tag]:
     # regenerate index
     TagDocument().update(to_adds, action="index")
     return all_tags
+
+
+def update_or_create_wikipedia_tags(wikipedia_qids: list[str | int]) -> list[Tag]:
+    tags = WikipediaService.get_by_ids(wikipedia_qids)
+    tags = [set_default_language_title_and_description(tag) for tag in tags]
+
+    return update_or_create_any_tags(tags, Tag.TagType.WIKIPEDIA)
+
+
+def update_or_create_openalex_tags(openalex_ids: list[str | int]) -> list[Tag]:
+    tags = OpenAlexService.get_by_ids(openalex_ids)
+    tags = [set_default_language_title_and_description(tag) for tag in tags]
+
+    return update_or_create_any_tags(tags, Tag.TagType.OPENALEX)
 
 
 def update_wikipedia_data(chunk_size: int = 50):
@@ -136,3 +150,16 @@ def update_wikipedia_data(chunk_size: int = 50):
         )
         update_or_create_wikipedia_tags(wikipedia_qids_chunk)
         gc.collect()
+
+
+def search_tags(tag_type=Tag.TagType, **params):
+    match tag_type:
+        case Tag.TagType.WIKIPEDIA:
+            wikipedia_qids, _ = WikipediaService.search(**params)
+            update_or_create_wikipedia_tags(wikipedia_qids)
+            return
+        case Tag.TagType.OPENALEX:
+            tags_ids, _ = OpenAlexService.search(**params)
+            update_or_create_openalex_tags(tags_ids)
+        case _:
+            raise ValueError(f"Invalid search type {params['type']!r}")
