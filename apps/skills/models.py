@@ -157,6 +157,7 @@ class TagClassification(
 
         WIKIPEDIA = "Wikipedia"
         ESCO = "ESCO"
+        OPENALEX = "openhalex"
         CUSTOM = "Custom"
 
     type = models.CharField(
