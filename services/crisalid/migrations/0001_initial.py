@@ -6,8 +6,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.db.models.functions.text
 import services.translator.mixins
-import services.crisalid.models
-
+import apps.commons.fields
 
 class Migration(migrations.Migration):
 
@@ -133,7 +132,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "roles",
-                    services.crisalid.models.ChoiceArrayField(
+                    apps.commons.fields.ChoiceArrayField(
                         base_field=models.CharField(
                             choices=[
                                 ("FMO", "former owner"),
