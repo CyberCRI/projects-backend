@@ -13,6 +13,7 @@ from services.crisalid.models import (
     ResearcherDomains,
     journal,
 )
+from services.crisalid.models.document import DocumentJournal
 from services.translator.serializers import auto_translated
 
 
@@ -129,3 +130,12 @@ class JournalSerializer(serializers.ModelSerializer):
     class Meta:
         model = journal
         fields = ("id", "title", "acronym")
+
+
+class CitationSerializer(serializers.ModelSerializer):
+    document = DocumentLightSerializer()
+    journal = JournalSerializer()
+
+    class Meta:
+        model = DocumentJournal
+        fields = ("document", "journal")

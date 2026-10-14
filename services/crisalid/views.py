@@ -29,6 +29,7 @@ from services.crisalid.models import (
 )
 from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
+    CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
     JournalSerializer,
@@ -425,3 +426,14 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         return Response(
             data=bio,
         )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        citations_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).citations()
+
+        paginated_qs = self.paginate_queryset(citations_qs)
+
+        return Response(CitationSerializer(paginated_qs, many=True).data)
