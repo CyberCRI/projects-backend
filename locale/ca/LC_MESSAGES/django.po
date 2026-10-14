@@ -176,16 +176,16 @@ msgstr "Estat de publicació desconegut"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Estat de publicació desconegut '{publication_status}'"
 
-#: apps/commons/fields.py:27 apps/skills/serializers.py:89
+#: apps/commons/fields.py:52 apps/skills/serializers.py:89
 msgid "This field is required."
 msgstr "Aquest camp és obligatori."
 
-#: apps/commons/fields.py:28
+#: apps/commons/fields.py:53
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Id no vàlid \"{user_id}\" - l'objecte no existeix."
 
-#: apps/commons/fields.py:30 apps/skills/serializers.py:94
+#: apps/commons/fields.py:55 apps/skills/serializers.py:94
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Tipus incorrecte. S'esperava un valor str, s'ha rebut {data_type}."
@@ -2621,63 +2621,63 @@ msgstr ""
 "\n"
 "Vols ser mentoritzat en %(skill)s? (recordatori)\n"
 
-#: services/crisalid/models.py:272
+#: services/crisalid/models/document.py:103
 msgid "Document"
 msgstr ""
 
-#: services/crisalid/models.py:273
+#: services/crisalid/models/document.py:104
 msgid "Scholarly Publication"
 msgstr ""
 
-#: services/crisalid/models.py:274
+#: services/crisalid/models/document.py:105
 msgid "Article"
 msgstr ""
 
-#: services/crisalid/models.py:275
+#: services/crisalid/models/document.py:106
 msgid "Journal Article"
 msgstr ""
 
-#: services/crisalid/models.py:276
+#: services/crisalid/models/document.py:107
 msgid "Conference Article"
 msgstr "Article de conferència"
 
-#: services/crisalid/models.py:277
+#: services/crisalid/models/document.py:108
 msgid "Conference Abstract"
 msgstr ""
 
-#: services/crisalid/models.py:278
+#: services/crisalid/models/document.py:109
 msgid "Preface"
 msgstr ""
 
-#: services/crisalid/models.py:279
+#: services/crisalid/models/document.py:110
 msgid "Comment"
 msgstr "Comentari"
 
-#: services/crisalid/models.py:280
+#: services/crisalid/models/document.py:111
 msgid "Book Chapter"
 msgstr ""
 
-#: services/crisalid/models.py:281
+#: services/crisalid/models/document.py:112
 msgid "Book"
 msgstr ""
 
-#: services/crisalid/models.py:282
+#: services/crisalid/models/document.py:113
 msgid "Monograph"
 msgstr ""
 
-#: services/crisalid/models.py:283
+#: services/crisalid/models/document.py:114
 msgid "Proceedings"
 msgstr ""
 
-#: services/crisalid/models.py:284
+#: services/crisalid/models/document.py:115
 msgid "Book Of Chapters"
 msgstr ""
 
-#: services/crisalid/models.py:285
+#: services/crisalid/models/document.py:116
 msgid "Presentation"
 msgstr ""
 
-#: services/crisalid/models.py:286
+#: services/crisalid/models/document.py:117
 msgid "Unknown"
 msgstr ""
 

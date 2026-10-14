@@ -31,6 +31,7 @@ from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
     DocumentAnalyticsSerializer,
     DocumentSerializer,
+    JournalSerializer,
     ResearcherSerializer,
 )
 from services.crisalid.utils.bio import generate_bio_from_researcher
@@ -206,6 +207,17 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
                 }
             ).data
         )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="journals")
+    def journals(self, request, *ar, **kw):
+        """get all journals linked to a publications/conférence"""
+
+        document: Document = self.get_object()
+        journals_qs = document.modules_by_user(request.user, self.org).journals()
+        queryset_page = self.paginate_queryset(journals_qs)
+        data = JournalSerializer(queryset_page, many=True, context={"request": request})
+
+        return self.get_paginated_response(data.data)
 
 
 class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):

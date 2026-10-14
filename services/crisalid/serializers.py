@@ -11,6 +11,7 @@ from services.crisalid.models import (
     Identifier,
     Researcher,
     ResearcherDomains,
+    journal,
 )
 from services.translator.serializers import auto_translated
 
@@ -107,7 +108,7 @@ class DocumentSerializer(ModulesSerializers, serializers.ModelSerializer):
 
     class Meta:
         model = Document
-        exclude = ("updated",)
+        exclude = ("updated_at", "created_at")
 
 
 class DocumentLightSerializer(DocumentSerializer):
@@ -122,3 +123,9 @@ class DocumentAnalyticsSerializer(serializers.Serializer):
         child=serializers.DictField(child=serializers.IntegerField())
     )
     document_types = serializers.DictField(child=serializers.IntegerField())
+
+
+class JournalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = journal
+        fields = ("id", "title", "acronym")
