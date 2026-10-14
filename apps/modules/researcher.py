@@ -1,4 +1,5 @@
-from django.db.models import BaseManager, Count, Q
+from django.db.models import Count, Q
+from django.db.models.manager import BaseManager
 
 from apps.modules.base import AbstractModules, ignore_method, register_module
 from services.crisalid.models import (

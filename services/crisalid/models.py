@@ -2,6 +2,7 @@ from collections.abc import Generator
 
 from django import forms
 from django.contrib.postgres.fields import ArrayField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
@@ -129,11 +130,13 @@ class Identifier(models.Model):
 class ResearcherDomains(TimestampedModelMixin, models.Model):
     domain = models.ForeignKey(Tag, on_delete=models.CASCADE)
     researcher = models.ForeignKey(
-        "services.crisalid.Researcher",
+        "crisalid.Researcher",
         on_delete=models.CASCADE,
         related_name="researcher_domains",
     )
-    level = models.SmallIntegerField(choices=list(range(101)))
+    level = models.SmallIntegerField(
+        default=0, validators=(MinValueValidator(0), MaxValueValidator(100))
+    )
 
     class Meta:
         ordering = ("level",)
@@ -162,7 +165,7 @@ class Researcher(
         Identifier.Harvester.PPN,
         Identifier.Harvester.LOCAL,
     )
-    auto_translated_fields = ["bio:html"]
+    auto_translated_fields = ["html:bio"]
 
     user = models.OneToOneField(
         "accounts.ProjectUser",
@@ -228,11 +231,13 @@ class DocumentDomains(models.Model):
 
     domain = models.ForeignKey(Tag, on_delete=models.CASCADE)
     document = models.ForeignKey(
-        "services.crisalid.Document",
+        "crisalid.Document",
         on_delete=models.CASCADE,
         related_name="document_domains",
     )
-    level = models.SmallIntegerField(choices=list(range(101)))
+    level = models.SmallIntegerField(
+        default=0, validators=(MinValueValidator(0), MaxValueValidator(100))
+    )
 
     class Meta:
         ordering = ("level",)
