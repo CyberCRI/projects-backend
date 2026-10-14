@@ -7,6 +7,7 @@ from services.crisalid.models import (
     DocumentTypeCentralized,
     Researcher,
 )
+from services.crisalid.models.document import DocumentJournal
 
 
 @register_module(Researcher)
@@ -46,3 +47,6 @@ class ResearcherModules(AbstractModules):
             )
             .order_by("-contributions_count")
         )
+
+    def citations(self) -> BaseManager[DocumentJournal]:
+        return DocumentJournal.objects.filter(documents__in=self.documents())
