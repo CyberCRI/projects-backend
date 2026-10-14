@@ -15,7 +15,7 @@ from services.crisalid.models import (
 )
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 from services.crisalid.populates.caches import LiveCache
-from services.crisalid.utils import generate_bio_from_researcher
+from services.crisalid.utils.bio import generate_bio_from_researcher
 
 logger = logging.getLogger(__name__)
 
