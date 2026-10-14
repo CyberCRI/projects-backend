@@ -209,8 +209,8 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
             ).data
         )
 
-    @action(detail=True, methods=[HTTPMethod.GET], url_path="journals")
-    def journals(self, request, *ar, **kw):
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *ar, **kw):
         """get all journals linked to a publications/conférence"""
 
         document: Document = self.get_object()
