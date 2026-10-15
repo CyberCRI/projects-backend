@@ -46,7 +46,9 @@ class ResearcherDomainsSerializer(serializers.ModelSerializer):
 
 
 @auto_translated
-class ResearcherSerializer(PrivacySerializer, serializers.ModelSerializer):
+class ResearcherSerializer(
+    ModulesSerializers, PrivacySerializer, serializers.ModelSerializer
+):
     user = ProjectUserMinimalSerializer()
     # TODO(remi): change privacy field for identifiers (not based in socials)
     identifiers = PrivacySettingProtectedMethodField(privacy_field="socials")
@@ -64,6 +66,7 @@ class ResearcherSerializer(PrivacySerializer, serializers.ModelSerializer):
             "h_index",
             "i10_index",
             "domains",
+            "modules",
         )
 
     def get_identifiers(self, instance):
@@ -86,6 +89,7 @@ class ResearcherSerializerLight(ResearcherSerializer):
             "h_index",
             "i10_index",
             "domains",
+            "modules",
         )
 
 
@@ -109,7 +113,7 @@ class DocumentSerializer(ModulesSerializers, serializers.ModelSerializer):
 
     class Meta:
         model = Document
-        exclude = ("updated_at", "created_at")
+        exclude = ("updated_at", "created_at", "journals")
 
 
 class DocumentLightSerializer(DocumentSerializer):

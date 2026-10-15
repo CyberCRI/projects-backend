@@ -14,9 +14,6 @@ from services.crisalid.models.document import DocumentJournal
 class ResearcherModules(AbstractModules):
     instance: Researcher
 
-    def identifiers(self):
-        return self.instance.identifiers.all()
-
     @ignore_method
     def documents(self) -> BaseManager[Document]:
         return self.instance.documents.all()
@@ -49,4 +46,4 @@ class ResearcherModules(AbstractModules):
         )
 
     def citations(self) -> BaseManager[DocumentJournal]:
-        return DocumentJournal.objects.filter(documents__in=self.documents())
+        return DocumentJournal.objects.filter(document__in=self.documents())

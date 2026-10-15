@@ -1,5 +1,3 @@
-from functools import cached_property
-
 from django.db.models import (
     QuerySet,
 )
@@ -20,7 +18,6 @@ from apps.notifications.models import Notification
 from apps.organizations.models import CategoryFollow
 from apps.projects.models import Project
 from apps.skills.models import Mentoring, Skill
-from services.crisalid.models import Document, DocumentTypeCentralized, Researcher
 
 
 @register_module(ProjectUser)
@@ -78,22 +75,3 @@ class UserModules(AbstractModules):
 
     def notifications(self) -> QuerySet[Notification]:
         return self.all_notifications().filter(is_viewed=False)
-
-    @cached_property
-    def _researcher(self) -> Researcher | None:
-        try:
-            return self.instance.researcher
-        except ProjectUser.researcher.RelatedObjectDoesNotExist:
-            return None
-
-    # create dynamicly all research plucations types to modules
-    for name, document_types in DocumentTypeCentralized.items():
-
-        def _name(self, document_types=document_types):
-            researcher = self._researcher
-            if not researcher:
-                return Document.objects.none()
-            return researcher.documents.filter(document_type__in=document_types)
-
-        _name.__name__ = name
-        locals()[name] = _name
