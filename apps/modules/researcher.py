@@ -15,6 +15,14 @@ class ResearcherModules(AbstractModules):
     instance: Researcher
 
     @ignore_method
+    def identifiers(self):
+        return self.instance.identifiers.all()
+
+    @ignore_method
+    def public_identifiers(self):
+        return self.identifiers().exclude(harvester__in=Researcher.PRIVACY_HARVESTER)
+
+    @ignore_method
     def documents(self) -> BaseManager[Document]:
         return self.instance.documents.all()
 
@@ -37,6 +45,8 @@ class ResearcherModules(AbstractModules):
         documents_qs = self.documents()
         return (
             researchers.filter(documents__in=documents_qs)
+            # exclude self
+            .exclude(pk=self.instance.pk)
             .annotate(
                 contributions_count=Count(
                     "documents", filter=Q(documents__in=documents_qs), distinct=True
