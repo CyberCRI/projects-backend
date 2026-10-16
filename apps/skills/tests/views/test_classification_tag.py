@@ -279,7 +279,7 @@ class EnabledClassificationTagTestCase(WikipediaTestCase):
     @parameterized.expand(
         [(reserved_slug,) for reserved_slug in TagClassification.reserved_slugs]
     )
-    @patch("apps.skills.views.TagViewSet.search_tags")
+    @patch("apps.skills.views.TagViewSet.search_and_set_tags")
     def test_list_enabled_tag_classifications(self, enabled_for, mocked_search):
         mocked_search.side_effect = lambda _: None
         response = self.client.get(
