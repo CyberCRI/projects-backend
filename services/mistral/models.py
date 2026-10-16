@@ -3,8 +3,10 @@ import itertools
 import traceback
 from typing import TYPE_CHECKING
 
+from django.contrib.postgres.aggregates import StringAgg
 from django.db import models, transaction
-from django.db.models import QuerySet
+from django.db.models import F, QuerySet, Value
+from django.db.models.functions import Concat
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
@@ -455,6 +457,103 @@ class DocumentEmbedding(MistralEmbedding):
             self.item.title,
             self.item.description,
             self.item.document_type,
+        ]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
+        return self
+
+
+class ResearcherEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "crisalid.Researcher",
+        on_delete=models.CASCADE,
+        related_name="embedding",
+    )
+
+    def get_is_visible(self) -> bool:
+        # generate embeding only if researcher is linked to a user
+        return self.item.user_id is not None
+
+    @classmethod
+    def get_summary_chat_system(cls) -> list[str]:
+        return [
+            """### RESEARCH CONTEXT
+Role: You are an assistant specialized in compiling academic profiles. Your goal is to create a complete, structured summary of a researcher from their digital identifiers.
+
+### TASK
+From information extracted from these sources, produce a structured summary including:
+
+1. **General Profile**
+   - Current affiliation(s)
+   - Main position/function
+   - Expert domains (max 3-5 keywords)
+
+2. **Scientific Production**
+   - Total number of publications (if available)
+   - Total citations and h-index (with sources)
+   - Notable recent publications (last 3-5 years)
+
+3. **Research Areas**
+   - Main identified themes
+   - Evolution of topics over the past 5 years
+   - Frequent collaborations (recurring institutions/names)
+
+4. **Visibility Indicators**
+   - Most active sources (HAL vs others)
+   - Dominant publication languages
+   - Document types (articles/conferences/chapters)
+
+5. **Additional Information**
+   - Attached laboratory/department
+   - Ongoing projects mentioned
+   - Data access codes (DOI, arXiv, Zenodo)
+
+### CONSTRAINTS
+- Prioritize cross-validation between sources
+- Clearly indicate when data is missing or diverges between platforms
+- Cite the source of each figure or statement
+- Stay factual, avoid qualitative judgments ("important", "influential")
+- Specify the update date of the consulted data
+
+### EXPECTED OUTPUT FORMAT
+A pure string, not formated(not markdown/html) followed by a narrative synthesis paragraph (150-400 words).
+        """
+        ]
+
+    def get_summary_chat_prompt(self) -> list[str]:
+        """
+        Return the prompt for the embedding model.
+        """
+
+        formated_identifiers = self.item.modules.public_identifiers().aggregate(
+            formated=StringAgg(
+                Concat(
+                    Value("• "),
+                    F("harvester"),
+                    Value(" : "),
+                    F("value"),
+                    output_field=models.CharField(),
+                ),
+                delimiter="\n",
+            )
+        )["formated"]
+
+        return [
+            f""" ### INPUT DATA
+- Name/First Name: {str(self.item)}
+- Provided Identifiers:
+{formated_identifiers}
+"""
+        ]
+
+    def set_embedding(self, *args, **kwargs) -> "ResearcherEmbedding":
+        prompt = [
+            self.item.bio,
+            "domains :" + ", ".join(self.item.domains.values_list("name", flat=True)),
         ]
         prompt_hashcode = self.hash_prompt(prompt)
         if self.prompt_hashcode != prompt_hashcode:

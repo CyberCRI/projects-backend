@@ -1,0 +1,15 @@
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+
+
+class Journal(models.Model):
+    """representations of a journal models (from crisalid)
+    https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/models/publication_channel.py#L6
+    """
+
+    uid = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255)
+    acronym = ArrayField(models.CharField(max_length=255), default=list)
+
+    def __repr__(self):
+        return f"<Journal {self.uid=} {self.title}>"
