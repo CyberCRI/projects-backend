@@ -9,9 +9,9 @@ from services.crisalid.models import (
     Document,
     DocumentDomains,
     Identifier,
+    Journal,
     Researcher,
     ResearcherDomains,
-    journal,
 )
 from services.crisalid.models.document import DocumentJournal
 from services.translator.serializers import auto_translated
@@ -118,7 +118,8 @@ class DocumentSerializer(ModulesSerializers, serializers.ModelSerializer):
 
 class DocumentLightSerializer(DocumentSerializer):
     class Meta(DocumentSerializer.Meta):
-        fields = ("title", "publication_date", "document_type", "modules")
+        fields = ("id", "title", "publication_date", "document_type", "modules")
+        exclude = None
         modules_keys = ()
 
 
@@ -132,7 +133,7 @@ class DocumentAnalyticsSerializer(serializers.Serializer):
 
 class JournalSerializer(serializers.ModelSerializer):
     class Meta:
-        model = journal
+        model = Journal
         fields = ("id", "title", "acronym")
 
 

@@ -119,6 +119,16 @@ def vectorize_documents(documents_pks: list[int]):
         obj.vectorize()
 
 
+# ----
+# Vectorize researcher for similarity
+# ----
+@app.task(name="Vectorize researcher")
+def vectorize_researchers(researchers_pks: list[int]):
+    for obj in Researcher.objects.filter(pk__in=researchers_pks):
+        logger.debug("vectorize researcher=%s", obj)
+        obj.vectorize()
+
+
 @app.task(name="Load json apollo data")
 def load_apollo_data(crisalid_config_id: int, content: dict):
     config = get_crisalid_config(crisalid_config_id)

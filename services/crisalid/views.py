@@ -32,7 +32,6 @@ from services.crisalid.serializers import (
     CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
-    JournalSerializer,
     ResearcherSerializer,
 )
 from services.crisalid.utils.bio import generate_bio_from_researcher
@@ -214,9 +213,11 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
         """get all journals linked to a publications/conférence"""
 
         document: Document = self.get_object()
-        journals_qs = document.modules_by_user(request.user, self.org).journals()
+        journals_qs = document.modules_by_user(request.user).citations()
         queryset_page = self.paginate_queryset(journals_qs)
-        data = JournalSerializer(queryset_page, many=True, context={"request": request})
+        data = CitationSerializer(
+            queryset_page, many=True, context=self.get_serializer_context()
+        )
 
         return self.get_paginated_response(data.data)
 
@@ -418,7 +419,11 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         researcher = self.get_object()
 
         qs = researcher.modules_by_user(request.user, self.organization).affiliated()
-        return self.get_paginated_response(qs)
+        data = self.get_serializer_class()(
+            self.paginate_queryset(qs), context=self.get_serializer_context(), many=True
+        ).data
+
+        return self.get_paginated_response(data)
 
     @action(detail=True, methods=[HTTPMethod.GET], url_path="similars")
     def similars(self, request, *args, **kwargs):
@@ -426,7 +431,11 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         researcher = self.get_object()
 
         qs = researcher.modules_by_user(request.user, self.organization).similars()
-        return self.get_paginated_response(qs)
+        data = self.get_serializer_class()(
+            self.paginate_queryset(qs), context=self.get_serializer_context(), many=True
+        ).data
+
+        return self.get_paginated_response(data)
 
     @action(detail=True, methods=[HTTPMethod.GET], url_path="bio-ia")
     def bio_ia(self, request, *args, **kwargs):
@@ -447,4 +456,8 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
 
         paginated_qs = self.paginate_queryset(citations_qs)
 
-        return Response(CitationSerializer(paginated_qs, many=True).data)
+        return self.get_paginated_response(
+            CitationSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )

@@ -3,14 +3,15 @@ import itertools
 import traceback
 from typing import TYPE_CHECKING
 
+from django.contrib.postgres.aggregates import StringAgg
 from django.db import models, transaction
 from django.db.models import F, QuerySet, Value
+from django.db.models.functions import Concat
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
 from apps.commons.models import GroupData
 from apps.projects.models import Project
-from services.crisalid.models import Researcher
 
 from .exceptions import VectorSearchWrongQuerysetError
 from .interface import MistralService
@@ -519,7 +520,7 @@ From information extracted from these sources, produce a structured summary incl
 - Specify the update date of the consulted data
 
 ### EXPECTED OUTPUT FORMAT
-A JSON file or structured table with the fields above, followed by a narrative synthesis paragraph (150-400 words).
+A pure string, not formated(not markdown/html) followed by a narrative synthesis paragraph (150-400 words).
         """
         ]
 
@@ -528,22 +529,24 @@ A JSON file or structured table with the fields above, followed by a narrative s
         Return the prompt for the embedding model.
         """
 
-        identifiers = (
-            self.item.modules.identifiers()
-            .exclude(harvester__in=Researcher.PRIVACY_HARVESTER)
-            .annotate(
-                formated=(Value("• ") + F("harvester") + Value(" : ") + F("value"))
+        formated_identifiers = self.item.modules.public_identifiers().aggregate(
+            formated=StringAgg(
+                Concat(
+                    Value("• "),
+                    F("harvester"),
+                    Value(" : "),
+                    F("value"),
+                    output_field=models.CharField(),
+                ),
+                delimiter="\n",
             )
-            .values_list("formated", flat=True)
-        )
-
-        identifiers_str = "\n".join(identifiers)
+        )["formated"]
 
         return [
             f""" ### INPUT DATA
-- Name/First Name: {self.item.display_name()}
+- Name/First Name: {str(self.item)}
 - Provided Identifiers:
-{identifiers_str}
+{formated_identifiers}
 """
         ]
 
