@@ -130,7 +130,6 @@ class JournalAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         "title",
         "acronym",
     )
-    autocomplete_fields = ("title",)
 
 
 @admin.register(DocumentJournal)
