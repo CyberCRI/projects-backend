@@ -365,13 +365,17 @@ class TestResearcherView(JwtAPITestCase):
         # test modules
         self.assertEqual(self.researcher.modules.citations().count(), 2)
 
-    def test_bio_ia(self):
+    @mock.patch("services.mistral.interface.MistralService.get_chat_response")
+    def test_bio_ia(self, get_chat_response_mck):
+        bio = "a ramdom bio"
+        get_chat_response_mck.return_value = bio
+
         response = self.client.get(
             reverse(
                 "Researcher-bio-ia",
                 args=(self.organization.code, self.researcher.pk),
             )
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(type(response.data), str)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, bio)
