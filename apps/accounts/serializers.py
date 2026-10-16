@@ -394,8 +394,8 @@ class UserSerializer(
     def _user_acces(self):
         request = self.context.get("request")
         if request:
-            return request.user.get_user_queryset().values_list("pk", flat=True)
-        return []
+            return set(request.user.get_user_queryset().values_list("pk", flat=True))
+        return set()
 
     def to_representation(self, instance: ProjectUser):
         # TODO(remi): optimize this
@@ -608,17 +608,25 @@ class PeopleGroupHierarchySerializer(
         if self.context.get("depth") != 0:
             return []
 
-        request = self.context.get("request")
-        groups_ids = request.user.get_people_group_queryset().values_list(
-            "id", flat=True
-        )
-        hierarchy = []
+        parents = []
         while obj.parent:
             obj = obj.parent
-            if obj.id in groups_ids:
-                hierarchy.append(
-                    PeopleGroupSuperLightSerializer(obj, context=self.context).data
-                )
+            parents.append(obj)
+        if not parents:
+            return []
+
+        # only check the parents visibility, not every group visible by the user
+        request = self.context.get("request")
+        groups_ids = set(
+            request.user.get_people_group_queryset()
+            .filter(id__in=[parent.id for parent in parents])
+            .values_list("id", flat=True)
+        )
+        hierarchy = [
+            PeopleGroupSuperLightSerializer(parent, context=self.context).data
+            for parent in parents
+            if parent.id in groups_ids
+        ]
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
     def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:

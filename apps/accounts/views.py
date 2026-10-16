@@ -182,7 +182,10 @@ class UserViewSet(
         )
 
     def annotate_keycloak_email_verified(self, queryset: QuerySet) -> QuerySet:
-        email_not_verified = KeycloakService.get_users(emailVerified=False)
+        # only the ids are needed, don't fetch the full user representations
+        email_not_verified = KeycloakService.get_users(
+            emailVerified=False, briefRepresentation=True
+        )
         email_not_verified = [user["id"] for user in email_not_verified]
         return queryset.annotate(
             email_verified=Case(

@@ -313,23 +313,27 @@ class Project(
     def get_cached_views(self):
         """Caches all views of the project."""
         key = f"project.{self.id}.views"
-        if key not in cache.keys("*"):  # noqa: SIM118
+        views = cache.get(key)
+        if views is None:
             self.set_cached_views()
-        return cache.get(key)
+            views = cache.get(key)
+        return views
 
     @classmethod
     def get_queryset_cached_views(cls, projects: models.QuerySet["Project"]):
         """Caches all views of the project."""
         keys = [f"project.{project.id}.views" for project in projects]
-        cache_keys = cache.keys("*")
+        cached_views = cache.get_many(keys)
         absent_projects = [
             project
             for project in projects
-            if f"project.{project.id}.views" not in cache_keys
+            if f"project.{project.id}.views" not in cached_views
         ]
         for project in absent_projects:
             project.set_cached_views()
-        return cache.get_many(keys)
+        if absent_projects:
+            cached_views = cache.get_many(keys)
+        return cached_views
 
     @classmethod
     def get_queryset_total_views(cls, projects: models.QuerySet["Project"]):

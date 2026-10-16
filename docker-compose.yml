@@ -67,7 +67,7 @@ services:
       - ../.env
     user: root
     restart: unless-stopped
-    command: uvicorn projects.asgi:application --host 0.0.0.0 --port 8000 --reload
+    command: gunicorn --config ./gunicorn.conf.py --reload projects.wsgi:application
     ports:
       - ${PROJECTS_BACKEND_PORT:-8000}:8000
     depends_on:
