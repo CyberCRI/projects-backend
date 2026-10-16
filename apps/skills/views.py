@@ -321,7 +321,7 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             "language": str(self.request.query_params.get("language", "en")),
             "limit": int(self.request.query_params.get("limit", 50)),
             "offset": int(self.request.query_params.get("offset", 0)),
-            "type": self.request.query_params.get(
+            "search_type": self.request.query_params.get(
                 "search_type", Tag.TagType.WIKIPEDIA.value
             ),
         }
