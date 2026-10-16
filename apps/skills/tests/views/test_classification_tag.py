@@ -279,7 +279,7 @@ class EnabledClassificationTagTestCase(WikipediaTestCase):
     @parameterized.expand(
         [(reserved_slug,) for reserved_slug in TagClassification.reserved_slugs]
     )
-    @patch("apps.skills.views.TagViewSet.wikipedia_search")
+    @patch("apps.skills.views.TagViewSet.search_tags")
     def test_list_enabled_tag_classifications(self, enabled_for, mocked_search):
         mocked_search.side_effect = lambda _: None
         response = self.client.get(
@@ -290,7 +290,7 @@ class EnabledClassificationTagTestCase(WikipediaTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        mocked_search.assert_has_calls([])
+        mocked_search.assert_not_called()
         self.assertSetEqual(
             {tag["id"] for tag in content},
             {

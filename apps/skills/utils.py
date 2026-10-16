@@ -152,8 +152,8 @@ def update_wikipedia_data(chunk_size: int = 50):
         gc.collect()
 
 
-def search_tags(tag_type=Tag.TagType, **params):
-    match tag_type:
+def search_tags(search_type=Tag.TagType, **params):
+    match search_type:
         case Tag.TagType.WIKIPEDIA:
             wikipedia_qids, _ = WikipediaService.search(**params)
             update_or_create_wikipedia_tags(wikipedia_qids)
