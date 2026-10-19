@@ -204,7 +204,7 @@ class CrisalidBusClient:
 
         crisalid_type = payload["type"]
         crisalid_event = payload["event"]
-        if not [crisalid_type][crisalid_event]:
+        if not crisalid_consumer[crisalid_type][crisalid_event]:
             self.logger.info(
                 "Not listener for event: %s::%s", crisalid_type, crisalid_event
             )
