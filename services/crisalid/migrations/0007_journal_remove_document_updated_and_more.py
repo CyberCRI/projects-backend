@@ -10,7 +10,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('crisalid', '0005_alter_document_document_type_and_more'),
+        ('crisalid', '0006_alter_documentcontributor_roles'),
         ('skills', '0002_alter_tag_type_alter_tagclassification_type'),
     ]
 
