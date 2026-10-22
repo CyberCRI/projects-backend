@@ -11,13 +11,19 @@ from django.views.generic import TemplateView
 
 from apps.accounts.models import ProjectUser
 from apps.commons.admin import ExtraAdminMixins, TranslateObjectAdminMixin
-from services.crisalid.tasks import load_apollo_data, vectorize_documents
+from services.crisalid.models.document import DocumentJournal
+from services.crisalid.tasks import (
+    load_apollo_data,
+    vectorize_documents,
+    vectorize_researchers,
+)
 
 from .models import (
     CrisalidConfig,
     Document,
     DocumentContributor,
     Identifier,
+    Journal,
     Researcher,
 )
 
@@ -67,8 +73,9 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Model
         "title",
         "publication_date",
         "document_type",
-        "get_contributors",
         "get_identifiers",
+        "get_contributors",
+        "get_citations",
     )
     search_fields = (
         "title",
@@ -100,11 +107,44 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Model
             .prefetch_related("contributors", "identifiers")
             .annotate(identifiers_count=Count("identifiers", distinct=True))
             .annotate(contributors_count=Count("contributors", distinct=True))
+            .annotate(citations_count=Count("journals", distinct=True))
         )
 
     @admin.display(description="contributors count", ordering="contributors_count")
     def get_contributors(self, instance):
-        return instance.contributors.count()
+        return instance.contributors_count
+
+    @admin.display(description="citations count", ordering="citations_count")
+    def get_citations(self, instance):
+        return instance.citations_count
+
+
+@admin.register(Journal)
+class JournalAdmin(IdentifierAdminMixin, admin.ModelAdmin):
+    list_display = (
+        "pk",
+        "title",
+        "acronym",
+    )
+    search_fields = (
+        "title",
+        "acronym",
+    )
+
+
+@admin.register(DocumentJournal)
+class DocumentJournalAdmin(IdentifierAdminMixin, admin.ModelAdmin):
+    list_display = (
+        "pk",
+        "document__title",
+        "journal__title",
+    )
+    search_fields = (
+        "document__title",
+        "document__description",
+        "journal__title",
+        "journal__acronym",
+    )
 
 
 @admin.register(Researcher)
@@ -115,6 +155,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         "user",
         "get_documents",
         "get_identifiers",
+        "get_citations",
     )
     search_fields = (
         "user__given_name",
@@ -123,7 +164,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         "identifiers__harvester",
     )
     autocomplete_fields = ("user",)
-    actions = ("assign_user",)
+    actions = ("assign_user", "vectorize")
 
     def get_queryset(self, request):
         return (
@@ -131,8 +172,16 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
             .get_queryset(request)
             .select_related("user")
             .prefetch_related("identifiers", "documents")
-            .annotate(identifiers_count=Count("identifiers", distinct=True))
-            .annotate(documents_count=Count("documents", distinct=True))
+        )
+
+    def vectorize(self, request, queryset):
+        # run vecotrize async in celery
+        researchers_pks = list(queryset.values_list("pk", flat=True))
+        vectorize_researchers.apply_async((researchers_pks,))
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"Vecotrize Task created for {len(researchers_pks)} researchers",
         )
 
     @admin.action(description="assign researcher on projects")
@@ -176,9 +225,13 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
                 f"Can't found {notfound} user with eppn.",
             )
 
-    @admin.display(description="documents count", ordering="documents_count")
+    @admin.display(description="documents count")
     def get_documents(self, instance):
-        return instance.documents_count
+        return instance.modules.documents().count()
+
+    @admin.display(description="citations count")
+    def get_citations(self, instance):
+        return instance.modules.citations.count()
 
 
 @admin.register(CrisalidConfig)

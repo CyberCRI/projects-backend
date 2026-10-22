@@ -1,4 +1,5 @@
 import datetime
+from unittest import mock
 
 from django.urls import reverse
 from rest_framework import status
@@ -8,9 +9,12 @@ from apps.organizations.factories import OrganizationFactory
 from services.crisalid.factories import (
     DocumentContributorFactory,
     DocumentFactory,
+    DocumentJournalFactory,
     ResearcherFactory,
 )
 from services.crisalid.models import DocumentTypeCentralized
+from services.crisalid.models.researcher import Researcher
+from services.crisalid.relators import RolesChoices
 
 PUBLICATION_TYPE = DocumentTypeCentralized.publications[0]
 
@@ -143,6 +147,37 @@ class TestDocumentView(JwtAPITestCase):
         }
         self.assertEqual(data["years"], expected["years"])
 
+    def test_get_citations(self):
+        document = DocumentFactory()
+        DocumentContributorFactory(
+            document=document, researcher=self.researcher, roles=[RolesChoices.AUT]
+        )
+        document_journal = DocumentJournalFactory(document=document)
+        document_journal2 = DocumentJournalFactory(document=document)
+
+        document_2 = DocumentFactory()
+        DocumentContributorFactory(
+            document=document_2, researcher=self.researcher, roles=[RolesChoices.AUT]
+        )
+        DocumentJournalFactory(document=document_2)
+
+        response = self.client.get(
+            reverse(
+                "CrisalidDocument-citations",
+                args=(self.organization.code, document.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((document_journal.journal.pk, document_journal2.journal.pk)),
+            set((el["journal"]["id"] for el in data["results"])),
+        )
+
+        # test modules
+        self.assertEqual(document.modules.citations().count(), 2)
+
 
 class TestResearcherView(JwtAPITestCase):
     @classmethod
@@ -247,3 +282,100 @@ class TestResearcherView(JwtAPITestCase):
         results = response.json()["results"]
         # 2 user in same organizations
         self.assertEqual(len(results), 2)
+
+    def test_get_affiliated(self):
+        # create document + documents Contributor
+        document = DocumentFactory()
+        DocumentContributorFactory(
+            document=document, researcher=self.researcher, roles=[RolesChoices.AUT]
+        )
+        DocumentContributorFactory(
+            document=document, researcher=self.researcher_2, roles=[RolesChoices.COE]
+        )
+
+        # same without one researcher
+        document_2 = DocumentFactory()
+        DocumentContributorFactory(
+            document=document_2, researcher=self.researcher_2, roles=[RolesChoices.AUT]
+        )
+        DocumentContributorFactory(
+            document=document_2, researcher=self.researcher_3, roles=[RolesChoices.COE]
+        )
+
+        response = self.client.get(
+            reverse(
+                "Researcher-affiliated",
+                args=(self.organization.code, self.researcher.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((self.researcher_2.pk,)), set((el["id"] for el in data["results"]))
+        )
+
+    @mock.patch("services.crisalid.models.Researcher.similars")
+    def test_get_similars(self, simlars_mck):
+
+        simlars_mck.return_value = Researcher.objects.filter(
+            pk__in=(self.researcher_2.pk, self.researcher_3.pk)
+        )
+        response = self.client.get(
+            reverse(
+                "Researcher-similars",
+                args=(self.organization.code, self.researcher.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((self.researcher_2.pk, self.researcher_3.pk)),
+            set((el["id"] for el in data["results"])),
+        )
+
+    def test_get_citations(self):
+        document = DocumentFactory()
+        DocumentContributorFactory(
+            document=document, researcher=self.researcher, roles=[RolesChoices.AUT]
+        )
+        DocumentJournalFactory(document=document)
+
+        document_2 = DocumentFactory()
+        DocumentContributorFactory(
+            document=document_2, researcher=self.researcher, roles=[RolesChoices.AUT]
+        )
+        DocumentJournalFactory(document=document_2)
+
+        response = self.client.get(
+            reverse(
+                "Researcher-citations",
+                args=(self.organization.code, self.researcher.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((document.pk, document_2.pk)),
+            set((el["document"]["id"] for el in data["results"])),
+        )
+
+        # test modules
+        self.assertEqual(self.researcher.modules.citations().count(), 2)
+
+    @mock.patch("services.mistral.interface.MistralService.get_chat_response")
+    def test_bio_ia(self, get_chat_response_mck):
+        bio = "a ramdom bio"
+        get_chat_response_mck.return_value = bio
+
+        response = self.client.get(
+            reverse(
+                "Researcher-bio-ia",
+                args=(self.organization.code, self.researcher.pk),
+            )
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, bio)

@@ -1,5 +1,9 @@
+import datetime
 import logging
 
+from django.conf import settings
+
+from apps.organizations.models import Organization
 from projects.celery import app
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
 from services.crisalid.bus.consumer import on_event
@@ -11,6 +15,7 @@ from services.crisalid.models import (
 )
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 from services.crisalid.populates.caches import LiveCache
+from services.crisalid.utils.bio import generate_bio_from_researcher
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +119,16 @@ def vectorize_documents(documents_pks: list[int]):
         obj.vectorize()
 
 
+# ----
+# Vectorize researcher for similarity
+# ----
+@app.task(name="Vectorize researcher")
+def vectorize_researchers(researchers_pks: list[int]):
+    for obj in Researcher.objects.filter(pk__in=researchers_pks):
+        logger.debug("vectorize researcher=%s", obj)
+        obj.vectorize()
+
+
 @app.task(name="Load json apollo data")
 def load_apollo_data(crisalid_config_id: int, content: dict):
     config = get_crisalid_config(crisalid_config_id)
@@ -128,3 +143,39 @@ def load_apollo_data(crisalid_config_id: int, content: dict):
             populate_researcher.multiple(datas)
         elif key == "documents":
             populate_document.multiple(datas)
+
+
+@app.task(name="Update Researcher Bio generate by Ia")
+def update_researcher_bio_ia(researcher_id: int):
+    researcher = Researcher.objects.get(pk=researcher_id)
+    logger.info("pdate researcher Bio pk=%s", researcher.pk)
+
+    bio = generate_bio_from_researcher(researcher)
+    if researcher.bio != bio:
+        researcher.bio = bio
+        researcher.save()
+        logger.info("Updated Researcher pk=%s bio successfully", researcher.pk)
+    else:
+        logger.debug("Bio unchanged for Researcher pk=%s", researcher.pk)
+
+
+@app.task(name="Update all Organization Researcher Bio generate by Ia")
+def update_organization_researcher_bio_ia(organization_id: int):
+    organization = Organization.objects.get(id=organization_id)
+    # if organization is not enable ia, dont do it
+    if not organization.enable_ia:
+        logger.info(
+            "Update researcher Bio from organization=%s not enabled", organization.code
+        )
+        return
+    logger.info("Update researcher Bio from organization=%s enabled", organization.code)
+
+    delta_update: datetime.timedelta = settings.RESEARCHER_DELTA_UPDATE_BIO
+    last_update = datetime.datetime.now() - delta_update
+
+    researchers_qs = Researcher.objects.filter(
+        user__groups__organization=organization, updated_at__lt=last_update
+    ).values_list("pk", flat=True)
+
+    for researcher in researchers_qs:
+        update_researcher_bio_ia.aplly_async((researcher.id,))

@@ -14,6 +14,7 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from apps.commons.views import (
     NestedOrganizationViewMixins,
@@ -28,10 +29,12 @@ from services.crisalid.models import (
 )
 from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
+    CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
     ResearcherSerializer,
 )
+from services.crisalid.utils.bio import generate_bio_from_researcher
 from services.crisalid.utils.views import NestedResearcherViewMixins
 
 OPENAPI_PARAMTERS_DOCUMENTS = [
@@ -204,6 +207,19 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
                 }
             ).data
         )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *ar, **kw):
+        """get all journals linked to a publications/conférence"""
+
+        document: Document = self.get_object()
+        journals_qs = document.modules_by_user(request.user).citations()
+        queryset_page = self.paginate_queryset(journals_qs)
+        data = CitationSerializer(
+            queryset_page, many=True, context=self.get_serializer_context()
+        )
+
+        return self.get_paginated_response(data.data)
 
 
 class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
@@ -396,3 +412,52 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
                     final[identifier["value"]] = user
 
         return self.get_paginated_response(final)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="affiliated")
+    def affiliated(self, request, *args, **kwargs):
+        """Method to return affiliated researchers"""
+        researcher = self.get_object()
+
+        qs = researcher.modules_by_user(request.user, self.organization).affiliated()
+        data = self.get_serializer_class()(
+            self.paginate_queryset(qs), context=self.get_serializer_context(), many=True
+        ).data
+
+        return self.get_paginated_response(data)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="similars")
+    def similars(self, request, *args, **kwargs):
+        """Method to return similars researchers"""
+        researcher = self.get_object()
+
+        qs = researcher.modules_by_user(request.user, self.organization).similars()
+        data = self.get_serializer_class()(
+            self.paginate_queryset(qs), context=self.get_serializer_context(), many=True
+        ).data
+
+        return self.get_paginated_response(data)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="bio-ia")
+    def bio_ia(self, request, *args, **kwargs):
+        """Method to return new generate bio ia from researcher"""
+        researcher = self.get_object()
+        bio = generate_bio_from_researcher(researcher)
+
+        return Response(
+            data=bio,
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        citations_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).citations()
+
+        paginated_qs = self.paginate_queryset(citations_qs)
+
+        return self.get_paginated_response(
+            CitationSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )

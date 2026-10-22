@@ -5,6 +5,8 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.organizations.factories import OrganizationFactory
 from services.crisalid import relators
+from services.crisalid.models.document import DocumentJournal
+from services.crisalid.models.journal import Journal
 
 from .models import (
     CrisalidConfig,
@@ -84,6 +86,26 @@ class DocumentContributorFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = DocumentContributor
+
+
+class JournalFactory(factory.django.DjangoModelFactory):
+    uid = faker.sentences(1)
+    title = faker.sentence(1)
+    acronym = [faker.sentence(1)]
+
+    class Meta:
+        model = Journal
+
+
+class DocumentJournalFactory(factory.django.DjangoModelFactory):
+    document = factory.LazyFunction(lambda: DocumentFactory())
+    journal = factory.LazyFunction(lambda: JournalFactory())
+    pages = faker.sentences(2)
+    volume = faker.sentences(2)
+    issue = faker.sentences(2)
+
+    class Meta:
+        model = DocumentJournal
 
 
 class CrisalidConfigFactory(factory.django.DjangoModelFactory):
