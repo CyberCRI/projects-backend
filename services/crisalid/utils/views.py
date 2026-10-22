@@ -8,6 +8,6 @@ class NestedResearcherViewMixins:
         self.researcher = get_object_or_404(
             Researcher,
             pk=kwargs["researcher_id"],
-            user__groups__in=(self.organization.get_users(),),
+            user__groups__organizations__in=(self.organization,),
         )
         super().initial(request, *args, **kwargs)
