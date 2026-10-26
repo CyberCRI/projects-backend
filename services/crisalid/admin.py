@@ -7,6 +7,8 @@ from django.contrib.admin.widgets import AdminFileWidget
 from django.core.exceptions import ValidationError
 from django.db.models import Count
 from django.shortcuts import render
+from django.urls import reverse
+from django.utils.html import format_html
 from django.views.generic import TemplateView
 
 from apps.accounts.models import ProjectUser
@@ -157,7 +159,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
         "given_name",
         "family_name",
-        "user",
+        "get_user",
         "get_documents",
         "get_identifiers",
         "get_citations",
@@ -239,10 +241,18 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     def get_citations(self, instance):
         return instance.modules.citations().count()
 
+    @admin.display(description="user")
+    def get_user(self, obj):
+        # add user link to admin
+        if obj.user:
+            url = reverse("admin:accounts_projectuser_change", args=[obj.user.id])
+            return format_html('<a href="{}">{}</a>', url, str(obj.user))
+        return None
+
 
 @admin.register(CrisalidConfig)
 class CrisalidConfigAdmin(admin.ModelAdmin):
-    list_display = ("organization", "active")
+    list_display = ("pk", "get_organization", "active")
     search_fields = ("organization__code", "active")
     autocomplete_fields = ("organization",)
     actions = ("active_connections", "deactive_connections")
@@ -274,6 +284,14 @@ class CrisalidConfigAdmin(admin.ModelAdmin):
         messages.add_message(
             request, messages.INFO, f"CrisalidBus listener stoped ({total})."
         )
+
+    @admin.display(description="organization")
+    def get_organization(self, obj):
+        url = reverse(
+            "admin:organizations_organization_change",
+            args=[obj.organization.id],
+        )
+        return format_html('<a href="{}">{}</a>', url, str(obj.organization))
 
 
 class CrisalidApolloImporterForm(forms.Form):
