@@ -37,6 +37,9 @@ class DocumentContributor(models.Model):
             )
         ]
 
+    def __str__(self):
+        return f"document={self.document_id} researcher={self.researcher_id} roles={self.roles!r}"
+
 
 class DocumentDomains(models.Model):
     """
@@ -64,6 +67,9 @@ class DocumentDomains(models.Model):
             ),
         )
 
+    def __str__(self) -> str:
+        return f"{self.domain} level={self.level}"
+
 
 class DocumentJournal(models.Model):
     """model through from document to a journal (https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/models/document_publication_channel.py#L6)"""
@@ -80,6 +86,9 @@ class DocumentJournal(models.Model):
     pages = models.CharField(blank=True, null=True, default="")
     volume = models.CharField(blank=True, null=True, default="")
     issue = models.CharField(blank=True, null=True, default="")
+
+    def __str__(self):
+        return f"{self.journal} {self.document}"
 
 
 class Document(

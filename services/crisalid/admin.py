@@ -11,7 +11,8 @@ from django.views.generic import TemplateView
 
 from apps.accounts.models import ProjectUser
 from apps.commons.admin import ExtraAdminMixins, TranslateObjectAdminMixin
-from services.crisalid.models.document import DocumentJournal
+from services.crisalid.models.document import DocumentDomains, DocumentJournal
+from services.crisalid.models.researcher import ResearcherDomains
 from services.crisalid.tasks import (
     load_apollo_data,
     vectorize_documents,
@@ -62,6 +63,29 @@ class IdentifierAdmin(admin.ModelAdmin):
         return instance.documents_count
 
 
+@admin.register(Journal)
+class JournalAdmin(IdentifierAdminMixin, admin.ModelAdmin):
+    list_display = (
+        "pk",
+        "title",
+        "acronym",
+    )
+    search_fields = (
+        "title",
+        "acronym",
+    )
+
+
+class DocumentDomainAdminInline(admin.StackedInline):
+    model = DocumentDomains
+    extra = 0
+
+
+class DocumentJournalAdminInline(admin.StackedInline):
+    model = DocumentJournal
+    extra = 0
+
+
 class DocumentContributorAdminInline(admin.StackedInline):
     model = DocumentContributor
     extra = 0
@@ -86,7 +110,11 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Model
         "identifiers__value",
         "identifiers__harvester",
     )
-    inlines = (DocumentContributorAdminInline,)
+    inlines = (
+        DocumentContributorAdminInline,
+        DocumentJournalAdminInline,
+        DocumentDomainAdminInline,
+    )
 
     actions = ("vectorize",)
 
@@ -119,32 +147,9 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Model
         return instance.citations_count
 
 
-@admin.register(Journal)
-class JournalAdmin(IdentifierAdminMixin, admin.ModelAdmin):
-    list_display = (
-        "pk",
-        "title",
-        "acronym",
-    )
-    search_fields = (
-        "title",
-        "acronym",
-    )
-
-
-@admin.register(DocumentJournal)
-class DocumentJournalAdmin(IdentifierAdminMixin, admin.ModelAdmin):
-    list_display = (
-        "pk",
-        "document__title",
-        "journal__title",
-    )
-    search_fields = (
-        "document__title",
-        "document__description",
-        "journal__title",
-        "journal__acronym",
-    )
+class ResearcherDomainsAdminInline(admin.StackedInline):
+    model = ResearcherDomains
+    extra = 0
 
 
 @admin.register(Researcher)
@@ -165,6 +170,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     )
     autocomplete_fields = ("user",)
     actions = ("assign_user", "vectorize")
+    inlines = (ResearcherDomainsAdminInline,)
 
     def get_queryset(self, request):
         return (
@@ -231,7 +237,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
 
     @admin.display(description="citations count")
     def get_citations(self, instance):
-        return instance.modules.citations.count()
+        return instance.modules.citations().count()
 
 
 @admin.register(CrisalidConfig)
