@@ -11,5 +11,8 @@ class Journal(models.Model):
     title = models.CharField(max_length=255)
     acronym = ArrayField(models.CharField(max_length=255), default=list)
 
+    def __str__(self):
+        return f"{self.title} ({self.acronym!r})"
+
     def __repr__(self):
-        return f"<Journal {self.uid=} {self.title}>"
+        return f"<Journal pk={self.pk} uid={self.uid} title={self.title}>"

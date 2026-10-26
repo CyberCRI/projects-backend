@@ -40,6 +40,9 @@ class DocumentContributor(models.Model):
     def __str__(self):
         return f"document={self.document_id} researcher={self.researcher_id} roles={self.roles!r}"
 
+    def __repr__(self):
+        return f"<Contributor pk={self.pk} />"
+
 
 class DocumentDomains(models.Model):
     """
@@ -70,6 +73,9 @@ class DocumentDomains(models.Model):
     def __str__(self) -> str:
         return f"{self.domain} level={self.level}"
 
+    def __repr__(self):
+        return f"<DocumentDomains pk={self.pk} {str(self)} >"
+
 
 class DocumentJournal(models.Model):
     """model through from document to a journal (https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/models/document_publication_channel.py#L6)"""
@@ -89,6 +95,9 @@ class DocumentJournal(models.Model):
 
     def __str__(self):
         return f"{self.journal} {self.document}"
+
+    def __repr__(self):
+        return f"<DocumentJournal pk={self.pk} {str(self)} >"
 
 
 class Document(
@@ -162,6 +171,9 @@ class Document(
 
     def __str__(self):
         return f"<{self.document_type}> {self.title}"
+
+    def __repr__(self):
+        return f"<Document pk={self.pk} {str(self)} >"
 
     def save(self, *ar, **kw):
         md = super().save(*ar, **kw)

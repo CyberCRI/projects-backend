@@ -81,6 +81,9 @@ class Researcher(
             return self.user.get_full_name()
         return self.display_name
 
+    def __repr__(self) -> str:
+        return f"<Researcher pk={self.pk} name={str(self)}>"
+
     @property
     def display_name(self):
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}"

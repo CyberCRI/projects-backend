@@ -75,3 +75,6 @@ class Identifier(models.Model):
 
     def __str__(self):
         return f"{self.harvester} :: {self.value}"
+
+    def __repr__(self):
+        return f"<Identifier {str(self)} >"
