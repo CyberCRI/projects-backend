@@ -59,7 +59,7 @@ GUARDIANSHIPS = {
 @cache
 def fetch_image(url):
     try:
-        response = requests.get(url, verify=False, timeout=2)
+        response = requests.get(url, timeout=2)
         response.raise_for_status()
         # safe results is a images (for not redirect url)
         if "image" not in response.headers["Content-Type"]:

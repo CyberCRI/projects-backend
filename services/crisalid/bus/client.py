@@ -21,16 +21,17 @@ class CrisalidBusClient:
 
     # queue create by ikg for send messages
     CRISALID_EXCHANGE = "graph"
-    # routing key ikg send event (the * is for listen on all event (updated,created,deleted))
-    CRISALID_ROUTING_KEYS = []
-    for event in CrisalidEventEnum:
-        CRISALID_ROUTING_KEYS.extend(
-            (
-                f"event.people.person.{event.value}",
-                f"event.structures.structure.{event.value}",
-                f"event.documents.document.{event.value}",
-            )
+    # routing keys ikg send events on, suffixed by a mode (".batch" or ".interactive")
+    # the "#" matches zero or more words: with or without mode, and both modes
+    CRISALID_ROUTING_KEYS = [
+        f"event.{entity}.{event.value}.#"
+        for entity in (
+            "people.person",
+            "structures.structure",
+            "documents.document",
         )
+        for event in CrisalidEventEnum
+    ]
 
     def __init__(self, config: CrisalidConfig):
         self.config = config
@@ -133,6 +134,9 @@ class CrisalidBusClient:
             if self._stop_event.is_set():
                 break
 
+            # close the failed connection before retrying, or it leaks
+            self._disconnect()
+
             # incremental retry (max 60s)
             retry = min(retry * 2, 60)
             time.sleep(retry)
@@ -143,11 +147,19 @@ class CrisalidBusClient:
     def _disconnect(self):
         """disconnect rabitmqt connection"""
         if self._channel is not None:
-            self._channel.close()
+            try:
+                if self._channel.is_open:
+                    self._channel.close()
+            except pika.exceptions.AMQPError as e:
+                self.logger.warning("Error while closing channel: %s", str(e))
             self._channel = None
 
         if self._conn is not None:
-            self._conn.close()
+            try:
+                if self._conn.is_open:
+                    self._conn.close()
+            except pika.exceptions.AMQPError as e:
+                self.logger.warning("Error while closing connection: %s", str(e))
             self._conn = None
 
         self.logger.info("CrisalidBus connection closed")
@@ -156,7 +168,7 @@ class CrisalidBusClient:
         if self._stop_event is not None:
             self._stop_event.set()
 
-    def __delete__(self):
+    def __del__(self):
         # for disconnect when class is deleted
         self._disconnect()
 

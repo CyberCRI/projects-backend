@@ -4,8 +4,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
-from rest_framework.settings import api_settings
 
+from apps.commons.pagination import PageInfoLimitOffsetPagination
 from apps.commons.views import ListViewSet
 
 from .filters import SearchObjectFilter
@@ -100,8 +100,10 @@ class SearchViewSet(ListViewSet):
                 or ["project", "user", "people_group"]
             )
         ]
-        limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
-        offset = request.query_params.get("offset", 0)
+        # parsed and bounded (`max_limit`) like the paginated responses
+        pagination = PageInfoLimitOffsetPagination()
+        limit = pagination.get_limit(request)
+        offset = pagination.get_offset(request)
         search_type = request.query_params.get("search_type", "most_fields")
         fuzziness = request.query_params.get("fuzziness", 1)
         response = OpenSearchService.multi_match_prefix_search(

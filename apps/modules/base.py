@@ -58,7 +58,8 @@ class AbstractModules:
 
     @classmethod
     @ignore_method
-    @cache
+    # not cached: `modules_keys` comes from the query string, an unbounded cache
+    # would grow with each distinct combination sent by clients
     def modules(
         cls, modules_keys: tuple[str] | None = None
     ) -> tuple[tuple[str, Callable]]:

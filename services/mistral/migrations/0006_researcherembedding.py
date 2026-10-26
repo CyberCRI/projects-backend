@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('crisalid', '0006_journal_remove_document_updated_and_more'),
+        ('crisalid', '0007_journal_remove_document_updated_and_more'),
         ('mistral', '0005_groupembedding'),
     ]
 
