@@ -79,6 +79,7 @@ dev = [
     "django-slowtests>=1.1.1,<2",
     "pytest-xdist[psutil]>=3.8.0,<4",
     "ruff>=0.16.8",
+    "watchfiles>=1.0,<2",
 ]
 
 [tool.uv]
