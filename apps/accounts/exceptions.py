@@ -49,6 +49,12 @@ class FeaturedProjectPermissionDeniedError(PermissionDenied):
     default_code = "featured_project_permission_denied"
 
 
+class CrisalidStructureGroupError(PermissionDenied):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = _("This group is managed by Crisalid")
+    default_code = "crisalid_structure_group_error"
+
+
 class UserRolePermissionDeniedError(PermissionDenied):
     status_code = status.HTTP_403_FORBIDDEN
     default_detail = _("You do not have the permission to assign this role")
@@ -141,6 +147,12 @@ class ParentGroupOrganizationError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("The parent group must belong to the same organization")
     default_code = "parent_group_organization_error"
+
+
+class NotCrisalidStructureGroupError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("This group is not linked to a Crisalid structure")
+    default_code = "not_crisalid_structure_group_error"
 
 
 class GroupHierarchyLoopError(ValidationError):
