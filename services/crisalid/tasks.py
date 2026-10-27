@@ -15,7 +15,10 @@ from services.crisalid.models import (
 )
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 from services.crisalid.populates.caches import LiveCache
-from services.crisalid.utils.bio import generate_bio_from_researcher
+from services.crisalid.utils.bio import (
+    generate_bio_from_researcher,
+    generate_domains_from_researcher,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -146,9 +149,17 @@ def load_apollo_data(crisalid_config_id: int, content: dict):
 
 
 @app.task(name="Update Researcher Bio generate by Ia")
+def update_researcher_domains(researcher_id: int):
+    researcher = Researcher.objects.get(pk=researcher_id)
+    logger.info("Update researcher Domains pk=%s", researcher.pk)
+
+    generate_domains_from_researcher(researcher)
+
+
+@app.task(name="Update Researcher Bio generate by Ia")
 def update_researcher_bio_ia(researcher_id: int):
     researcher = Researcher.objects.get(pk=researcher_id)
-    logger.info("pdate researcher Bio pk=%s", researcher.pk)
+    logger.info("Update researcher Bio pk=%s", researcher.pk)
 
     bio = generate_bio_from_researcher(researcher)
     if researcher.bio != bio:

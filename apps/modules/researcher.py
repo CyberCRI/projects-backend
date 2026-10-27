@@ -8,6 +8,7 @@ from services.crisalid.models import (
     Researcher,
 )
 from services.crisalid.models.document import DocumentJournal
+from services.crisalid.models.researcher import ResearcherDomains
 
 
 @register_module(Researcher)
@@ -57,3 +58,6 @@ class ResearcherModules(AbstractModules):
 
     def citations(self) -> BaseManager[DocumentJournal]:
         return DocumentJournal.objects.filter(document__in=self.documents())
+
+    def domains(self) -> BaseManager[ResearcherDomains]:
+        return self.instance.researcher_domains.all()

@@ -36,6 +36,12 @@ class ResearcherDomains(TimestampedModelMixin, models.Model):
         )
         verbose_name_plural = "ResearcherDomains"
 
+    def __str__(self):
+        return f"{self.domain} {self.level}"
+
+    def __repr__(self):
+        return f"<ResearcherDomains domain={self.domain} researcher={self.researcher} level={self.level}>"
+
 
 class Researcher(
     HasRelatedModules,

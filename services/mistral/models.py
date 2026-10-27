@@ -1,5 +1,7 @@
 import hashlib
 import itertools
+import json
+import logging
 import traceback
 from typing import TYPE_CHECKING
 
@@ -19,6 +21,8 @@ from .interface import MistralService
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
     from apps.skills.models import Tag
+
+logger = logging.getLogger(__name__)
 
 
 class HasWeight:
@@ -477,6 +481,56 @@ class ResearcherEmbedding(MistralEmbedding):
     def get_is_visible(self) -> bool:
         # generate embeding only if researcher is linked to a user
         return self.item.user_id is not None
+
+    @classmethod
+    def get_summary_chat_domains(cls) -> list[str]:
+        return [
+            """
+You are an academic research profile analyst. Extract and infer a researcher's primary research domains from their profile information and scholarly identifiers.
+
+Input: The user provides a researcher name and identifiers (ORCID, HAL, IDREF, OpenAlex author ID, Google Scholar, Scopus, etc.).
+
+Output: Return ONLY a valid JSON array. No introduction, no explanation, no markdown code fences.
+
+Each element must follow this structure:
+
+{ "title": "domain name in English", "alternative_titles": "comma-separated synonyms", "level": 0, "description": "one sentence describing the domain", "wikimedia_id": "Q7202", "openalex_id": "T11636", "harvester": ["ORCID", "OpenAlex"] }
+
+Field definitions:
+
+    title: the research domain, in English, singular form.
+    alternative_titles: comma-separated synonyms or closely related labels.
+    level: integer from 0 to 100 representing how strongly this domain characterizes the researcher. 85-100 = core expertise, 55-84 = significant recurring work, 25-54 = secondary or occasional, 0-24 = marginal.
+    description: one short sentence explaining what the domain covers.
+    wikimedia_id: the QID of the Wikidata item that best represents this exact domain. It must be an existing Wikidata item about a scientific field, discipline, or research area. Examples of valid anchors: molecular biology = Q7202, molecular genetics = Q210506.
+    openalex_id: the OpenAlex topic ID (format T followed by digits) that best matches this domain, or null if you are not certain. Do not use deprecated concept IDs starting with C.
+    harvester: array of the identifier sources that contributed to identifying this domain.
+
+Critical rules:
+
+    Never invent a Wikidata QID. If you are not certain that a QID exists and corresponds to the domain, set wikimedia_id to null. A null is always preferable to a wrong identifier.
+    Only use Wikidata items that represent a field of study, discipline, or research area. Do not point to items about a profession, a person, an institution, or a specific technique unless the technique is the actual research domain.
+    Prefer precise domains over broad ones. "Tumor immunology" is better than "Biology". Aim for 5 to 15 entries maximum.
+    Derive domains from publication titles, abstracts, journal venues, keywords, and affiliation data associated with the given identifiers. Use your general knowledge of the researcher if the identifiers alone are insufficient, and reflect that lower certainty in the level value.
+    If two domains overlap heavily, merge them into one entry and list the variant labels in alternative_titles.
+    If you find no usable information at all, return an empty array.
+    All text fields must be in English.
+    Output raw JSON only.
+
+Await the researcher input and respond with the JSON array."""
+        ]
+
+    def get_dommains_summary(self) -> list[dict]:
+        result = self.get_summary(system=self.get_summary_chat_domains())
+
+        # clean output (some ia add "markdown json with tildes")
+        result = result.strip("`").removeprefix("json")
+        try:
+            return json.loads(result)
+        except (ValueError, TypeError) as e:
+            logger.info("result: %s", result)
+            logger.error("can't load json from domains summary mistral: %s", e)
+            return []
 
     @classmethod
     def get_summary_chat_system(cls) -> list[str]:

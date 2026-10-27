@@ -20,6 +20,7 @@ from services.crisalid.models.researcher import ResearcherDomains
 from services.crisalid.tasks import (
     load_apollo_data,
     update_researcher_bio_ia,
+    update_researcher_domains,
     vectorize_documents,
     vectorize_researchers,
 )
@@ -211,6 +212,24 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
             request,
             messages.INFO,
             f"Vecotrize Task created for {total} researcher(s)",
+        )
+
+    @admin.action(description="re-generate researcher domains from ia")
+    def generate_domains(self, request, queryset):
+        total = queryset.count()
+        all_taks = group(update_researcher_domains.s(r.pk) for r in queryset)
+        all_taks.apply_async()
+
+        logger.info(
+            "Run command `generate_domains` for %s researcher(s) (admin=%s)",
+            total,
+            request.user.pk,
+        )
+
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"Launched domains regeneration for {total} researcher(s)",
         )
 
     @admin.action(description="re-generate researcher bio from ia")
