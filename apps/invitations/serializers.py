@@ -1,6 +1,7 @@
 from django.db.models import Q
 from rest_framework import serializers
 
+from apps.accounts.exceptions import CrisalidStructureGroupError
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import (
     PeopleGroupLightSerializer,
@@ -71,6 +72,9 @@ class InvitationSerializer(
             organization__code=self.context.get("organization_code"),
         ).exists():
             raise InvitationPeopleGroupOrganizationError
+        # members of groups linked to crisalid structures are managed by crisalid
+        if hasattr(value, "structure"):
+            raise CrisalidStructureGroupError
         return value
 
     def validate_organization(self, value):
