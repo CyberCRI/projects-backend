@@ -9,6 +9,7 @@ from services.crisalid.models import (
 )
 from services.crisalid.models.document import DocumentJournal
 from services.crisalid.models.researcher import ResearcherDomains
+from services.crisalid.relators import RolesChoices
 
 
 @register_module(Researcher)
@@ -57,7 +58,18 @@ class ResearcherModules(AbstractModules):
         )
 
     def citations(self) -> BaseManager[DocumentJournal]:
-        return DocumentJournal.objects.filter(document__in=self.documents())
+        # calculate only citations in doucments where research is author/co-author ..ect
+        documents = self.documents().filter(
+            documentcontributor__roles__contains=[
+                RolesChoices.AUT,
+                RolesChoices.AFT,
+                RolesChoices.AQT,
+                RolesChoices.AUD,
+                RolesChoices.AUI,
+                RolesChoices.DUB,
+            ]
+        )
+        return DocumentJournal.objects.filter(document__in=documents)
 
     def domains(self) -> BaseManager[ResearcherDomains]:
         return self.instance.researcher_domains.all()

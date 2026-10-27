@@ -162,12 +162,11 @@ def update_researcher_bio_ia(researcher_id: int):
     logger.info("Update researcher Bio pk=%s", researcher.pk)
 
     bio = generate_bio_from_researcher(researcher)
-    if researcher.bio != bio:
-        researcher.bio = bio
-        researcher.save()
-        logger.info("Updated Researcher pk=%s bio successfully", researcher.pk)
-    else:
-        logger.debug("Bio unchanged for Researcher pk=%s", researcher.pk)
+    short_bio = generate_bio_from_researcher(researcher, minimal=True)
+    researcher.bio = bio
+    researcher.short_bio = short_bio
+    researcher.save()
+    logger.info("Updated Researcher pk=%s bio successfully", researcher.pk)
 
 
 @app.task(name="Update all Organization Researcher Bio generate by Ia")

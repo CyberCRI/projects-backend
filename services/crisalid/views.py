@@ -441,7 +441,10 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
     def bio_ia(self, request, *args, **kwargs):
         """Method to return new generate bio ia from researcher"""
         researcher = self.get_object()
-        bio = generate_bio_from_researcher(researcher)
+        bio = generate_bio_from_researcher(
+            researcher,
+            minimal=request.query_params.get("minial", "").lower() == "true",
+        )
 
         return Response(
             data=bio,

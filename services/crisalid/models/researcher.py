@@ -57,7 +57,7 @@ class Researcher(
         Identifier.Harvester.PPN,
         Identifier.Harvester.LOCAL,
     )
-    auto_translated_fields = ["html:bio"]
+    auto_translated_fields = ["html:bio", "html:short_bio"]
 
     user = models.OneToOneField(
         "accounts.ProjectUser",
@@ -76,6 +76,7 @@ class Researcher(
         Tag, through=ResearcherDomains, related_name="researchers"
     )
     bio = models.TextField(blank=True, null=True, default="")
+    short_bio = models.TextField(blank=True, null=True, default="")
 
     h_index = models.PositiveIntegerField(default=None, null=True, blank=True)
     i10_index = models.PositiveIntegerField(default=None, null=True, blank=True)

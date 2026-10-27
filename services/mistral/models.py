@@ -535,47 +535,34 @@ Await the researcher input and respond with the JSON array."""
     @classmethod
     def get_summary_chat_system(cls) -> list[str]:
         return [
-            """### RESEARCH CONTEXT
-Role: You are an assistant specialized in compiling academic profiles. Your goal is to create a complete, structured summary of a researcher from their digital identifiers.
+            """
+You are a research assistant specialized in creating researcher biographies. Based on the following information, write a professional 2-3 paragraph summary presenting the researcher's career path and contributions.
 
-### TASK
-From information extracted from these sources, produce a structured summary including:
+**Instructions:**
 
-1. **General Profile**
-   - Current affiliation(s)
-   - Main position/function
-   - Expert domains (max 3-5 keywords)
+1. **First Paragraph (Current Role):** Start with their current position(s) and responsibilities. Mention departments, teams led, and key mentoring or administrative roles.
 
-2. **Scientific Production**
-   - Total number of publications (if available)
-   - Total citations and h-index (with sources)
-   - Notable recent publications (last 3-5 years)
+2. **Second Paragraph (Background & Research):** Cover their educational background (degrees, institutions), prior positions/postdocs, and current research focus areas. Include specific labs or programs mentioned.
 
-3. **Research Areas**
-   - Main identified themes
-   - Evolution of topics over the past 5 years
-   - Frequent collaborations (recurring institutions/names)
+3. **Third Paragraph (Achievements):** Highlight major scientific contributions, notable publications (journals like Nature, Science, Cell, PNAS), and funding sources (grants, foundations, EU projects).
 
-4. **Visibility Indicators**
-   - Most active sources (HAL vs others)
-   - Dominant publication languages
-   - Document types (articles/conferences/chapters)
+**Style Guidelines:**
+- Third-person narrative
+- Professional yet accessible tone
+- Use specific names of institutions, programs, and collaborators
+- Include dates when relevant (years of appointment, since when teaching)
+- Keep it concise but comprehensive
+- Avoid speculation — only state facts verifiable from the provided data
+- Do not invent grant amounts, publication counts, or impact factors unless explicitly available
 
-5. **Additional Information**
-   - Attached laboratory/department
-   - Ongoing projects mentioned
-   - Data access codes (DOI, arXiv, Zenodo)
+**Example Output Format:**
+[Name] currently heads [Department/Unit] at [Institution]. Previously, they served as [previous roles], including [specific program directorships]. Their educational background includes [degrees] from [universities], followed by postdoctoral work at [institutions]. Their research focuses on [research axes]. Major contributions include publications in [journals] supported by [grant agencies].
 
-### CONSTRAINTS
-- Prioritize cross-validation between sources
-- Clearly indicate when data is missing or diverges between platforms
-- Cite the source of each figure or statement
-- Stay factual, avoid qualitative judgments ("important", "influential")
-- Specify the update date of the consulted data
+**Input Data Source:**
+[Insert extracted information from ORCID/HAL/IDREF profiles here]
 
-### EXPECTED OUTPUT FORMAT
-A pure string, not formated(not markdown/html) followed by a narrative synthesis paragraph (150-400 words).
-        """
+---
+ """
         ]
 
     def get_summary_chat_prompt(self) -> list[str]:
@@ -597,12 +584,35 @@ A pure string, not formated(not markdown/html) followed by a narrative synthesi
         )["formated"]
 
         return [
-            f""" ### INPUT DATA
-- Name/First Name: {str(self.item)}
+            f"""**Provided Identifiers:**
+- Full Name: {str(self.item)}
 - Provided Identifiers:
 {formated_identifiers}
 """
         ]
+
+    def get_summary_minimal(self) -> str:
+        system = [
+            """Write a one-to-two sentence mini-bio of a researcher, in the style of a conference speaker introduction or lab website blurb.
+
+**Structure (mandatory, in this order):**
+1. "[Full Name] is a [discipline/field] ([institution or affiliation])" — optionally add a founding/directorship role with "co-founder of" / "director of".
+2. One sentence on what they actually work on: the method or approach + the object of study. Format: "He/She uses [method/approach] to study [object/question] at [scale or angle]."
+
+**Rules:**
+- Maximum 45 words total. Hard limit.
+- No degrees, no postdoc history, no journal names, no grant names, no dates — those belong in the long version.
+- Present tense for current work.
+- One concrete detail beats three vague ones: prefer "synthetic biology" over "cutting-edge interdisciplinary research".
+- Do not invent affiliations or research topics that aren't supported by the provided data.
+- No marketing adjectives ("world-renowned", "leading expert", "pioneering").
+
+**Output:** the bio only, no preamble, no quotation marks, no commentary.
+
+**Input Data Source:**
+[Insert extracted information from ORCID/HAL/IDREF profiles here]"""
+        ]
+        return super().get_summary(system)
 
     def set_embedding(self, *args, **kwargs) -> "ResearcherEmbedding":
         prompt = [
