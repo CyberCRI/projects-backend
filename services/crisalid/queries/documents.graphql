@@ -3,7 +3,6 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
     uid,
     publication_date,
     document_type,
-    oa_status,
 
     titles {
       language
