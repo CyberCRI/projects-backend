@@ -36,3 +36,6 @@ class CrisalidConfig(OrganizationRelated, models.Model):
     def __str__(self):
         active = self.active
         return f"Config: {self.organization} ({active=})"
+
+    def __repr__(self):
+        return f"<CrisalidConfig organization={self.organization} active={self.active}>"

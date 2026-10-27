@@ -1,6 +1,8 @@
 import json
+import logging
 from contextlib import suppress
 
+from celery import group
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin.widgets import AdminFileWidget
@@ -17,6 +19,7 @@ from services.crisalid.models.document import DocumentDomains, DocumentJournal
 from services.crisalid.models.researcher import ResearcherDomains
 from services.crisalid.tasks import (
     load_apollo_data,
+    update_researcher_bio_ia,
     vectorize_documents,
     vectorize_researchers,
 )
@@ -29,6 +32,8 @@ from .models import (
     Journal,
     Researcher,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class IdentifierAdminMixin:
@@ -124,10 +129,18 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Model
         # run vecotrize async in celery
         documents_pks = list(queryset.values_list("pk", flat=True))
         vectorize_documents.apply_async((documents_pks,))
+        total = len(documents_pks)
+
+        logger.info(
+            "Run command `vectorize` for %s document(s) (admin=%s)",
+            total,
+            request.user,
+        )
+
         messages.add_message(
             request,
             messages.INFO,
-            f"Vecotrize Task created for {len(documents_pks)} documents",
+            f"Vecotrize Task created for {total} documents",
         )
 
     def get_queryset(self, request):
@@ -171,7 +184,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         "identifiers__harvester",
     )
     autocomplete_fields = ("user",)
-    actions = ("assign_user", "vectorize")
+    actions = ("assign_user", "vectorize", "generate_bio_ia")
     inlines = (ResearcherDomainsAdminInline,)
 
     def get_queryset(self, request):
@@ -186,10 +199,37 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         # run vecotrize async in celery
         researchers_pks = list(queryset.values_list("pk", flat=True))
         vectorize_researchers.apply_async((researchers_pks,))
+        total = len(researchers_pks)
+
+        logger.info(
+            "Run command `vectorize` for %s researcher(s) (admin=%s)",
+            total,
+            request.user.pk,
+        )
+
         messages.add_message(
             request,
             messages.INFO,
-            f"Vecotrize Task created for {len(researchers_pks)} researchers",
+            f"Vecotrize Task created for {total} researcher(s)",
+        )
+
+    @admin.action(description="re-generate researcher bio from ia")
+    def generate_bio_ia(self, request, queryset):
+
+        total = queryset.count()
+        all_taks = group(update_researcher_bio_ia.s(r.pk) for r in queryset)
+        all_taks.apply_async()
+
+        logger.info(
+            "Run command `generate_bio_ia` for %s researcher(s) (admin=%s)",
+            total,
+            request.user.pk,
+        )
+
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"Launched bio regeneration for {total} researcher(s)",
         )
 
     @admin.action(description="assign researcher on projects")
@@ -214,6 +254,12 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
 
                 if not user:
                     continue
+
+                logger.info(
+                    "Run command `assign_user` for %s researcher (admin=%s)",
+                    user,
+                    request.user.pk,
+                )
 
                 research.user = user
                 researcher_updated.append(research)
@@ -263,6 +309,11 @@ class CrisalidConfigAdmin(admin.ModelAdmin):
         # we don't update directly queryset for signals dispatch
         total = queryset.count()
         for obj in queryset:
+            logger.info(
+                "CrisalidBus listener (%r) started or reloaded (admin=%s).",
+                obj,
+                request.user,
+            )
             obj.active = True
             obj.save()
 
@@ -278,6 +329,11 @@ class CrisalidConfigAdmin(admin.ModelAdmin):
         # we don't update directly queryset for signals dispatch
         total = queryset.count()
         for obj in queryset:
+            logger.info(
+                "CrisalidBus listener (%r) stoped (admin=%s).",
+                obj,
+                request.user,
+            )
             obj.active = False
             obj.save()
 

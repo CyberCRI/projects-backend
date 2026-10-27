@@ -1,9 +1,10 @@
 from django.shortcuts import get_object_or_404
 
+from apps.commons.views import NestedOrganizationViewMixins
 from services.crisalid.models import Researcher
 
 
-class NestedResearcherViewMixins:
+class NestedResearcherViewMixins(NestedOrganizationViewMixins):
     def initial(self, request, *args, **kwargs):
         self.researcher = get_object_or_404(
             Researcher,
