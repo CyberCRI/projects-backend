@@ -27,10 +27,14 @@ from apps.modules.serializers import ModulesSerializers
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.serializers import TagRelatedField
-from services.crisalid.serializers import ResearcherSerializerLight
+from services.crisalid.serializers import (
+    ResearcherSerializerLight,
+    StructureLightSerializer,
+)
 from services.translator.serializers import auto_translated
 
 from .exceptions import (
+    CrisalidStructureGroupError,
     FeaturedProjectPermissionDeniedError,
     GroupHierarchyLoopError,
     GroupOrganizationChangeError,
@@ -231,6 +235,9 @@ class UserSerializer(
             isinstance(instance, Project) and group.people_groups.exists()
         ):
             raise UserRoleAssignmentError(group.name)
+        # members of groups linked to crisalid structures are managed by crisalid
+        if isinstance(instance, PeopleGroup) and hasattr(instance, "structure"):
+            raise CrisalidStructureGroupError
         content_type = ContentType.objects.get_for_model(instance)
         if not any(
             [
@@ -793,6 +800,7 @@ class PeopleGroupSerializer(
         required=False,
     )
     locations = PeopleGroupLocationSerializer(many=True, required=False)
+    structure = StructureLightSerializer(read_only=True, allow_null=True)
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
@@ -879,6 +887,30 @@ class PeopleGroupSerializer(
             "sdgs",
             "tags",
             "locations",
+            "publication_status",
+            "structure",
+        ]
+
+
+class PeopleGroupCrisalidUpdateSerializer(
+    StringsImagesSerializer, serializers.ModelSerializer
+):
+    """Update of a group linked to a crisalid structure,
+    other fields (name, description, parent, members) are managed by crisalid
+    """
+
+    string_images_forbid_fields: list[str] = ["short_description"]
+    sdgs = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=17),
+        required=False,
+    )
+
+    class Meta:
+        model = PeopleGroup
+        fields = [
+            "short_description",
+            "email",
+            "sdgs",
             "publication_status",
         ]
 

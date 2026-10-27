@@ -3,6 +3,7 @@ from rest_framework import permissions
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
+from apps.accounts.exceptions import CrisalidStructureGroupError
 from apps.accounts.models import PeopleGroup
 from apps.commons.permissions import IgnoreCall
 
@@ -59,6 +60,29 @@ class PeopleGroupRelatedPermission(IgnoreCall):
                 return queryset
             return PeopleGroup.objects.filter(id=view.kwargs["people_group_id"])
         return []
+
+
+class IsNotCrisalidStructure(permissions.BasePermission, PeopleGroupRelatedPermission):
+    """Groups linked to a crisalid structure are managed by crisalid,
+    nobody can update/delete them or change their members from the API
+    (cosmetic fields are updated with the `crisalid_update` action)
+    """
+
+    def has_permission(self, request: Request, view: GenericViewSet) -> bool:
+        return self.has_object_permission(request, view, None)
+
+    def has_object_permission(
+        self, request: Request, view: GenericViewSet, obj: Model
+    ) -> bool:
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        if any(
+            hasattr(people_group, "structure")
+            for people_group in self.get_related_people_groups(view, obj)
+        ):
+            raise CrisalidStructureGroupError
+        return True
 
 
 def HasPeopleGroupPermission(  # noqa: N802
