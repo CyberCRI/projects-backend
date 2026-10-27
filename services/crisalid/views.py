@@ -243,6 +243,7 @@ class AbstractGroupDocumentViewSet(
 
 
 class AbstractResearcherDocumentViewSet(
+    NestedOrganizationViewMixins,
     NestedResearcherViewMixins,
     AbstractDocumentViewSet,
 ):
