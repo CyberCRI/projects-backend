@@ -69,6 +69,7 @@ class DocumentDomains(models.Model):
                 name="unique_domain_document",
             ),
         )
+        verbose_name_plural = "DocumentDomains"
 
     def __str__(self) -> str:
         return f"{self.domain} level={self.level}"

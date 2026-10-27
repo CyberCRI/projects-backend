@@ -34,6 +34,7 @@ class ResearcherDomains(TimestampedModelMixin, models.Model):
                 name="unique_domain_researcher",
             ),
         )
+        verbose_name_plural = "ResearcherDomains"
 
 
 class Researcher(
