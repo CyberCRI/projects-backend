@@ -2,6 +2,7 @@ import datetime
 import logging
 
 from django.conf import settings
+from django.db import transaction
 
 from apps.organizations.models import Organization
 from projects.celery import app
@@ -12,13 +13,20 @@ from services.crisalid.models import (
     CrisalidConfig,
     Document,
     Researcher,
+    ResearcherStructure,
+    Structure,
 )
-from services.crisalid.populates import PopulateDocument, PopulateResearcher
+from services.crisalid.populates import (
+    PopulateDocument,
+    PopulateResearcher,
+    PopulateStructure,
+)
 from services.crisalid.populates.caches import LiveCache
 from services.crisalid.utils.bio import (
     generate_bio_from_researcher,
     generate_domains_from_researcher,
 )
+from services.crisalid.utils.structures import sync_group_members, with_ancestors
 
 logger = logging.getLogger(__name__)
 
@@ -45,15 +53,40 @@ def create_researcher(crisalid_config_id: int, fields: dict):
     service = CrisalidService(config)
 
     # fetch data from apollo
-    data = service.query("people", offset=0, limit=1, where={"uid_EQ": fields["uid"]})[
-        "people"
-    ]
+    data = service.profile(fields["uid"])
     if not data:
         logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
         return
 
     populate = PopulateResearcher(config)
-    populate.single(data[0])
+    populate.single(data)
+
+
+def person_identifiers(fields: dict) -> list[dict]:
+    """identifiers of a person event (ikg format), without privacy identifiers"""
+    return [
+        {"harvester": iden["type"].lower(), "value": iden["value"]}
+        for iden in fields["identifiers"]
+        if iden["type"].lower() not in Researcher.PRIVACY_HARVESTER
+    ]
+
+
+@on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.UNCHANGED)
+@app.task(name=f"{__name__}.update_researcher_structures")
+def update_researcher_structures(crisalid_config_id: int, fields: dict):
+    """ikg sends "updated" only when identifiers changed, memberships/employments
+    changes are sent as "unchanged" events
+    """
+    identifiers = person_identifiers(fields)
+    if not identifiers:
+        return
+    researcher = Researcher.objects.from_identifiers(identifiers).first()
+    # unknown researchers are created on "created" events
+    if researcher is None:
+        return
+
+    # TODO: only fetch from graph when relations changed
+    create_researcher(crisalid_config_id, fields)
 
 
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.DELETED)
@@ -62,15 +95,21 @@ def delete_researcher(crisalid_config_id: int, fields: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.info("receive %s for organization %s", fields, config.organization)
 
-    identifiers = [
-        iden
-        for iden in fields["identifiers"]
-        if iden["harvester"].lower() not in Researcher.PRIVACY_HARVESTER
-    ]
+    identifiers = person_identifiers(fields)
 
     # TODO(remi): check only one elements are deleted
     pks = Researcher.objects.from_identifiers(identifiers).values_list("pk", flat=True)
+    # researchers are no longer members of their structures groups
+    structures = with_ancestors(
+        Structure.objects.filter(
+            pk__in=ResearcherStructure.objects.filter(researcher__in=pks).values(
+                "structure"
+            )
+        )
+    )
     deleted, _ = Researcher.objects.filter(pk__in=pks).delete()
+    for structure in structures:
+        sync_group_members(structure)
 
     logger.info("deleted = %s", deleted)
 
@@ -85,15 +124,13 @@ def create_document(crisalid_config_id: int, fields: dict):
     service = CrisalidService(config)
 
     # fetch data from apollo
-    data = service.query(
-        "documents", offset=0, limit=1, where={"uid_EQ": fields["uid"]}
-    )["documents"]
+    data = service.document(fields["uid"])
     if not data:
         logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
         return
 
     populate = PopulateDocument(config)
-    populate.single(data[0])
+    populate.single(data)
 
 
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.DELETED)
@@ -110,6 +147,77 @@ def delete_document(crisalid_config_id: int, fields: dict):
     pks = Document.objects.from_identifiers(identifiers).values_list("pk", flat=True)
     deleted, _ = Document.objects.filter(pk__in=pks).delete()
     logger.info("deleted = %s", deleted)
+
+
+@on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.CREATED)
+@on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.UPDATED)
+@app.task(name=f"{__name__}.create_structure")
+def create_structure(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.info("receive %s for organization %s", fields, config.organization)
+
+    service = CrisalidService(config)
+    uid = fields["uid"]
+
+    # fetch data from apollo
+    data = service.structure(uid)
+    if not data:
+        logger.warning("no result fetching crisalid_uid=%s", uid)
+        return
+
+    # structures related to this one are refreshed too,
+    # their relations may have been skipped if this structure didn't exist
+    structures = [data]
+    offset = 0
+    while offset is not None:
+        related, offset = service.structures(
+            offset=offset,
+            where={
+                "OR": [
+                    {"part_of_SOME": {"uid_EQ": uid}},
+                    {"member_of_SOME": {"uid_EQ": uid}},
+                ]
+            },
+        )
+        structures.extend(related)
+    PopulateStructure(config).multiple(structures)
+
+    # same for researchers memberships
+    populate_researcher = PopulateResearcher(config)
+    offset = 0
+    while offset is not None:
+        people, offset = service.profiles(
+            offset=offset,
+            where={
+                "OR": [
+                    {"memberships_SOME": {"uid_EQ": uid}},
+                    {"employments_SOME": {"uid_EQ": uid}},
+                ]
+            },
+        )
+        populate_researcher.multiple(people)
+
+
+@on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.DELETED)
+@app.task(name=f"{__name__}.delete_structure")
+def delete_structure(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.info("receive %s for organization %s", fields, config.organization)
+
+    structure = Structure.objects.filter(
+        organization=config.organization, crisalid_uid=fields["uid"]
+    ).first()
+    if structure is None:
+        return
+
+    # sub-structures members are no longer members of ancestors groups
+    ancestors = structure.ancestors()
+    with transaction.atomic():
+        if structure.people_group:
+            structure.people_group.delete()
+        structure.delete()
+    for ancestor in ancestors:
+        sync_group_members(ancestor)
 
 
 # ----
@@ -138,14 +246,18 @@ def load_apollo_data(crisalid_config_id: int, content: dict):
     logger.info("load apollo data file for organization %s", config.organization)
 
     cache = LiveCache()
+
+    populate_structures = PopulateStructure(config, cache=cache)
     populate_researcher = PopulateResearcher(config, cache=cache)
     populate_document = PopulateDocument(config, cache=cache)
 
-    for key, datas in content.items():
-        if key == "people":
-            populate_researcher.multiple(datas)
-        elif key == "documents":
-            populate_document.multiple(datas)
+    keys = content.keys()
+    if "organizationUnits" in keys:
+        populate_structures.multiple(content["organizationUnits"])
+    if "documents" in keys:
+        populate_document.multiple(content["documents"])
+    if "people" in keys:
+        populate_researcher.multiple(content["people"])
 
 
 @app.task(name="Update Researcher Bio generate by Ia")
