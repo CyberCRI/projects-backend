@@ -10,6 +10,7 @@ from services.crisalid.models import (
     DocumentDomains,
     Identifier,
     Journal,
+    Patent,
     Researcher,
     ResearcherDomains,
 )
@@ -146,3 +147,16 @@ class CitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentJournal
         fields = ("document", "journal")
+
+
+@auto_translated
+class PatentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patent
+        fields = (
+            "id",
+            "name",
+            "description",
+            "date",
+            "link",
+        )

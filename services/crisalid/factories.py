@@ -7,6 +7,7 @@ from apps.organizations.factories import OrganizationFactory
 from services.crisalid import relators
 from services.crisalid.models.document import DocumentJournal
 from services.crisalid.models.journal import Journal
+from services.crisalid.models.patent import Patent
 
 from .models import (
     CrisalidConfig,
@@ -106,6 +107,17 @@ class DocumentJournalFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = DocumentJournal
+
+
+class PatentFactory(factory.django.DjangoModelFactory):
+    name = faker.sentences(2)
+    description = faker.text()
+    date = faker.date()
+    link = faker.url()
+    researcher = factory.LazyFunction(lambda: ResearcherFactory())
+
+    class Meta:
+        model = Patent
 
 
 class CrisalidConfigFactory(factory.django.DjangoModelFactory):

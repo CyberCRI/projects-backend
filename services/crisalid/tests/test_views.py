@@ -10,6 +10,7 @@ from services.crisalid.factories import (
     DocumentContributorFactory,
     DocumentFactory,
     DocumentJournalFactory,
+    PatentFactory,
     ResearcherFactory,
 )
 from services.crisalid.models import DocumentTypeCentralized
@@ -379,3 +380,25 @@ class TestResearcherView(JwtAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, bio)
+
+    def test_get_patents(self):
+        patent = PatentFactory(researcher=self.researcher)
+        patent_2 = PatentFactory(researcher=self.researcher)
+        PatentFactory(researcher=self.researcher_2)
+
+        response = self.client.get(
+            reverse(
+                "Researcher-patents",
+                args=(self.organization.code, self.researcher.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((patent.pk, patent_2.pk)),
+            set((el["id"] for el in data["results"])),
+        )
+
+        # test modules
+        self.assertEqual(self.researcher.modules.patents().count(), 2)

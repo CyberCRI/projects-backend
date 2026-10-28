@@ -7,6 +7,7 @@ from services.crisalid.models import (
     Document,
     DocumentTypeCentralized,
     Researcher,
+    patent,
 )
 from services.crisalid.models.document import DocumentJournal
 from services.crisalid.models.researcher import ResearcherDomains
@@ -68,3 +69,6 @@ class ResearcherModules(AbstractModules):
 
     def domains(self) -> BaseManager[ResearcherDomains]:
         return self.instance.researcher_domains.all()
+
+    def patents(self) -> BaseManager[patent]:
+        return self.instance.patents.all()

@@ -32,6 +32,7 @@ from services.crisalid.serializers import (
     CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
+    PatentSerializer,
     ResearcherSerializer,
 )
 from services.crisalid.utils.bio import generate_bio_from_researcher
@@ -461,6 +462,21 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
 
         return self.get_paginated_response(
             CitationSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="patents")
+    def patents(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        patents_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).patents()
+
+        paginated_qs = self.paginate_queryset(patents_qs)
+
+        return self.get_paginated_response(
+            PatentSerializer(
                 paginated_qs, many=True, context=self.get_serializer_context()
             ).data
         )

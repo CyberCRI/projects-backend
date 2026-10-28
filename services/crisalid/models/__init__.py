@@ -8,6 +8,7 @@ from .document import (
 )
 from .indentifier import Identifier
 from .journal import Journal
+from .patent import Patent
 from .researcher import Researcher, ResearcherDomains
 
 __all__ = [
@@ -21,4 +22,5 @@ __all__ = [
     "ResearcherDomains",
     "DocumentJournal",
     "Journal",
+    "Patent",
 ]
