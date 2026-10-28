@@ -15,6 +15,7 @@ from django.views.generic import TemplateView
 
 from apps.accounts.models import ProjectUser
 from apps.commons.admin import ExtraAdminMixins, TranslateObjectAdminMixin
+from services.crisalid.models.award import Award
 from services.crisalid.models.document import DocumentDomains, DocumentJournal
 from services.crisalid.models.patent import Patent
 from services.crisalid.models.researcher import ResearcherDomains
@@ -174,6 +175,11 @@ class ResearcherPatentInline(admin.StackedInline):
     extra = 0
 
 
+class ResearcherAwardInline(admin.StackedInline):
+    model = Award
+    extra = 0
+
+
 @admin.register(Researcher)
 class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
@@ -192,7 +198,11 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     )
     autocomplete_fields = ("user",)
     actions = ("assign_user", "vectorize", "generate_bio_ia")
-    inlines = (ResearcherDomainsAdminInline, ResearcherPatentInline)
+    inlines = (
+        ResearcherDomainsAdminInline,
+        ResearcherPatentInline,
+        ResearcherAwardInline,
+    )
 
     def get_queryset(self, request):
         return (
