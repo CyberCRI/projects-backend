@@ -2,6 +2,7 @@ import math
 
 from django.core.management.base import BaseCommand
 
+from apps.accounts.models import PeopleGroup
 from services.crisalid.interface import CrisalidService
 from services.crisalid.models import (
     CrisalidConfig,
@@ -9,8 +10,13 @@ from services.crisalid.models import (
     DocumentContributor,
     Identifier,
     Researcher,
+    Structure,
 )
-from services.crisalid.populates import PopulateDocument, PopulateResearcher
+from services.crisalid.populates import (
+    PopulateDocument,
+    PopulateResearcher,
+    PopulateStructure,
+)
 from services.crisalid.populates.base import AbstractPopulate
 from services.crisalid.utils.timer import timeit
 from services.mistral.models import DocumentEmbedding
@@ -31,7 +37,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "command",
-            choices=("document", "researcher", "all"),
+            choices=("document", "researcher", "structure", "all"),
             help="elements to populate",
         )
         parser.add_argument(
@@ -57,6 +63,12 @@ class Command(BaseCommand):
             )
         if command in ("all", "researcher"):
             models.append(Researcher)
+
+        if command in ("all", "structure"):
+            # groups are managed by crisalid, they would be duplicated on next import
+            deleted = PeopleGroup.objects.filter(structure__isnull=False).delete()
+            print(f"deleted {PeopleGroup=}: {deleted=}")
+            models.append(Structure)
 
         if command in ("all",):
             models.append(Identifier)
@@ -96,6 +108,24 @@ class Command(BaseCommand):
                 offset += limit
                 max_elements -= 1
 
+    def populate_structures(
+        self, service: CrisalidService, populate: PopulateStructure, **options
+    ):
+        """structures are populated all at once, relations need all structures"""
+        offset = int(options["offset"])
+        limit = int(options["limit"])
+        data = []
+
+        with timeit(print, "Populate All Data from 'structures'"):
+            while offset is not None:
+                with timeit(print, "GrapQL request structures"):
+                    structures, offset = service.structures(limit=limit, offset=offset)
+                data.extend(structures)
+                print(f"{len(data)} fetched...")
+
+            with timeit(print, "Populate data"):
+                populate.multiple(data)
+
     def handle(self, **options):
         config = CrisalidConfig.objects.get(organization__code=options["organization"])
         command = options["command"]
@@ -104,6 +134,10 @@ class Command(BaseCommand):
             return
 
         service = CrisalidService(config)
+
+        # structures first, researchers are linked to them
+        if command in ("all", "structure"):
+            self.populate_structures(service, PopulateStructure(config), **options)
 
         if command in ("all", "document"):
             populate = PopulateDocument(config)

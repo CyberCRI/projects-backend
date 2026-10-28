@@ -2,6 +2,8 @@ import abc
 import datetime
 from typing import TypeVar
 
+from django.db import models, transaction
+
 from services.crisalid.models import CrisalidConfig
 
 from .caches import BaseCache, LiveCache
@@ -59,6 +61,12 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
 
         logger.warning("Invalid date format %s", value)
         return None
+
+    def replace_relations(self, queryset: models.QuerySet, relations: list):
+        """the graph is the source of truth: relations are deleted and recreated"""
+        with transaction.atomic():
+            queryset.delete()
+            queryset.model.objects.bulk_create(relations)
 
     @abc.abstractmethod
     def single(self, data):
