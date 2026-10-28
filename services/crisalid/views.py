@@ -14,12 +14,14 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.commons.views import (
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
 )
+from services.crisalid.filters import AwardFilter, PatentFilter
 from services.crisalid.models import (
     Document,
     DocumentContributor,
@@ -474,6 +476,16 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
             request.user, self.organization
         ).patents()
 
+        filterset = PatentFilter(
+            data=request.query_params,
+            queryset=patents_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        patents_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
         paginated_qs = self.paginate_queryset(patents_qs)
 
         return self.get_paginated_response(
@@ -485,11 +497,19 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
     @action(detail=True, methods=[HTTPMethod.GET], url_path="awards")
     def awards(self, request, *args, **kwargs):
         researcher = self.get_object()
-        patents_qs = researcher.modules_by_user(
-            request.user, self.organization
-        ).awards()
+        awards_qs = researcher.modules_by_user(request.user, self.organization).awards()
 
-        paginated_qs = self.paginate_queryset(patents_qs)
+        filterset = AwardFilter(
+            data=request.query_params,
+            queryset=awards_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        awards_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(awards_qs)
 
         return self.get_paginated_response(
             AwardSerializer(
