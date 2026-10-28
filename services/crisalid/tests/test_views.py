@@ -7,6 +7,7 @@ from rest_framework import status
 from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
 from services.crisalid.factories import (
+    AwardContributorFactory,
     DocumentContributorFactory,
     DocumentFactory,
     DocumentJournalFactory,
@@ -402,3 +403,27 @@ class TestResearcherView(JwtAPITestCase):
 
         # test modules
         self.assertEqual(self.researcher.modules.patents().count(), 2)
+
+    def test_get_awards(self):
+        award = AwardContributorFactory(researcher=self.researcher).award
+        award_2 = AwardContributorFactory(researcher=self.researcher).award
+        AwardContributorFactory(researcher=self.researcher_2, award=award_2)
+
+        AwardContributorFactory(researcher=self.researcher_2)
+
+        response = self.client.get(
+            reverse(
+                "Researcher-awards",
+                args=(self.organization.code, self.researcher.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((award.pk, award_2.pk)),
+            set((el["id"] for el in data["results"])),
+        )
+
+        # test modules
+        self.assertEqual(self.researcher.modules.awards().count(), 2)

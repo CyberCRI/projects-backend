@@ -29,6 +29,7 @@ from services.crisalid.models import (
 )
 from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
+    AwardSerializer,
     CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
@@ -477,6 +478,21 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
 
         return self.get_paginated_response(
             PatentSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="awards")
+    def awards(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        patents_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).awards()
+
+        paginated_qs = self.paginate_queryset(patents_qs)
+
+        return self.get_paginated_response(
+            AwardSerializer(
                 paginated_qs, many=True, context=self.get_serializer_context()
             ).data
         )

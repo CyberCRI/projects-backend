@@ -6,15 +6,16 @@ from apps.commons.serializers import PrivacySerializer
 from apps.modules.serializers import ModulesSerializers
 from apps.skills.serializers import TagSerializer
 from services.crisalid.models import (
+    Award,
     Document,
     DocumentDomains,
+    DocumentJournal,
     Identifier,
     Journal,
     Patent,
     Researcher,
     ResearcherDomains,
 )
-from services.crisalid.models.document import DocumentJournal
 from services.translator.serializers import auto_translated
 
 
@@ -153,6 +154,19 @@ class CitationSerializer(serializers.ModelSerializer):
 class PatentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patent
+        fields = (
+            "id",
+            "name",
+            "description",
+            "date",
+            "link",
+        )
+
+
+@auto_translated
+class AwardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Award
         fields = (
             "id",
             "name",

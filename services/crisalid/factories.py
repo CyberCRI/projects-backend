@@ -5,11 +5,13 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.organizations.factories import OrganizationFactory
 from services.crisalid import relators
+from services.crisalid.models.award import Award
 from services.crisalid.models.document import DocumentJournal
 from services.crisalid.models.journal import Journal
 from services.crisalid.models.patent import Patent
 
 from .models import (
+    AwardContributor,
     CrisalidConfig,
     Document,
     DocumentContributor,
@@ -118,6 +120,24 @@ class PatentFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Patent
+
+
+class AwardFactory(factory.django.DjangoModelFactory):
+    name = faker.sentences(2)
+    description = faker.text()
+    date = faker.date()
+    link = faker.url()
+
+    class Meta:
+        model = Award
+
+
+class AwardContributorFactory(factory.django.DjangoModelFactory):
+    researcher = factory.LazyFunction(lambda: ResearcherFactory())
+    award = factory.LazyFunction(lambda: AwardFactory())
+
+    class Meta:
+        model = AwardContributor
 
 
 class CrisalidConfigFactory(factory.django.DjangoModelFactory):

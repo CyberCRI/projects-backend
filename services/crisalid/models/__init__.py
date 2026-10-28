@@ -1,3 +1,4 @@
+from .award import Award, AwardContributor
 from .config import CrisalidConfig
 from .document import (
     Document,
@@ -23,4 +24,6 @@ __all__ = [
     "DocumentJournal",
     "Journal",
     "Patent",
+    "Award",
+    "AwardContributor",
 ]
