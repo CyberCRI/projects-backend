@@ -129,7 +129,7 @@ class Structure(HasRelatedModules, OrganizationRelated, TimestampedModelMixin):
             StructureRelation.active_query("reverse_relations__"),
             reverse_relations__structure=self,
             reverse_relations__relation_type=StructureRelation.RelationType.PART_OF,
-        )
+        ).distinct()
 
     def children(self) -> models.QuerySet["Structure"]:
         """structures part of this structure"""
@@ -137,7 +137,7 @@ class Structure(HasRelatedModules, OrganizationRelated, TimestampedModelMixin):
             StructureRelation.active_query("relations__"),
             relations__related_structure=self,
             relations__relation_type=StructureRelation.RelationType.PART_OF,
-        )
+        ).distinct()
 
     def _walk(self, next_structures) -> list["Structure"]:
         """all structures reached recursively (protected against loops)"""
@@ -183,14 +183,6 @@ class StructureRelation(CrisalidPeriodModel):
     relation_type = models.CharField(max_length=50, choices=RelationType.choices)
     position = models.CharField(max_length=50, choices=Position.choices, blank=True)
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["structure", "related_structure", "relation_type"],
-                name="unique_structure_relation",
-            )
-        ]
-
     def __str__(self):
         return f"{self.structure} -{self.relation_type}-> {self.related_structure}"
 
@@ -207,67 +199,82 @@ class ResearcherStructure(CrisalidPeriodModel):
         https://github.com/CRISalid-esr/crisalid-ikg/blob/ebdaae75911d504db8e871b7e7cd09f2294b5abf/app/models/positions.py
         """
 
-        PR = "PR", _("crisalid.researcherposition.PR")
-        DIR = "DIR", _("crisalid.researcherposition.DIR")
-        PHYS = "Phys", _("crisalid.researcherposition.PHYS")
-        ASTRO = "Astro", _("crisalid.researcherposition.ASTRO")
-        PUPH = "PUPH", _("crisalid.researcherposition.PUPH")
-        PR_AUTMIN = "PR_AutMin", _("crisalid.researcherposition.PR_AUTMIN")
-        ATER = "ATER", _("crisalid.researcherposition.ATER")
-        MCF = "MCF", _("crisalid.researcherposition.MCF")
-        PHYS_ADJ = "Phys_adj", _("crisalid.researcherposition.PHYS_ADJ")
-        ASTRO_ADJ = "Astro_adj", _("crisalid.researcherposition.ASTRO_ADJ")
-        MCUPH = "MCUPH", _("crisalid.researcherposition.MCUPH")
-        MC_AUTMIN = "MC_AutMin", _("crisalid.researcherposition.MC_AUTMIN")
-        PREM = "PREM", _("crisalid.researcherposition.PREM")
-        MCFEM = "MCFEM", _("crisalid.researcherposition.MCFEM")
-        CCA = "CCA", _("crisalid.researcherposition.CCA")
-        AHU = "AHU", _("crisalid.researcherposition.AHU")
-        PHU = "PHU", _("crisalid.researcherposition.PHU")
-        ECC = "ECC", _("crisalid.researcherposition.ECC")
-        PAST = "PAST", _("crisalid.researcherposition.PAST")
-        AUTRE_EC = "Autre_EC", _("crisalid.researcherposition.AUTRE_EC")
-        CHPJ = "ChPJ", _("crisalid.researcherposition.CHPJ")
-        DR = "DR", _("crisalid.researcherposition.DR")
-        CR = "CR", _("crisalid.researcherposition.CR")
-        CBIB = "CBIB", _("crisalid.researcherposition.CBIB")
-        CPAT = "CPAT", _("crisalid.researcherposition.CPAT")
-        DREM = "DREM", _("crisalid.researcherposition.DREM")
-        CJC = "CJC", _("crisalid.researcherposition.CJC")
-        C_CONTRACTUEL = "C_contractuel", _("crisalid.researcherposition.C_CONTRACTUEL")
-        POST_DOC = "Post-doc", _("crisalid.researcherposition.POST_DOC")
-        INVITE = "Invité", _("crisalid.researcherposition.INVITE")
-        DOCTEUR = "Docteur", _("crisalid.researcherposition.DOCTEUR")
-        AUTRE_CH = "Autre_Ch", _("crisalid.researcherposition.AUTRE_CH")
-        PRAG = "PRAG", _("crisalid.researcherposition.PRAG")
-        PCAP = "PCAP", _("crisalid.researcherposition.PCAP")
-        IR = "IR", _("crisalid.researcherposition.IR")
-        IE = "IE", _("crisalid.researcherposition.IE")
-        AI = "AI", _("crisalid.researcherposition.AI")
-        TECH = "TECH", _("crisalid.researcherposition.TECH")
-        AJT = "AJT", _("crisalid.researcherposition.AJT")
-        BIB = "BIB", _("crisalid.researcherposition.BIB")
-        BIBAS = "BIBAS", _("crisalid.researcherposition.BIBAS")
-        ASBIB = "ASBIB", _("crisalid.researcherposition.ASBIB")
-        MABIB = "MABIB", _("crisalid.researcherposition.MABIB")
-        PH = "PH", _("crisalid.researcherposition.PH")
-        AJH = "AJH", _("crisalid.researcherposition.AJH")
-        ASPM = "ASPM", _("crisalid.researcherposition.ASPM")
-        SEC = "SEC", _("crisalid.researcherposition.SEC")
-        TEC = "TEC", _("crisalid.researcherposition.TEC")
-        INF = "INF", _("crisalid.researcherposition.INF")
-        SF = "SF", _("crisalid.researcherposition.SF")
-        ARC = "ARC", _("crisalid.researcherposition.ARC")
-        CS = "CS", _("crisalid.researcherposition.CS")
-        IGH = "Igh", _("crisalid.researcherposition.IGH")
-        CP = "CP", _("crisalid.researcherposition.CP")
-        PATP = "PATP", _("crisalid.researcherposition.PATP")
-        CDD = "CDD", _("crisalid.researcherposition.CDD")
-        CDDA = "CDDA", _("crisalid.researcherposition.CDDA")
-        CDDB = "CDDB", _("crisalid.researcherposition.CDDB")
-        CDDC = "CDDC", _("crisalid.researcherposition.CDDC")
-        AUTRE_AP = "Autre_AP", _("crisalid.researcherposition.AUTRE_AP")
-        STAG = "Stag", _("crisalid.researcherposition.STAG")
+        PR = "PR", _("Professor")
+        DIR = "DIR", _("Director of studies")
+        PHYS = "Phys", _("Physicist")
+        ASTRO = "Astro", _("Astronomer")
+        PUPH = "PUPH", _("University professor - Hospital practitioner")
+        PR_AUTMIN = "PR_AutMin", _("Professor in institutions under other ministries")
+        ATER = "ATER", _("Temporary teaching and research assistant")
+        MCF = "MCF", _("Associate professor")
+        PHYS_ADJ = "Phys_adj", _("Assistant physicist")
+        ASTRO_ADJ = "Astro_adj", _("Assistant astronomer")
+        MCUPH = "MCUPH", _("Associate professor - Hospital practitioner")
+        MC_AUTMIN = (
+            "MC_AutMin",
+            _(
+                "Associate or assistant professor in institutions under other ministries"
+            ),
+        )
+        PREM = "PREM", _("Professor emeritus")
+        MCFEM = "MCFEM", _("Associate professor emeritus")
+        CCA = "CCA", _("Clinical fellow")
+        AHU = "AHU", _("University hospital fellow")
+        PHU = "PHU", _("University hospital practitioner")
+        ECC = "ECC", _("Contract lecturer-researcher")
+        PAST = "PAST", _("Associate lecturer-researcher (part-time or full-time)")
+        AUTRE_EC = "Autre_EC", _("Other status")
+        CHPJ = "ChPJ", _("Junior professor chair")
+        DR = "DR", _("Research director and equivalent")
+        CR = "CR", _("Research scientist and equivalent")
+        CBIB = "CBIB", _("Library curator")
+        CPAT = "CPAT", _("Heritage curator")
+        DREM = "DREM", _("Research director emeritus")
+        CJC = "CJC", _("Young researcher contract (3/5-year fixed term, ATIP-Avenir)")
+        C_CONTRACTUEL = "C_contractuel", _("Contract researcher")
+        POST_DOC = "Post-doc", _("Postdoctoral researcher")
+        INVITE = (
+            "Invité",
+            _(
+                "Foreign visitor: visiting professor or associate researcher, staying at least 3 months in the unit"
+            ),
+        )
+        DOCTEUR = "Docteur", _("Doctor of medicine, pharmacy, etc.")
+        AUTRE_CH = "Autre_Ch", _("Other status")
+        PRAG = "PRAG", _("Agrégé teacher")
+        PCAP = "PCAP", _("Certified teacher")
+        IR = "IR", _("Research engineer or equivalent")
+        IE = "IE", _("Study engineer or equivalent")
+        AI = "AI", _("Assistant engineer or equivalent")
+        TECH = "TECH", _("Research technician or equivalent")
+        AJT = "AJT", _("Research technical staff and administrative staff")
+        BIB = "BIB", _("State librarian")
+        BIBAS = "BIBAS", _("Specialised assistant librarian")
+        ASBIB = "ASBIB", _("Library assistant")
+        MABIB = "MABIB", _("Library storekeeper")
+        PH = "PH", _("Hospital practitioner")
+        AJH = "AJH", _("Hospital administrative, technical, labour or service staff")
+        ASPM = (
+            "ASPM",
+            _(
+                "Nursing assistant, childcare assistant, medical-psychological assistant"
+            ),
+        )
+        SEC = "SEC", _("Hospital secretary")
+        TEC = "TEC", _("Hospital technician")
+        INF = "INF", _("Nurse")
+        SF = "SF", _("Midwife")
+        ARC = "ARC", _("Clinical research associate")
+        CS = "CS", _("Healthcare manager")
+        IGH = "Igh", _("Hospital engineer")
+        CP = "CP", _("Project manager (hospital)")
+        PATP = "PATP", _("Part-time associate staff")
+        CDD = "CDD", _("Fixed-term contract (unspecified category)")
+        CDDA = "CDDA", _("Fixed-term contract (category A)")
+        CDDB = "CDDB", _("Fixed-term contract (category B)")
+        CDDC = "CDDC", _("Fixed-term contract (category C)")
+        AUTRE_AP = "Autre_AP", _("Other status")
+        STAG = "Stag", _("Intern (BTS, M1 or M2) present at least 3 months in the unit")
 
     researcher = models.ForeignKey("crisalid.Researcher", on_delete=models.CASCADE)
     structure = models.ForeignKey("crisalid.Structure", on_delete=models.CASCADE)
@@ -275,14 +282,6 @@ class ResearcherStructure(CrisalidPeriodModel):
     position_code = models.CharField(
         max_length=255, choices=PositionCode.choices, blank=True
     )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["researcher", "structure", "relation_type"],
-                name="unique_researcher_structure",
-            )
-        ]
 
     def __str__(self):
         return f"{self.researcher} -{self.relation_type}-> {self.structure}"
