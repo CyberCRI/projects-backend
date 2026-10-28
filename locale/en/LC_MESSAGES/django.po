@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 11:38+0100\n"
+"POT-Creation-Date: 2026-10-28 17:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,67 +43,75 @@ msgid "You cannot add projects that you do not have access to"
 msgstr ""
 
 #: apps/accounts/exceptions.py:54
+msgid "This group is managed by Crisalid"
+msgstr ""
+
+#: apps/accounts/exceptions.py:60
 msgid "You do not have the permission to assign this role"
 msgstr ""
 
-#: apps/accounts/exceptions.py:59
+#: apps/accounts/exceptions.py:65
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
 msgstr ""
 
-#: apps/accounts/exceptions.py:74
+#: apps/accounts/exceptions.py:80
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
 msgstr ""
 
-#: apps/accounts/exceptions.py:81
+#: apps/accounts/exceptions.py:87
 msgid "Permission not found"
 msgstr ""
 
-#: apps/accounts/exceptions.py:87
+#: apps/accounts/exceptions.py:93
 msgid "An error occurred while syncing with Keycloak"
 msgstr ""
 
-#: apps/accounts/exceptions.py:92
+#: apps/accounts/exceptions.py:98
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr ""
 
-#: apps/accounts/exceptions.py:104
+#: apps/accounts/exceptions.py:110
 msgid "An error occurred while syncing with Google"
 msgstr ""
 
-#: apps/accounts/exceptions.py:109
+#: apps/accounts/exceptions.py:115
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
 
-#: apps/accounts/exceptions.py:124
+#: apps/accounts/exceptions.py:130
 msgid "The organization of a group cannot be changed"
 msgstr ""
 
-#: apps/accounts/exceptions.py:130
+#: apps/accounts/exceptions.py:136
 msgid "The root group cannot have a parent group"
 msgstr ""
 
-#: apps/accounts/exceptions.py:136
+#: apps/accounts/exceptions.py:142
 msgid "A non-root group must have a parent group"
 msgstr ""
 
-#: apps/accounts/exceptions.py:142
+#: apps/accounts/exceptions.py:148
 msgid "The parent group must belong to the same organization"
 msgstr ""
 
-#: apps/accounts/exceptions.py:148
+#: apps/accounts/exceptions.py:154
+msgid "This group is not linked to a Crisalid structure"
+msgstr ""
+
+#: apps/accounts/exceptions.py:160
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr ""
 
-#: apps/accounts/exceptions.py:154
+#: apps/accounts/exceptions.py:166
 msgid "You cannot assign this role to a user"
 msgstr ""
 
-#: apps/accounts/exceptions.py:159
+#: apps/accounts/exceptions.py:171
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
@@ -1958,64 +1966,377 @@ msgid ""
 "Do you want to be mentored in %(skill)s? (reminder)\n"
 msgstr ""
 
-#: services/crisalid/models/document.py:122
+#: services/crisalid/models/config.py:58
+msgid "The group must belong to the organization"
+msgstr ""
+
+#: services/crisalid/models/config.py:66
+msgid "The group cannot be linked to a crisalid structure"
+msgstr ""
+
+#: services/crisalid/models/document.py:121
 msgid "Document"
 msgstr ""
 
-#: services/crisalid/models/document.py:123
+#: services/crisalid/models/document.py:122
 msgid "Scholarly Publication"
 msgstr ""
 
-#: services/crisalid/models/document.py:124
+#: services/crisalid/models/document.py:123
 msgid "Article"
 msgstr ""
 
-#: services/crisalid/models/document.py:125
+#: services/crisalid/models/document.py:124
 msgid "Journal Article"
 msgstr ""
 
-#: services/crisalid/models/document.py:126
+#: services/crisalid/models/document.py:125
 msgid "Conference Article"
 msgstr ""
 
-#: services/crisalid/models/document.py:127
+#: services/crisalid/models/document.py:126
 msgid "Conference Abstract"
 msgstr ""
 
-#: services/crisalid/models/document.py:128
+#: services/crisalid/models/document.py:127
 msgid "Preface"
 msgstr ""
 
-#: services/crisalid/models/document.py:129
+#: services/crisalid/models/document.py:128
 msgid "Comment"
 msgstr ""
 
-#: services/crisalid/models/document.py:130
+#: services/crisalid/models/document.py:129
 msgid "Book Chapter"
 msgstr ""
 
-#: services/crisalid/models/document.py:131
+#: services/crisalid/models/document.py:130
 msgid "Book"
 msgstr ""
 
-#: services/crisalid/models/document.py:132
+#: services/crisalid/models/document.py:131
 msgid "Monograph"
 msgstr ""
 
-#: services/crisalid/models/document.py:133
+#: services/crisalid/models/document.py:132
 msgid "Proceedings"
 msgstr ""
 
-#: services/crisalid/models/document.py:134
+#: services/crisalid/models/document.py:133
 msgid "Book Of Chapters"
 msgstr ""
 
-#: services/crisalid/models/document.py:135
+#: services/crisalid/models/document.py:134
 msgid "Presentation"
 msgstr ""
 
-#: services/crisalid/models/document.py:136
+#: services/crisalid/models/document.py:135
 msgid "Unknown"
+msgstr ""
+
+#: services/crisalid/models/organization.py:13
+msgid "Organization"
+msgstr ""
+
+#: services/crisalid/models/organization.py:14
+#: services/crisalid/models/structure.py:52
+msgid "Institution"
+msgstr ""
+
+#: services/crisalid/models/organization.py:15
+msgid "Institution group"
+msgstr ""
+
+#: services/crisalid/models/organization.py:16
+msgid "Laboratory"
+msgstr ""
+
+#: services/crisalid/models/organization.py:17
+msgid "Laboratory group"
+msgstr ""
+
+#: services/crisalid/models/organization.py:18
+msgid "Research team"
+msgstr ""
+
+#: services/crisalid/models/organization.py:19
+msgid "Research team group"
+msgstr ""
+
+#: services/crisalid/models/structure.py:55
+msgid "Institution subdivision"
+msgstr ""
+
+#: services/crisalid/models/structure.py:57
+msgid "Doctoral school"
+msgstr ""
+
+#: services/crisalid/models/structure.py:58
+msgid "Unit"
+msgstr ""
+
+#: services/crisalid/models/structure.py:59
+msgid "Unit subdivision"
+msgstr ""
+
+#: services/crisalid/models/structure.py:60
+msgid "Team"
+msgstr ""
+
+#: services/crisalid/models/structure.py:63
+msgid "Research"
+msgstr ""
+
+#: services/crisalid/models/structure.py:64
+msgid "Scientific services"
+msgstr ""
+
+#: services/crisalid/models/structure.py:67
+msgid "Administrative services"
+msgstr ""
+
+#: services/crisalid/models/structure.py:69
+msgid "Teaching"
+msgstr ""
+
+#: services/crisalid/models/structure.py:202
+msgid "Professor"
+msgstr ""
+
+#: services/crisalid/models/structure.py:203
+msgid "Director of studies"
+msgstr ""
+
+#: services/crisalid/models/structure.py:204
+msgid "Physicist"
+msgstr ""
+
+#: services/crisalid/models/structure.py:205
+msgid "Astronomer"
+msgstr ""
+
+#: services/crisalid/models/structure.py:206
+msgid "University professor - Hospital practitioner"
+msgstr ""
+
+#: services/crisalid/models/structure.py:207
+msgid "Professor in institutions under other ministries"
+msgstr ""
+
+#: services/crisalid/models/structure.py:208
+msgid "Temporary teaching and research assistant"
+msgstr ""
+
+#: services/crisalid/models/structure.py:209
+msgid "Associate professor"
+msgstr ""
+
+#: services/crisalid/models/structure.py:210
+msgid "Assistant physicist"
+msgstr ""
+
+#: services/crisalid/models/structure.py:211
+msgid "Assistant astronomer"
+msgstr ""
+
+#: services/crisalid/models/structure.py:212
+msgid "Associate professor - Hospital practitioner"
+msgstr ""
+
+#: services/crisalid/models/structure.py:216
+msgid "Associate or assistant professor in institutions under other ministries"
+msgstr ""
+
+#: services/crisalid/models/structure.py:219
+msgid "Professor emeritus"
+msgstr ""
+
+#: services/crisalid/models/structure.py:220
+msgid "Associate professor emeritus"
+msgstr ""
+
+#: services/crisalid/models/structure.py:221
+msgid "Clinical fellow"
+msgstr ""
+
+#: services/crisalid/models/structure.py:222
+msgid "University hospital fellow"
+msgstr ""
+
+#: services/crisalid/models/structure.py:223
+msgid "University hospital practitioner"
+msgstr ""
+
+#: services/crisalid/models/structure.py:224
+msgid "Contract lecturer-researcher"
+msgstr ""
+
+#: services/crisalid/models/structure.py:225
+msgid "Associate lecturer-researcher (part-time or full-time)"
+msgstr ""
+
+#: services/crisalid/models/structure.py:226
+#: services/crisalid/models/structure.py:243
+#: services/crisalid/models/structure.py:276
+msgid "Other status"
+msgstr ""
+
+#: services/crisalid/models/structure.py:227
+msgid "Junior professor chair"
+msgstr ""
+
+#: services/crisalid/models/structure.py:228
+msgid "Research director and equivalent"
+msgstr ""
+
+#: services/crisalid/models/structure.py:229
+msgid "Research scientist and equivalent"
+msgstr ""
+
+#: services/crisalid/models/structure.py:230
+msgid "Library curator"
+msgstr ""
+
+#: services/crisalid/models/structure.py:231
+msgid "Heritage curator"
+msgstr ""
+
+#: services/crisalid/models/structure.py:232
+msgid "Research director emeritus"
+msgstr ""
+
+#: services/crisalid/models/structure.py:233
+msgid "Young researcher contract (3/5-year fixed term, ATIP-Avenir)"
+msgstr ""
+
+#: services/crisalid/models/structure.py:234
+msgid "Contract researcher"
+msgstr ""
+
+#: services/crisalid/models/structure.py:235
+msgid "Postdoctoral researcher"
+msgstr ""
+
+#: services/crisalid/models/structure.py:239
+msgid ""
+"Foreign visitor: visiting professor or associate researcher, staying at "
+"least 3 months in the unit"
+msgstr ""
+
+#: services/crisalid/models/structure.py:242
+msgid "Doctor of medicine, pharmacy, etc."
+msgstr ""
+
+#: services/crisalid/models/structure.py:244
+msgid "Agrégé teacher"
+msgstr ""
+
+#: services/crisalid/models/structure.py:245
+msgid "Certified teacher"
+msgstr ""
+
+#: services/crisalid/models/structure.py:246
+msgid "Research engineer or equivalent"
+msgstr ""
+
+#: services/crisalid/models/structure.py:247
+msgid "Study engineer or equivalent"
+msgstr ""
+
+#: services/crisalid/models/structure.py:248
+msgid "Assistant engineer or equivalent"
+msgstr ""
+
+#: services/crisalid/models/structure.py:249
+msgid "Research technician or equivalent"
+msgstr ""
+
+#: services/crisalid/models/structure.py:250
+msgid "Research technical staff and administrative staff"
+msgstr ""
+
+#: services/crisalid/models/structure.py:251
+msgid "State librarian"
+msgstr ""
+
+#: services/crisalid/models/structure.py:252
+msgid "Specialised assistant librarian"
+msgstr ""
+
+#: services/crisalid/models/structure.py:253
+msgid "Library assistant"
+msgstr ""
+
+#: services/crisalid/models/structure.py:254
+msgid "Library storekeeper"
+msgstr ""
+
+#: services/crisalid/models/structure.py:255
+msgid "Hospital practitioner"
+msgstr ""
+
+#: services/crisalid/models/structure.py:256
+msgid "Hospital administrative, technical, labour or service staff"
+msgstr ""
+
+#: services/crisalid/models/structure.py:260
+msgid "Nursing assistant, childcare assistant, medical-psychological assistant"
+msgstr ""
+
+#: services/crisalid/models/structure.py:263
+msgid "Hospital secretary"
+msgstr ""
+
+#: services/crisalid/models/structure.py:264
+msgid "Hospital technician"
+msgstr ""
+
+#: services/crisalid/models/structure.py:265
+msgid "Nurse"
+msgstr ""
+
+#: services/crisalid/models/structure.py:266
+msgid "Midwife"
+msgstr ""
+
+#: services/crisalid/models/structure.py:267
+msgid "Clinical research associate"
+msgstr ""
+
+#: services/crisalid/models/structure.py:268
+msgid "Healthcare manager"
+msgstr ""
+
+#: services/crisalid/models/structure.py:269
+msgid "Hospital engineer"
+msgstr ""
+
+#: services/crisalid/models/structure.py:270
+msgid "Project manager (hospital)"
+msgstr ""
+
+#: services/crisalid/models/structure.py:271
+msgid "Part-time associate staff"
+msgstr ""
+
+#: services/crisalid/models/structure.py:272
+msgid "Fixed-term contract (unspecified category)"
+msgstr ""
+
+#: services/crisalid/models/structure.py:273
+msgid "Fixed-term contract (category A)"
+msgstr ""
+
+#: services/crisalid/models/structure.py:274
+msgid "Fixed-term contract (category B)"
+msgstr ""
+
+#: services/crisalid/models/structure.py:275
+msgid "Fixed-term contract (category C)"
+msgstr ""
+
+#: services/crisalid/models/structure.py:277
+msgid "Intern (BTS, M1 or M2) present at least 3 months in the unit"
 msgstr ""
 
 #: services/crisalid/relators.py:779
@@ -3578,12 +3899,12 @@ msgid "The given queryset does not match the related model"
 msgstr ""
 
 #: services/openalex/exceptions.py:10
-msgid "openlaex API error"
+msgid "OpenAlex API error"
 msgstr ""
 
 #: services/openalex/exceptions.py:15
 #, python-brace-format
-msgid "openlaex API returned {status_code}"
+msgid "OpenAlex API returned {status_code}"
 msgstr ""
 
 #: services/wikipedia/exceptions.py:10

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 11:38+0100\n"
+"POT-Creation-Date: 2026-10-28 17:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,15 +43,19 @@ msgid "You cannot add projects that you do not have access to"
 msgstr "Vous ne pouvez pas ajouter des projets auxquels vous n'avez pas accès"
 
 #: apps/accounts/exceptions.py:54
+msgid "This group is managed by Crisalid"
+msgstr "Ce groupe est géré par Crisalid"
+
+#: apps/accounts/exceptions.py:60
 msgid "You do not have the permission to assign this role"
 msgstr "Vous n'avez pas la permission d'assigner ce rôle"
 
-#: apps/accounts/exceptions.py:59
+#: apps/accounts/exceptions.py:65
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
 msgstr "Vous n'avez pas la permission d'assigner ce rôle : {role}"
 
-#: apps/accounts/exceptions.py:74
+#: apps/accounts/exceptions.py:80
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -59,55 +63,59 @@ msgstr ""
 "Le paramètre email_type est manquant. Les choix sont : admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/exceptions.py:81
+#: apps/accounts/exceptions.py:87
 msgid "Permission not found"
 msgstr "La permission n'a pas été trouvée"
 
-#: apps/accounts/exceptions.py:87
+#: apps/accounts/exceptions.py:93
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Une erreur est survenue lors de la synchronisation avec Keycloak"
 
-#: apps/accounts/exceptions.py:92
+#: apps/accounts/exceptions.py:98
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr ""
 "Une erreur est survenue lors de la synchronisation avec Keycloak : {message}"
 
-#: apps/accounts/exceptions.py:104
+#: apps/accounts/exceptions.py:110
 msgid "An error occurred while syncing with Google"
 msgstr "Une erreur est survenue lors de la synchronisation avec Google"
 
-#: apps/accounts/exceptions.py:109
+#: apps/accounts/exceptions.py:115
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
 "Une erreur est survenue lors de la synchronisation avec Google : {message}"
 
-#: apps/accounts/exceptions.py:124
+#: apps/accounts/exceptions.py:130
 msgid "The organization of a group cannot be changed"
 msgstr "L'organisation d'un groupe ne peut pas être modifiée"
 
-#: apps/accounts/exceptions.py:130
+#: apps/accounts/exceptions.py:136
 msgid "The root group cannot have a parent group"
 msgstr "Le groupe racine ne peut pas avoir de groupe parent"
 
-#: apps/accounts/exceptions.py:136
+#: apps/accounts/exceptions.py:142
 msgid "A non-root group must have a parent group"
 msgstr "Un groupe doit avoir un groupe parent"
 
-#: apps/accounts/exceptions.py:142
+#: apps/accounts/exceptions.py:148
 msgid "The parent group must belong to the same organization"
 msgstr "Le groupe parent doit appartenir à la même organisation"
 
-#: apps/accounts/exceptions.py:148
+#: apps/accounts/exceptions.py:154
+msgid "This group is not linked to a Crisalid structure"
+msgstr "Ce groupe n'est pas lié à une structure Crisalid"
+
+#: apps/accounts/exceptions.py:160
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Vous essayez de créer une boucle dans la hiérarchie des groupes"
 
-#: apps/accounts/exceptions.py:154
+#: apps/accounts/exceptions.py:166
 msgid "You cannot assign this role to a user"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 
-#: apps/accounts/exceptions.py:159
+#: apps/accounts/exceptions.py:171
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
@@ -194,7 +202,7 @@ msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
 
 #: apps/commons/serializers.py:217
 msgid "The value must be between -90 and 90."
-msgstr ""
+msgstr "La valeur doit être comprise entre -90 et 90."
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -1238,6 +1246,8 @@ msgid ""
 "\n"
 "New instruction\n"
 msgstr ""
+"\n"
+"Nouvelle instruction\n"
 
 #: apps/notifications/templates/new_instruction/reminder.txt:2
 msgid ""
@@ -1616,10 +1626,8 @@ msgstr ""
 "Seules les classifications de tags personnalisés peuvent être mises à jour"
 
 #: apps/skills/exceptions.py:61
-#, fuzzy
-#| msgid "You can only search for 50 Wikipedia tags at a time"
 msgid "You can only search for 50 tags at a time"
-msgstr "Vous ne pouvez rechercher que 50 tags Wikipedia à la fois"
+msgstr "Vous ne pouvez rechercher que 50 tags à la fois"
 
 #: apps/skills/exceptions.py:67
 msgid "You already made a mentoring request for this skill"
@@ -2624,117 +2632,436 @@ msgstr ""
 "\n"
 "Voulez-vous être mentoré·e en %(skill)s? (rappel)\n"
 
-#: services/crisalid/models/document.py:122
+#: services/crisalid/models/config.py:58
+msgid "The group must belong to the organization"
+msgstr "Le groupe doit appartenir à l'organisation"
+
+#: services/crisalid/models/config.py:66
+msgid "The group cannot be linked to a crisalid structure"
+msgstr "Le groupe ne peut pas être lié à une structure Crisalid"
+
+#: services/crisalid/models/document.py:121
 msgid "Document"
-msgstr ""
+msgstr "Document"
+
+#: services/crisalid/models/document.py:122
+msgid "Scholarly Publication"
+msgstr "Publication scientifique"
 
 #: services/crisalid/models/document.py:123
-msgid "Scholarly Publication"
-msgstr ""
+msgid "Article"
+msgstr "Article"
 
 #: services/crisalid/models/document.py:124
-msgid "Article"
-msgstr ""
+msgid "Journal Article"
+msgstr "Article de revue"
 
 #: services/crisalid/models/document.py:125
-msgid "Journal Article"
-msgstr ""
-
-#: services/crisalid/models/document.py:126
 msgid "Conference Article"
 msgstr "Article de conférence"
 
-#: services/crisalid/models/document.py:127
+#: services/crisalid/models/document.py:126
 msgid "Conference Abstract"
-msgstr ""
+msgstr "Résumé de conférence"
+
+#: services/crisalid/models/document.py:127
+msgid "Preface"
+msgstr "Préface"
 
 #: services/crisalid/models/document.py:128
-msgid "Preface"
-msgstr ""
-
-#: services/crisalid/models/document.py:129
 msgid "Comment"
 msgstr "Commentaire"
 
-#: services/crisalid/models/document.py:130
+#: services/crisalid/models/document.py:129
 msgid "Book Chapter"
-msgstr ""
+msgstr "Chapitre d'ouvrage"
+
+#: services/crisalid/models/document.py:130
+msgid "Book"
+msgstr "Ouvrage"
 
 #: services/crisalid/models/document.py:131
-msgid "Book"
-msgstr ""
+msgid "Monograph"
+msgstr "Monographie"
 
 #: services/crisalid/models/document.py:132
-msgid "Monograph"
-msgstr ""
+msgid "Proceedings"
+msgstr "Actes de conférence"
 
 #: services/crisalid/models/document.py:133
-msgid "Proceedings"
-msgstr ""
+msgid "Book Of Chapters"
+msgstr "Ouvrage collectif"
 
 #: services/crisalid/models/document.py:134
-msgid "Book Of Chapters"
-msgstr ""
+msgid "Presentation"
+msgstr "Présentation"
 
 #: services/crisalid/models/document.py:135
-msgid "Presentation"
-msgstr ""
-
-#: services/crisalid/models/document.py:136
 msgid "Unknown"
+msgstr "Inconnu"
+
+#: services/crisalid/models/organization.py:13
+msgid "Organization"
+msgstr "Organisation"
+
+#: services/crisalid/models/organization.py:14
+#: services/crisalid/models/structure.py:52
+msgid "Institution"
+msgstr "Établissement"
+
+#: services/crisalid/models/organization.py:15
+msgid "Institution group"
+msgstr "Regroupement d'établissements"
+
+#: services/crisalid/models/organization.py:16
+msgid "Laboratory"
+msgstr "Laboratoire"
+
+#: services/crisalid/models/organization.py:17
+msgid "Laboratory group"
+msgstr "Regroupement de laboratoires"
+
+#: services/crisalid/models/organization.py:18
+msgid "Research team"
+msgstr "Équipe de recherche"
+
+#: services/crisalid/models/organization.py:19
+msgid "Research team group"
+msgstr "Regroupement d'équipes de recherche"
+
+#: services/crisalid/models/structure.py:55
+msgid "Institution subdivision"
+msgstr "Composante d'établissement"
+
+#: services/crisalid/models/structure.py:57
+msgid "Doctoral school"
+msgstr "École doctorale"
+
+#: services/crisalid/models/structure.py:58
+msgid "Unit"
+msgstr "Unité"
+
+#: services/crisalid/models/structure.py:59
+msgid "Unit subdivision"
+msgstr "Sous-unité"
+
+#: services/crisalid/models/structure.py:60
+msgid "Team"
+msgstr "Équipe"
+
+#: services/crisalid/models/structure.py:63
+msgid "Research"
+msgstr "Recherche"
+
+#: services/crisalid/models/structure.py:64
+msgid "Scientific services"
+msgstr "Services scientifiques"
+
+#: services/crisalid/models/structure.py:67
+msgid "Administrative services"
+msgstr "Services administratifs"
+
+#: services/crisalid/models/structure.py:69
+msgid "Teaching"
+msgstr "Enseignement"
+
+#: services/crisalid/models/structure.py:202
+msgid "Professor"
+msgstr "Professeur"
+
+#: services/crisalid/models/structure.py:203
+msgid "Director of studies"
+msgstr "Directeur d'études"
+
+#: services/crisalid/models/structure.py:204
+msgid "Physicist"
+msgstr "Physicien"
+
+#: services/crisalid/models/structure.py:205
+msgid "Astronomer"
+msgstr "Astronome"
+
+#: services/crisalid/models/structure.py:206
+msgid "University professor - Hospital practitioner"
+msgstr "Professeurs des universités-Praticiens hospitaliers"
+
+#: services/crisalid/models/structure.py:207
+msgid "Professor in institutions under other ministries"
+msgstr "Professeur des établissements dépendant d'autres ministères"
+
+#: services/crisalid/models/structure.py:208
+msgid "Temporary teaching and research assistant"
+msgstr "Attaché temporaire d'enseignement et de recherche"
+
+#: services/crisalid/models/structure.py:209
+msgid "Associate professor"
+msgstr "Maître de conférences"
+
+#: services/crisalid/models/structure.py:210
+msgid "Assistant physicist"
+msgstr "Physicien adjoint"
+
+#: services/crisalid/models/structure.py:211
+msgid "Assistant astronomer"
+msgstr "Astronome adjoint"
+
+#: services/crisalid/models/structure.py:212
+msgid "Associate professor - Hospital practitioner"
+msgstr "Maître de conférences des universités-Praticiens hospitaliers"
+
+#: services/crisalid/models/structure.py:216
+msgid "Associate or assistant professor in institutions under other ministries"
 msgstr ""
+"Maître de conférences ou Maître assistant des établissements dépendant "
+"d'autres ministères"
+
+#: services/crisalid/models/structure.py:219
+msgid "Professor emeritus"
+msgstr "Professeur émérite"
+
+#: services/crisalid/models/structure.py:220
+msgid "Associate professor emeritus"
+msgstr "Maître de conférences émérites"
+
+#: services/crisalid/models/structure.py:221
+msgid "Clinical fellow"
+msgstr "Chef de clinique assistant"
+
+#: services/crisalid/models/structure.py:222
+msgid "University hospital fellow"
+msgstr "Attaché hospitalier universitaire"
+
+#: services/crisalid/models/structure.py:223
+msgid "University hospital practitioner"
+msgstr "Praticien hospitalier universitaire"
+
+#: services/crisalid/models/structure.py:224
+msgid "Contract lecturer-researcher"
+msgstr "Enseignant-chercheur contractuel (dont contrats LRU)"
+
+#: services/crisalid/models/structure.py:225
+msgid "Associate lecturer-researcher (part-time or full-time)"
+msgstr "Enseignant-chercheur associé (MC, PR à temps partiel ou temps plein)"
+
+#: services/crisalid/models/structure.py:226
+#: services/crisalid/models/structure.py:243
+#: services/crisalid/models/structure.py:276
+msgid "Other status"
+msgstr "Autre statut"
+
+#: services/crisalid/models/structure.py:227
+msgid "Junior professor chair"
+msgstr "Chaire de professeur junior"
+
+#: services/crisalid/models/structure.py:228
+msgid "Research director and equivalent"
+msgstr "Directeur de recherche et assimilés"
+
+#: services/crisalid/models/structure.py:229
+msgid "Research scientist and equivalent"
+msgstr "Chargé de recherche et assimilés"
+
+#: services/crisalid/models/structure.py:230
+msgid "Library curator"
+msgstr "Conservateur des bibliothèques"
+
+#: services/crisalid/models/structure.py:231
+msgid "Heritage curator"
+msgstr "Conservateur du patrimoine"
+
+#: services/crisalid/models/structure.py:232
+msgid "Research director emeritus"
+msgstr "Directeur de recherche émérite"
+
+#: services/crisalid/models/structure.py:233
+msgid "Young researcher contract (3/5-year fixed term, ATIP-Avenir)"
+msgstr "Contrat jeune chercheur (CDD 3 / 5 ans, ATIP-Avenir)"
+
+#: services/crisalid/models/structure.py:234
+msgid "Contract researcher"
+msgstr "Chercheur contractuel"
+
+#: services/crisalid/models/structure.py:235
+msgid "Postdoctoral researcher"
+msgstr "Post-doctorant"
+
+#: services/crisalid/models/structure.py:239
+msgid ""
+"Foreign visitor: visiting professor or associate researcher, staying at "
+"least 3 months in the unit"
+msgstr ""
+"Visiteur étranger : professeur invité et chercheur associé, ayant séjourné "
+"au moins 3 mois au sein de l'unité"
+
+#: services/crisalid/models/structure.py:242
+msgid "Doctor of medicine, pharmacy, etc."
+msgstr "Docteur en médecine, pharmacie, etc."
+
+#: services/crisalid/models/structure.py:244
+msgid "Agrégé teacher"
+msgstr "Professeur agrégé"
+
+#: services/crisalid/models/structure.py:245
+msgid "Certified teacher"
+msgstr "Professeur certifié"
+
+#: services/crisalid/models/structure.py:246
+msgid "Research engineer or equivalent"
+msgstr "Ingénieur de recherche ou assimilé"
+
+#: services/crisalid/models/structure.py:247
+msgid "Study engineer or equivalent"
+msgstr "Ingénieur d'études ou assimilé"
+
+#: services/crisalid/models/structure.py:248
+msgid "Assistant engineer or equivalent"
+msgstr "Assistant ingénieur ou assimilé"
+
+#: services/crisalid/models/structure.py:249
+msgid "Research technician or equivalent"
+msgstr "Technicien de recherche ou assimilé"
+
+#: services/crisalid/models/structure.py:250
+msgid "Research technical staff and administrative staff"
+msgstr ""
+"Adjoints et agents techniques de recherche, adjoints et agents administratifs"
+
+#: services/crisalid/models/structure.py:251
+msgid "State librarian"
+msgstr "Bibliothécaire d'état"
+
+#: services/crisalid/models/structure.py:252
+msgid "Specialised assistant librarian"
+msgstr "Bibliothécaire assistant spécialisé"
+
+#: services/crisalid/models/structure.py:253
+msgid "Library assistant"
+msgstr "Assistant des bibliothèques"
+
+#: services/crisalid/models/structure.py:254
+msgid "Library storekeeper"
+msgstr "Magasinier et magasinier principal des bibliothèques"
+
+#: services/crisalid/models/structure.py:255
+msgid "Hospital practitioner"
+msgstr "Praticien hospitalier"
+
+#: services/crisalid/models/structure.py:256
+msgid "Hospital administrative, technical, labour or service staff"
+msgstr ""
+"Adjoint administratif, technique, ouvrier, agent de service hospitaliers"
+
+#: services/crisalid/models/structure.py:260
+msgid "Nursing assistant, childcare assistant, medical-psychological assistant"
+msgstr "Aide-soignant, auxiliaire de puériculture, aide médico-psychologique"
+
+#: services/crisalid/models/structure.py:263
+msgid "Hospital secretary"
+msgstr "Secrétaire hospitalier"
+
+#: services/crisalid/models/structure.py:264
+msgid "Hospital technician"
+msgstr "Technicien hospitalier"
+
+#: services/crisalid/models/structure.py:265
+msgid "Nurse"
+msgstr "Infirmier"
+
+#: services/crisalid/models/structure.py:266
+msgid "Midwife"
+msgstr "Sage-femme"
+
+#: services/crisalid/models/structure.py:267
+msgid "Clinical research associate"
+msgstr "Attaché de recherche clinique"
+
+#: services/crisalid/models/structure.py:268
+msgid "Healthcare manager"
+msgstr "Cadre de santé"
+
+#: services/crisalid/models/structure.py:269
+msgid "Hospital engineer"
+msgstr "Ingénieur hospitalier"
+
+#: services/crisalid/models/structure.py:270
+msgid "Project manager (hospital)"
+msgstr "Chef de projet (en milieu hospitalier)"
+
+#: services/crisalid/models/structure.py:271
+msgid "Part-time associate staff"
+msgstr "Personnel associé à temps partiel"
+
+#: services/crisalid/models/structure.py:272
+msgid "Fixed-term contract (unspecified category)"
+msgstr "Contrat à durée déterminée (catégorie non précisée)"
+
+#: services/crisalid/models/structure.py:273
+msgid "Fixed-term contract (category A)"
+msgstr "Contrat à durée déterminée (catégorie A)"
+
+#: services/crisalid/models/structure.py:274
+msgid "Fixed-term contract (category B)"
+msgstr "Contrat à durée déterminée (catégorie B)"
+
+#: services/crisalid/models/structure.py:275
+msgid "Fixed-term contract (category C)"
+msgstr "Contrat à durée déterminée (catégorie C)"
+
+#: services/crisalid/models/structure.py:277
+msgid "Intern (BTS, M1 or M2) present at least 3 months in the unit"
+msgstr "Stagiaire BTS, M1 ou M2 présent au moins 3 mois dans l'unité"
 
 #: services/crisalid/relators.py:779
 msgid "abridger"
-msgstr ""
+msgstr "abréviateur"
 
 #: services/crisalid/relators.py:780
 msgid "art copyist"
-msgstr ""
+msgstr "copiste d'art"
 
 #: services/crisalid/relators.py:781
 msgid "actor"
-msgstr ""
+msgstr "acteur"
 
 #: services/crisalid/relators.py:782
 msgid "art director"
-msgstr ""
+msgstr "directeur artistique"
 
 #: services/crisalid/relators.py:783
 msgid "adapter"
-msgstr ""
+msgstr "adaptateur"
 
 #: services/crisalid/relators.py:784
 msgid "author of afterword, colophon, etc."
-msgstr ""
+msgstr "auteur de la postface, du colophon, etc."
 
 #: services/crisalid/relators.py:785
 msgid "announcer"
-msgstr ""
+msgstr "présentateur"
 
 #: services/crisalid/relators.py:786
 msgid "analyst"
-msgstr ""
+msgstr "analyste"
 
 #: services/crisalid/relators.py:787
 msgid "animator"
-msgstr ""
+msgstr "animateur"
 
 #: services/crisalid/relators.py:788
 msgid "annotator"
-msgstr ""
+msgstr "annotateur"
 
 #: services/crisalid/relators.py:789
 msgid "bibliographic antecedent"
-msgstr ""
+msgstr "antécédent bibliographique"
 
 #: services/crisalid/relators.py:790
 msgid "appellee"
-msgstr ""
+msgstr "intimé"
 
 #: services/crisalid/relators.py:791
 msgid "appellant"
-msgstr ""
+msgstr "appelant"
 
 #: services/crisalid/relators.py:792
 msgid "applicant"
@@ -2742,51 +3069,51 @@ msgstr "demandeur"
 
 #: services/crisalid/relators.py:793
 msgid "author in quotations or text abstracts"
-msgstr ""
+msgstr "auteur cité ou d'extraits de texte"
 
 #: services/crisalid/relators.py:794
 msgid "architect"
-msgstr ""
+msgstr "architecte"
 
 #: services/crisalid/relators.py:795
 msgid "artistic director"
-msgstr ""
+msgstr "directeur artistique"
 
 #: services/crisalid/relators.py:796
 msgid "arranger"
-msgstr ""
+msgstr "arrangeur"
 
 #: services/crisalid/relators.py:797
 msgid "artist"
-msgstr ""
+msgstr "artiste"
 
 #: services/crisalid/relators.py:798
 msgid "assignee"
-msgstr ""
+msgstr "cessionnaire"
 
 #: services/crisalid/relators.py:799
 msgid "associated name"
-msgstr ""
+msgstr "nom associé"
 
 #: services/crisalid/relators.py:800
 msgid "autographer"
-msgstr ""
+msgstr "autographe"
 
 #: services/crisalid/relators.py:801
 msgid "attributed name"
-msgstr ""
+msgstr "nom attribué"
 
 #: services/crisalid/relators.py:802
 msgid "auctioneer"
-msgstr ""
+msgstr "commissaire-priseur"
 
 #: services/crisalid/relators.py:803
 msgid "author of dialog"
-msgstr ""
+msgstr "auteur des dialogues"
 
 #: services/crisalid/relators.py:804
 msgid "audio engineer"
-msgstr ""
+msgstr "ingénieur du son"
 
 #: services/crisalid/relators.py:805
 msgid "author of introduction, etc."
@@ -2794,163 +3121,163 @@ msgstr "auteur de l'introduction, etc."
 
 #: services/crisalid/relators.py:806
 msgid "audio producer"
-msgstr ""
+msgstr "producteur audio"
 
 #: services/crisalid/relators.py:807
 msgid "screenwriter"
-msgstr ""
+msgstr "scénariste"
 
 #: services/crisalid/relators.py:808
 msgid "author"
-msgstr ""
+msgstr "auteur"
 
 #: services/crisalid/relators.py:809
 msgid "binding designer"
-msgstr ""
+msgstr "concepteur de reliure"
 
 #: services/crisalid/relators.py:810
 msgid "bookjacket designer"
-msgstr ""
+msgstr "concepteur de jaquette"
 
 #: services/crisalid/relators.py:811
 msgid "book artist"
-msgstr ""
+msgstr "artiste du livre"
 
 #: services/crisalid/relators.py:812
 msgid "book designer"
-msgstr ""
+msgstr "concepteur graphique du livre"
 
 #: services/crisalid/relators.py:813
 msgid "book producer"
-msgstr ""
+msgstr "producteur du livre"
 
 #: services/crisalid/relators.py:814
 msgid "blurb writer"
-msgstr ""
+msgstr "rédacteur de texte de présentation"
 
 #: services/crisalid/relators.py:815
 msgid "binder"
-msgstr ""
+msgstr "relieur"
 
 #: services/crisalid/relators.py:816
 msgid "bookplate designer"
-msgstr ""
+msgstr "concepteur d'ex-libris"
 
 #: services/crisalid/relators.py:817
 msgid "broadcaster"
-msgstr ""
+msgstr "diffuseur"
 
 #: services/crisalid/relators.py:818
 msgid "braille embosser"
-msgstr ""
+msgstr "transcripteur en braille"
 
 #: services/crisalid/relators.py:819
 msgid "bookseller"
-msgstr ""
+msgstr "libraire"
 
 #: services/crisalid/relators.py:820
 msgid "casting director"
-msgstr ""
+msgstr "directeur de casting"
 
 #: services/crisalid/relators.py:821
 msgid "caster"
-msgstr ""
+msgstr "fondeur"
 
 #: services/crisalid/relators.py:822
 msgid "conceptor"
-msgstr ""
+msgstr "concepteur"
 
 #: services/crisalid/relators.py:823
 msgid "choreographer"
-msgstr ""
+msgstr "chorégraphe"
 
 #: services/crisalid/relators.py:824
 msgid "client"
-msgstr ""
+msgstr "client"
 
 #: services/crisalid/relators.py:825
 msgid "calligrapher"
-msgstr ""
+msgstr "calligraphe"
 
 #: services/crisalid/relators.py:826
 msgid "colorist"
-msgstr ""
+msgstr "coloriste"
 
 #: services/crisalid/relators.py:827
 msgid "collotyper"
-msgstr ""
+msgstr "phototypeur"
 
 #: services/crisalid/relators.py:828
 msgid "commentator"
-msgstr ""
+msgstr "commentateur"
 
 #: services/crisalid/relators.py:829
 msgid "composer"
-msgstr ""
+msgstr "compositeur"
 
 #: services/crisalid/relators.py:830
 msgid "compositor"
-msgstr ""
+msgstr "compositeur typographe"
 
 #: services/crisalid/relators.py:831
 msgid "conductor"
-msgstr ""
+msgstr "chef d'orchestre"
 
 #: services/crisalid/relators.py:832
 msgid "cinematographer"
-msgstr ""
+msgstr "directeur de la photographie"
 
 #: services/crisalid/relators.py:833
 msgid "censor"
-msgstr ""
+msgstr "censeur"
 
 #: services/crisalid/relators.py:834
 msgid "contestant-appellee"
-msgstr ""
+msgstr "contestant intimé"
 
 #: services/crisalid/relators.py:835
 msgid "collector"
-msgstr ""
+msgstr "collectionneur"
 
 #: services/crisalid/relators.py:836
 msgid "compiler"
-msgstr ""
+msgstr "compilateur"
 
 #: services/crisalid/relators.py:837
 msgid "conservator"
-msgstr ""
+msgstr "restaurateur"
 
 #: services/crisalid/relators.py:838
 msgid "camera operator"
-msgstr ""
+msgstr "cadreur"
 
 #: services/crisalid/relators.py:839
 msgid "collection registrar"
-msgstr ""
+msgstr "régisseur de collection"
 
 #: services/crisalid/relators.py:840
 msgid "contestant"
-msgstr ""
+msgstr "contestant"
 
 #: services/crisalid/relators.py:841
 msgid "contestant-appellant"
-msgstr ""
+msgstr "contestant appelant"
 
 #: services/crisalid/relators.py:842
 msgid "court governed"
-msgstr ""
+msgstr "juridiction concernée"
 
 #: services/crisalid/relators.py:843
 msgid "cover designer"
-msgstr ""
+msgstr "concepteur de couverture"
 
 #: services/crisalid/relators.py:844
 msgid "copyright claimant"
-msgstr ""
+msgstr "demandeur du droit d'auteur"
 
 #: services/crisalid/relators.py:845
 msgid "complainant-appellee"
-msgstr ""
+msgstr "plaignant intimé"
 
 #: services/crisalid/relators.py:846
 msgid "copyright holder"
@@ -2958,31 +3285,31 @@ msgstr "titulaire des droits d'auteur"
 
 #: services/crisalid/relators.py:847
 msgid "complainant"
-msgstr ""
+msgstr "plaignant"
 
 #: services/crisalid/relators.py:848
 msgid "complainant-appellant"
-msgstr ""
+msgstr "plaignant appelant"
 
 #: services/crisalid/relators.py:849
 msgid "creator"
-msgstr ""
+msgstr "créateur"
 
 #: services/crisalid/relators.py:850
 msgid "correspondent"
-msgstr ""
+msgstr "correspondant"
 
 #: services/crisalid/relators.py:851
 msgid "corrector"
-msgstr ""
+msgstr "correcteur"
 
 #: services/crisalid/relators.py:852
 msgid "court reporter"
-msgstr ""
+msgstr "sténographe judiciaire"
 
 #: services/crisalid/relators.py:853
 msgid "consultant"
-msgstr ""
+msgstr "consultant"
 
 #: services/crisalid/relators.py:854
 msgid "consultant to a project"
@@ -2990,99 +3317,99 @@ msgstr "consultant d'un projet"
 
 #: services/crisalid/relators.py:855
 msgid "costume designer"
-msgstr ""
+msgstr "costumier"
 
 #: services/crisalid/relators.py:856
 msgid "contributor"
-msgstr ""
+msgstr "contributeur"
 
 #: services/crisalid/relators.py:857
 msgid "contestee-appellee"
-msgstr ""
+msgstr "contesté intimé"
 
 #: services/crisalid/relators.py:858
 msgid "cartographer"
-msgstr ""
+msgstr "cartographe"
 
 #: services/crisalid/relators.py:859
 msgid "contractor"
-msgstr ""
+msgstr "entrepreneur"
 
 #: services/crisalid/relators.py:860
 msgid "contestee"
-msgstr ""
+msgstr "contesté"
 
 #: services/crisalid/relators.py:861
 msgid "contestee-appellant"
-msgstr ""
+msgstr "contesté appelant"
 
 #: services/crisalid/relators.py:862
 msgid "curator"
-msgstr ""
+msgstr "commissaire"
 
 #: services/crisalid/relators.py:863
 msgid "commentator for written text"
-msgstr ""
+msgstr "commentateur de texte écrit"
 
 #: services/crisalid/relators.py:864
 msgid "dubbing director"
-msgstr ""
+msgstr "directeur de doublage"
 
 #: services/crisalid/relators.py:865
 msgid "distribution place"
-msgstr ""
+msgstr "lieu de distribution"
 
 #: services/crisalid/relators.py:866
 msgid "defendant"
-msgstr ""
+msgstr "défendeur"
 
 #: services/crisalid/relators.py:867
 msgid "defendant-appellee"
-msgstr ""
+msgstr "défendeur intimé"
 
 #: services/crisalid/relators.py:868
 msgid "defendant-appellant"
-msgstr ""
+msgstr "défendeur appelant"
 
 #: services/crisalid/relators.py:869
 msgid "degree committee member"
-msgstr ""
+msgstr "membre du jury"
 
 #: services/crisalid/relators.py:870
 msgid "degree granting institution"
-msgstr ""
+msgstr "établissement délivrant le diplôme"
 
 #: services/crisalid/relators.py:871
 msgid "degree supervisor"
-msgstr ""
+msgstr "directeur de thèse"
 
 #: services/crisalid/relators.py:872
 msgid "dissertant"
-msgstr ""
+msgstr "auteur de la thèse"
 
 #: services/crisalid/relators.py:873
 msgid "dj"
-msgstr ""
+msgstr "DJ"
 
 #: services/crisalid/relators.py:874
 msgid "United States, Library of Congress"
-msgstr ""
+msgstr "États-Unis, Bibliothèque du Congrès"
 
 #: services/crisalid/relators.py:875
 msgid "delineator"
-msgstr ""
+msgstr "dessinateur"
 
 #: services/crisalid/relators.py:876
 msgid "dancer"
-msgstr ""
+msgstr "danseur"
 
 #: services/crisalid/relators.py:877
 msgid "donor"
-msgstr ""
+msgstr "donateur"
 
 #: services/crisalid/relators.py:878
 msgid "depicted"
-msgstr ""
+msgstr "représenté"
 
 #: services/crisalid/relators.py:879
 msgid "depositor"
@@ -3090,95 +3417,95 @@ msgstr "déposant"
 
 #: services/crisalid/relators.py:880
 msgid "draftsman"
-msgstr ""
+msgstr "dessinateur technique"
 
 #: services/crisalid/relators.py:881
 msgid "director"
-msgstr ""
+msgstr "directeur"
 
 #: services/crisalid/relators.py:882
 msgid "designer"
-msgstr ""
+msgstr "designer"
 
 #: services/crisalid/relators.py:883
 msgid "distributor"
-msgstr ""
+msgstr "distributeur"
 
 #: services/crisalid/relators.py:884
 msgid "data contributor"
-msgstr ""
+msgstr "contributeur de données"
 
 #: services/crisalid/relators.py:885
 msgid "dedicatee"
-msgstr ""
+msgstr "dédicataire"
 
 #: services/crisalid/relators.py:886
 msgid "data manager"
-msgstr ""
+msgstr "gestionnaire de données"
 
 #: services/crisalid/relators.py:887
 msgid "dedicator"
-msgstr ""
+msgstr "dédicateur"
 
 #: services/crisalid/relators.py:888
 msgid "dubious author"
-msgstr ""
+msgstr "auteur douteux"
 
 #: services/crisalid/relators.py:889
 msgid "editor of compilation"
-msgstr ""
+msgstr "éditeur de la compilation"
 
 #: services/crisalid/relators.py:890
 msgid "editorial director"
-msgstr ""
+msgstr "directeur éditorial"
 
 #: services/crisalid/relators.py:891
 msgid "editor of moving image work"
-msgstr ""
+msgstr "monteur de l'œuvre audiovisuelle"
 
 #: services/crisalid/relators.py:893
 msgid "engraver"
-msgstr ""
+msgstr "graveur"
 
 #: services/crisalid/relators.py:894
 msgid "electrician"
-msgstr ""
+msgstr "électricien"
 
 #: services/crisalid/relators.py:895
 msgid "electrotyper"
-msgstr ""
+msgstr "galvanotypeur"
 
 #: services/crisalid/relators.py:896
 msgid "engineer"
-msgstr ""
+msgstr "ingénieur"
 
 #: services/crisalid/relators.py:897
 msgid "enacting jurisdiction"
-msgstr ""
+msgstr "juridiction promulgatrice"
 
 #: services/crisalid/relators.py:898
 msgid "etcher"
-msgstr ""
+msgstr "aquafortiste"
 
 #: services/crisalid/relators.py:899
 msgid "event place"
-msgstr ""
+msgstr "lieu de l'événement"
 
 #: services/crisalid/relators.py:900
 msgid "expert"
-msgstr ""
+msgstr "expert"
 
 #: services/crisalid/relators.py:901
 msgid "facsimilist"
-msgstr ""
+msgstr "facsimiliste"
 
 #: services/crisalid/relators.py:902
 msgid "film distributor"
-msgstr ""
+msgstr "distributeur de films"
 
 #: services/crisalid/relators.py:903
 msgid "field director"
-msgstr ""
+msgstr "directeur de terrain"
 
 #: services/crisalid/relators.py:904
 msgid "film editor"
@@ -3186,43 +3513,43 @@ msgstr "monteur de film"
 
 #: services/crisalid/relators.py:905
 msgid "film director"
-msgstr ""
+msgstr "réalisateur"
 
 #: services/crisalid/relators.py:906
 msgid "filmmaker"
-msgstr ""
+msgstr "cinéaste"
 
 #: services/crisalid/relators.py:907
 msgid "former owner"
-msgstr ""
+msgstr "ancien propriétaire"
 
 #: services/crisalid/relators.py:908
 msgid "film producer"
-msgstr ""
+msgstr "producteur de films"
 
 #: services/crisalid/relators.py:909
 msgid "funder"
-msgstr ""
+msgstr "financeur"
 
 #: services/crisalid/relators.py:910
 msgid "founder"
-msgstr ""
+msgstr "fondateur"
 
 #: services/crisalid/relators.py:911
 msgid "first party"
-msgstr ""
+msgstr "première partie"
 
 #: services/crisalid/relators.py:912
 msgid "forger"
-msgstr ""
+msgstr "faussaire"
 
 #: services/crisalid/relators.py:913
 msgid "game developer"
-msgstr ""
+msgstr "développeur de jeux"
 
 #: services/crisalid/relators.py:914
 msgid "geographic information specialist"
-msgstr ""
+msgstr "spécialiste de l'information géographique"
 
 #: services/crisalid/relators.py:915
 msgid "host institution"
@@ -3230,39 +3557,39 @@ msgstr "institution hôte"
 
 #: services/crisalid/relators.py:916
 msgid "honoree"
-msgstr ""
+msgstr "personne honorée"
 
 #: services/crisalid/relators.py:917
 msgid "host"
-msgstr ""
+msgstr "hôte"
 
 #: services/crisalid/relators.py:918
 msgid "illustrator"
-msgstr ""
+msgstr "illustrateur"
 
 #: services/crisalid/relators.py:919
 msgid "illuminator"
-msgstr ""
+msgstr "enlumineur"
 
 #: services/crisalid/relators.py:920
 msgid "inker"
-msgstr ""
+msgstr "encreur"
 
 #: services/crisalid/relators.py:921
 msgid "inscriber"
-msgstr ""
+msgstr "auteur de dédicace"
 
 #: services/crisalid/relators.py:922
 msgid "inventor"
-msgstr ""
+msgstr "inventeur"
 
 #: services/crisalid/relators.py:923
 msgid "issuing body"
-msgstr ""
+msgstr "organisme émetteur"
 
 #: services/crisalid/relators.py:924
 msgid "instrumentalist"
-msgstr ""
+msgstr "instrumentiste"
 
 #: services/crisalid/relators.py:925
 msgid "interviewee"
@@ -3274,111 +3601,111 @@ msgstr "intervieweur"
 
 #: services/crisalid/relators.py:927
 msgid "judge"
-msgstr ""
+msgstr "juge"
 
 #: services/crisalid/relators.py:928
 msgid "jurisdiction governed"
-msgstr ""
+msgstr "juridiction concernée"
 
 #: services/crisalid/relators.py:929
 msgid "laboratory"
-msgstr ""
+msgstr "laboratoire"
 
 #: services/crisalid/relators.py:930
 msgid "librettist"
-msgstr ""
+msgstr "librettiste"
 
 #: services/crisalid/relators.py:931
 msgid "laboratory director"
-msgstr ""
+msgstr "directeur de laboratoire"
 
 #: services/crisalid/relators.py:932
 msgid "lead"
-msgstr ""
+msgstr "responsable principal"
 
 #: services/crisalid/relators.py:933
 msgid "libelee-appellee"
-msgstr ""
+msgstr "défendeur intimé (droit maritime)"
 
 #: services/crisalid/relators.py:934
 msgid "libelee"
-msgstr ""
+msgstr "défendeur (droit maritime)"
 
 #: services/crisalid/relators.py:935
 msgid "lender"
-msgstr ""
+msgstr "prêteur"
 
 #: services/crisalid/relators.py:936
 msgid "libelee-appellant"
-msgstr ""
+msgstr "défendeur appelant (droit maritime)"
 
 #: services/crisalid/relators.py:937
 msgid "lighting designer"
-msgstr ""
+msgstr "éclairagiste"
 
 #: services/crisalid/relators.py:938
 msgid "libelant-appellee"
-msgstr ""
+msgstr "demandeur intimé (droit maritime)"
 
 #: services/crisalid/relators.py:939
 msgid "libelant"
-msgstr ""
+msgstr "demandeur (droit maritime)"
 
 #: services/crisalid/relators.py:940
 msgid "libelant-appellant"
-msgstr ""
+msgstr "demandeur appelant (droit maritime)"
 
 #: services/crisalid/relators.py:941
 msgid "landscape architect"
-msgstr ""
+msgstr "architecte paysagiste"
 
 #: services/crisalid/relators.py:942
 msgid "licensee"
-msgstr ""
+msgstr "licencié"
 
 #: services/crisalid/relators.py:943
 msgid "licensor"
-msgstr ""
+msgstr "concédant de licence"
 
 #: services/crisalid/relators.py:944
 msgid "lithographer"
-msgstr ""
+msgstr "lithographe"
 
 #: services/crisalid/relators.py:945
 msgid "letterer"
-msgstr ""
+msgstr "lettreur"
 
 #: services/crisalid/relators.py:946
 msgid "lyricist"
-msgstr ""
+msgstr "parolier"
 
 #: services/crisalid/relators.py:947
 msgid "music copyist"
-msgstr ""
+msgstr "copiste musical"
 
 #: services/crisalid/relators.py:948
 msgid "metadata contact"
-msgstr ""
+msgstr "contact pour les métadonnées"
 
 #: services/crisalid/relators.py:949
 msgid "medium"
-msgstr ""
+msgstr "médium"
 
 #: services/crisalid/relators.py:950
 msgid "manufacture place"
-msgstr ""
+msgstr "lieu de fabrication"
 
 #: services/crisalid/relators.py:951
 msgid "manufacturer"
-msgstr ""
+msgstr "fabricant"
 
 #: services/crisalid/relators.py:952
 msgid "makeup artist"
-msgstr ""
+msgstr "maquilleur"
 
 #: services/crisalid/relators.py:953
 msgid "moderator"
-msgstr ""
+msgstr "modérateur"
 
 #: services/crisalid/relators.py:954
 msgid "monitor"
@@ -3386,7 +3713,7 @@ msgstr "moniteur"
 
 #: services/crisalid/relators.py:955
 msgid "marbler"
-msgstr ""
+msgstr "marbreur"
 
 #: services/crisalid/relators.py:956
 msgid "markup editor"
@@ -3394,35 +3721,35 @@ msgstr "éditeur de balisage"
 
 #: services/crisalid/relators.py:957
 msgid "musical director"
-msgstr ""
+msgstr "directeur musical"
 
 #: services/crisalid/relators.py:958
 msgid "metal engraver"
-msgstr ""
+msgstr "graveur sur métal"
 
 #: services/crisalid/relators.py:959
 msgid "minute taker"
-msgstr ""
+msgstr "secrétaire de séance"
 
 #: services/crisalid/relators.py:960
 msgid "music programmer"
-msgstr ""
+msgstr "programmateur musical"
 
 #: services/crisalid/relators.py:961
 msgid "musician"
-msgstr ""
+msgstr "musicien"
 
 #: services/crisalid/relators.py:962
 msgid "mixing engineer"
-msgstr ""
+msgstr "ingénieur de mixage"
 
 #: services/crisalid/relators.py:963
 msgid "news anchor"
-msgstr ""
+msgstr "présentateur de journal télévisé"
 
 #: services/crisalid/relators.py:964
 msgid "narrator"
-msgstr ""
+msgstr "narrateur"
 
 #: services/crisalid/relators.py:965
 msgid "onscreen participant"
@@ -3430,139 +3757,139 @@ msgstr "participant à l'écran"
 
 #: services/crisalid/relators.py:966
 msgid "opponent"
-msgstr ""
+msgstr "opposant"
 
 #: services/crisalid/relators.py:967
 msgid "originator"
-msgstr ""
+msgstr "initiateur"
 
 #: services/crisalid/relators.py:968
 msgid "organizer"
-msgstr ""
+msgstr "organisateur"
 
 #: services/crisalid/relators.py:969
 msgid "onscreen presenter"
-msgstr ""
+msgstr "présentateur à l'écran"
 
 #: services/crisalid/relators.py:970
 msgid "other"
-msgstr ""
+msgstr "autre"
 
 #: services/crisalid/relators.py:971
 msgid "owner"
-msgstr ""
+msgstr "propriétaire"
 
 #: services/crisalid/relators.py:972
 msgid "place of address"
-msgstr ""
+msgstr "lieu d'adresse"
 
 #: services/crisalid/relators.py:973
 msgid "panelist"
-msgstr ""
+msgstr "panéliste"
 
 #: services/crisalid/relators.py:974
 msgid "patron"
-msgstr ""
+msgstr "mécène"
 
 #: services/crisalid/relators.py:975
 msgid "publisher director"
-msgstr ""
+msgstr "directeur de publication"
 
 #: services/crisalid/relators.py:976
 msgid "publisher"
-msgstr ""
+msgstr "éditeur"
 
 #: services/crisalid/relators.py:977
 msgid "project director"
-msgstr ""
+msgstr "directeur de projet"
 
 #: services/crisalid/relators.py:978
 msgid "proofreader"
-msgstr ""
+msgstr "correcteur d'épreuves"
 
 #: services/crisalid/relators.py:979
 msgid "photographer"
-msgstr ""
+msgstr "photographe"
 
 #: services/crisalid/relators.py:980
 msgid "platemaker"
-msgstr ""
+msgstr "clicheur"
 
 #: services/crisalid/relators.py:981
 msgid "permitting agency"
-msgstr ""
+msgstr "organisme d'autorisation"
 
 #: services/crisalid/relators.py:982
 msgid "production manager"
-msgstr ""
+msgstr "directeur de production"
 
 #: services/crisalid/relators.py:983
 msgid "penciller"
-msgstr ""
+msgstr "dessinateur crayonné"
 
 #: services/crisalid/relators.py:984
 msgid "printer of plates"
-msgstr ""
+msgstr "imprimeur de planches"
 
 #: services/crisalid/relators.py:985
 msgid "papermaker"
-msgstr ""
+msgstr "papetier"
 
 #: services/crisalid/relators.py:986
 msgid "puppeteer"
-msgstr ""
+msgstr "marionnettiste"
 
 #: services/crisalid/relators.py:987
 msgid "praeses"
-msgstr ""
+msgstr "praeses"
 
 #: services/crisalid/relators.py:988
 msgid "process contact"
-msgstr ""
+msgstr "contact pour le processus"
 
 #: services/crisalid/relators.py:989
 msgid "production personnel"
-msgstr ""
+msgstr "personnel de production"
 
 #: services/crisalid/relators.py:990
 msgid "presenter"
-msgstr ""
+msgstr "présentateur"
 
 #: services/crisalid/relators.py:991
 msgid "performer"
-msgstr ""
+msgstr "interprète"
 
 #: services/crisalid/relators.py:992
 msgid "programmer"
-msgstr ""
+msgstr "programmeur"
 
 #: services/crisalid/relators.py:993
 msgid "printmaker"
-msgstr ""
+msgstr "graveur-imprimeur"
 
 #: services/crisalid/relators.py:994
 msgid "production company"
-msgstr ""
+msgstr "société de production"
 
 #: services/crisalid/relators.py:995
 msgid "producer"
-msgstr ""
+msgstr "producteur"
 
 #: services/crisalid/relators.py:996
 msgid "production place"
-msgstr ""
+msgstr "lieu de production"
 
 #: services/crisalid/relators.py:997
 msgid "production designer"
-msgstr ""
+msgstr "chef décorateur"
 
 #: services/crisalid/relators.py:998
 msgid "printer"
-msgstr ""
+msgstr "imprimeur"
 
 #: services/crisalid/relators.py:999
 msgid "provider"
-msgstr ""
+msgstr "fournisseur"
 
 #: services/crisalid/relators.py:1000
 msgid "patent applicant"
@@ -3570,19 +3897,19 @@ msgstr "demandeur de brevet"
 
 #: services/crisalid/relators.py:1001
 msgid "plaintiff-appellee"
-msgstr ""
+msgstr "demandeur intimé"
 
 #: services/crisalid/relators.py:1002
 msgid "plaintiff"
-msgstr ""
+msgstr "demandeur"
 
 #: services/crisalid/relators.py:1003
 msgid "patent holder"
-msgstr ""
+msgstr "titulaire du brevet"
 
 #: services/crisalid/relators.py:1004
 msgid "plaintiff-appellant"
-msgstr ""
+msgstr "demandeur appelant"
 
 #: services/crisalid/relators.py:1005
 msgid "publication place"
@@ -3590,43 +3917,43 @@ msgstr "lieu de publication"
 
 #: services/crisalid/relators.py:1006
 msgid "rapporteur"
-msgstr ""
+msgstr "rapporteur"
 
 #: services/crisalid/relators.py:1007
 msgid "rubricator"
-msgstr ""
+msgstr "rubricateur"
 
 #: services/crisalid/relators.py:1008
 msgid "recordist"
-msgstr ""
+msgstr "preneur de son"
 
 #: services/crisalid/relators.py:1009
 msgid "recording engineer"
-msgstr ""
+msgstr "ingénieur d'enregistrement"
 
 #: services/crisalid/relators.py:1010
 msgid "addressee"
-msgstr ""
+msgstr "destinataire"
 
 #: services/crisalid/relators.py:1011
 msgid "radio director"
-msgstr ""
+msgstr "réalisateur radio"
 
 #: services/crisalid/relators.py:1012
 msgid "redaktor"
-msgstr ""
+msgstr "rédacteur"
 
 #: services/crisalid/relators.py:1013
 msgid "renderer"
-msgstr ""
+msgstr "illustrateur de rendu"
 
 #: services/crisalid/relators.py:1014
 msgid "researcher"
-msgstr ""
+msgstr "chercheur"
 
 #: services/crisalid/relators.py:1016
 msgid "radio producer"
-msgstr ""
+msgstr "producteur radio"
 
 #: services/crisalid/relators.py:1017
 msgid "repository"
@@ -3634,251 +3961,251 @@ msgstr "dépôt"
 
 #: services/crisalid/relators.py:1018
 msgid "reporter"
-msgstr ""
+msgstr "reporter"
 
 #: services/crisalid/relators.py:1019
 msgid "responsible party"
-msgstr ""
+msgstr "partie responsable"
 
 #: services/crisalid/relators.py:1020
 msgid "respondent-appellee"
-msgstr ""
+msgstr "défendeur intimé"
 
 #: services/crisalid/relators.py:1021
 msgid "restager"
-msgstr ""
+msgstr "metteur en scène de reprise"
 
 #: services/crisalid/relators.py:1022
 msgid "respondent"
-msgstr ""
+msgstr "défendeur"
 
 #: services/crisalid/relators.py:1023
 msgid "restorationist"
-msgstr ""
+msgstr "restaurateur"
 
 #: services/crisalid/relators.py:1024
 msgid "respondent-appellant"
-msgstr ""
+msgstr "défendeur appelant"
 
 #: services/crisalid/relators.py:1025
 msgid "research team head"
-msgstr ""
+msgstr "responsable d'équipe de recherche"
 
 #: services/crisalid/relators.py:1026
 msgid "research team member"
-msgstr ""
+msgstr "membre d'équipe de recherche"
 
 #: services/crisalid/relators.py:1027
 msgid "remix artist"
-msgstr ""
+msgstr "remixeur"
 
 #: services/crisalid/relators.py:1028
 msgid "scientific advisor"
-msgstr ""
+msgstr "conseiller scientifique"
 
 #: services/crisalid/relators.py:1029
 msgid "scenarist"
-msgstr ""
+msgstr "scénariste"
 
 #: services/crisalid/relators.py:1030
 msgid "sculptor"
-msgstr ""
+msgstr "sculpteur"
 
 #: services/crisalid/relators.py:1031
 msgid "scribe"
-msgstr ""
+msgstr "scribe"
 
 #: services/crisalid/relators.py:1032
 msgid "sound engineer"
-msgstr ""
+msgstr "ingénieur du son"
 
 #: services/crisalid/relators.py:1033
 msgid "sound designer"
-msgstr ""
+msgstr "concepteur sonore"
 
 #: services/crisalid/relators.py:1034
 msgid "secretary"
-msgstr ""
+msgstr "secrétaire"
 
 #: services/crisalid/relators.py:1035
 msgid "special effects provider"
-msgstr ""
+msgstr "responsable des effets spéciaux"
 
 #: services/crisalid/relators.py:1036
 msgid "stage director"
-msgstr ""
+msgstr "metteur en scène"
 
 #: services/crisalid/relators.py:1037
 msgid "signer"
-msgstr ""
+msgstr "signataire"
 
 #: services/crisalid/relators.py:1038
 msgid "supporting host"
-msgstr ""
+msgstr "coprésentateur"
 
 #: services/crisalid/relators.py:1039
 msgid "seller"
-msgstr ""
+msgstr "vendeur"
 
 #: services/crisalid/relators.py:1040
 msgid "singer"
-msgstr ""
+msgstr "chanteur"
 
 #: services/crisalid/relators.py:1041
 msgid "speaker"
-msgstr ""
+msgstr "orateur"
 
 #: services/crisalid/relators.py:1042
 msgid "sponsor"
-msgstr ""
+msgstr "sponsor"
 
 #: services/crisalid/relators.py:1043
 msgid "second party"
-msgstr ""
+msgstr "seconde partie"
 
 #: services/crisalid/relators.py:1044
 msgid "surveyor"
-msgstr ""
+msgstr "géomètre"
 
 #: services/crisalid/relators.py:1045
 msgid "set designer"
-msgstr ""
+msgstr "décorateur"
 
 #: services/crisalid/relators.py:1046
 msgid "setting"
-msgstr ""
+msgstr "cadre"
 
 #: services/crisalid/relators.py:1047
 msgid "storyteller"
-msgstr ""
+msgstr "conteur"
 
 #: services/crisalid/relators.py:1048
 msgid "stage manager"
-msgstr ""
+msgstr "régisseur"
 
 #: services/crisalid/relators.py:1049
 msgid "standards body"
-msgstr ""
+msgstr "organisme de normalisation"
 
 #: services/crisalid/relators.py:1050
 msgid "stereotyper"
-msgstr ""
+msgstr "clicheur"
 
 #: services/crisalid/relators.py:1051
 msgid "software developer"
-msgstr ""
+msgstr "développeur de logiciels"
 
 #: services/crisalid/relators.py:1052
 msgid "technical advisor"
-msgstr ""
+msgstr "conseiller technique"
 
 #: services/crisalid/relators.py:1053
 msgid "television writer"
-msgstr ""
+msgstr "scénariste de télévision"
 
 #: services/crisalid/relators.py:1054
 msgid "technical director"
-msgstr ""
+msgstr "directeur technique"
 
 #: services/crisalid/relators.py:1055
 msgid "teacher"
-msgstr ""
+msgstr "enseignant"
 
 #: services/crisalid/relators.py:1056
 msgid "thesis advisor"
-msgstr ""
+msgstr "directeur de thèse"
 
 #: services/crisalid/relators.py:1057
 msgid "television director"
-msgstr ""
+msgstr "réalisateur de télévision"
 
 #: services/crisalid/relators.py:1058
 msgid "television guest"
-msgstr ""
+msgstr "invité de télévision"
 
 #: services/crisalid/relators.py:1059
 msgid "television host"
-msgstr ""
+msgstr "animateur de télévision"
 
 #: services/crisalid/relators.py:1060
 msgid "television producer"
-msgstr ""
+msgstr "producteur de télévision"
 
 #: services/crisalid/relators.py:1061
 msgid "transcriber"
-msgstr ""
+msgstr "transcripteur"
 
 #: services/crisalid/relators.py:1062
 msgid "translator"
-msgstr ""
+msgstr "traducteur"
 
 #: services/crisalid/relators.py:1063
 msgid "type designer"
-msgstr ""
+msgstr "créateur de caractères"
 
 #: services/crisalid/relators.py:1064
 msgid "typographer"
-msgstr ""
+msgstr "typographe"
 
 #: services/crisalid/relators.py:1065
 msgid "university place"
-msgstr ""
+msgstr "lieu de l'université"
 
 #: services/crisalid/relators.py:1066
 msgid "voice actor"
-msgstr ""
+msgstr "comédien de doublage"
 
 #: services/crisalid/relators.py:1067
 msgid "videographer"
-msgstr ""
+msgstr "vidéaste"
 
 #: services/crisalid/relators.py:1068
 msgid "visual effects provider"
-msgstr ""
+msgstr "responsable des effets visuels"
 
 #: services/crisalid/relators.py:1069
 msgid "vocalist"
-msgstr ""
+msgstr "vocaliste"
 
 #: services/crisalid/relators.py:1070
 msgid "writer of added commentary"
-msgstr ""
+msgstr "auteur du commentaire ajouté"
 
 #: services/crisalid/relators.py:1071
 msgid "writer of added lyrics"
-msgstr ""
+msgstr "auteur des paroles ajoutées"
 
 #: services/crisalid/relators.py:1072
 msgid "writer of accompanying material"
-msgstr ""
+msgstr "auteur du matériel d'accompagnement"
 
 #: services/crisalid/relators.py:1073
 msgid "writer of added text"
-msgstr ""
+msgstr "auteur du texte ajouté"
 
 #: services/crisalid/relators.py:1074
 msgid "writer of afterword"
-msgstr ""
+msgstr "auteur de la postface"
 
 #: services/crisalid/relators.py:1075
 msgid "woodcutter"
-msgstr ""
+msgstr "graveur sur bois de fil"
 
 #: services/crisalid/relators.py:1076
 msgid "wood engraver"
-msgstr ""
+msgstr "graveur sur bois de bout"
 
 #: services/crisalid/relators.py:1077
 msgid "writer of film story"
-msgstr ""
+msgstr "auteur de l'histoire du film"
 
 #: services/crisalid/relators.py:1078
 msgid "writer of intertitles"
-msgstr ""
+msgstr "auteur des intertitres"
 
 #: services/crisalid/relators.py:1079
 msgid "writer of foreword"
-msgstr ""
+msgstr "auteur de l'avant-propos"
 
 #: services/crisalid/relators.py:1080
 msgid "writer of introduction"
@@ -3886,19 +4213,19 @@ msgstr "auteur de l'introduction"
 
 #: services/crisalid/relators.py:1081
 msgid "witness"
-msgstr ""
+msgstr "témoin"
 
 #: services/crisalid/relators.py:1082
 msgid "writer of preface"
-msgstr ""
+msgstr "auteur de la préface"
 
 #: services/crisalid/relators.py:1083
 msgid "writer of supplementary textual content"
-msgstr ""
+msgstr "auteur du contenu textuel supplémentaire"
 
 #: services/crisalid/relators.py:1084
 msgid "writer of television story"
-msgstr ""
+msgstr "auteur de l'histoire télévisuelle"
 
 #: services/google/exceptions.py:7
 msgid "This email is already used by another group"
@@ -3910,7 +4237,7 @@ msgstr "Cet email est déjà utilisé par un·e autre utilisateur·ice"
 
 #: services/keycloak/exceptions.py:10
 msgid "Invalid user credentials"
-msgstr ""
+msgstr "Identifiants utilisateur invalides"
 
 #: services/keycloak/exceptions.py:19
 msgid "Given user does not have a keycloak account"
@@ -4399,19 +4726,16 @@ msgstr ""
 
 #: services/mistral/exceptions.py:10
 msgid "The given queryset does not match the related model"
-msgstr ""
+msgstr "Le queryset fourni ne correspond pas au modèle associé"
 
 #: services/openalex/exceptions.py:10
-#, fuzzy
-#| msgid "Wikipedia API error"
-msgid "openlaex API error"
-msgstr "L'API Wikipedia a renvoyé une erreur"
+msgid "OpenAlex API error"
+msgstr "L'API OpenAlex a renvoyé une erreur"
 
 #: services/openalex/exceptions.py:15
-#, fuzzy, python-brace-format
-#| msgid "Wikipedia API returned {status_code}"
-msgid "openlaex API returned {status_code}"
-msgstr "L'API Wikipedia a renvoyé une erreur {status_code}"
+#, python-brace-format
+msgid "OpenAlex API returned {status_code}"
+msgstr "L'API OpenAlex a renvoyé une erreur {status_code}"
 
 #: services/wikipedia/exceptions.py:10
 msgid "Wikipedia API error"
@@ -4438,15 +4762,3 @@ msgstr "Droit d'auteur"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Tous droits réservés."
-
-#~ msgid "Book Review"
-#~ msgstr "Critique de livre"
-
-#~ msgid "Editorial"
-#~ msgstr "Éditorial"
-
-#~ msgid "Peer review"
-#~ msgstr "Révision par les pairs"
-
-#~ msgid "Review Paper"
-#~ msgstr "Article de synthèse"

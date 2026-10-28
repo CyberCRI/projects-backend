@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 11:38+0100\n"
+"POT-Creation-Date: 2026-10-28 17:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,15 +43,19 @@ msgid "You cannot add projects that you do not have access to"
 msgstr "Sa ei saa lisada projekte, millele sul puudub ligipääs"
 
 #: apps/accounts/exceptions.py:54
+msgid "This group is managed by Crisalid"
+msgstr "Seda gruppi haldab Crisalid"
+
+#: apps/accounts/exceptions.py:60
 msgid "You do not have the permission to assign this role"
 msgstr "Sul ei ole luba selle rolli määramiseks"
 
-#: apps/accounts/exceptions.py:59
+#: apps/accounts/exceptions.py:65
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
 msgstr "Sul ei ole luba selle rolli määramiseks: {role}"
 
-#: apps/accounts/exceptions.py:74
+#: apps/accounts/exceptions.py:80
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -59,53 +63,57 @@ msgstr ""
 "Päringuparameeter email_type on puudu. Valikud on: admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/exceptions.py:81
+#: apps/accounts/exceptions.py:87
 msgid "Permission not found"
 msgstr "Luba ei leitud"
 
-#: apps/accounts/exceptions.py:87
+#: apps/accounts/exceptions.py:93
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Keycloakiga sünkroonimisel ilmnes viga"
 
-#: apps/accounts/exceptions.py:92
+#: apps/accounts/exceptions.py:98
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr "Keycloakiga sünkroonimisel ilmnes viga: {message}"
 
-#: apps/accounts/exceptions.py:104
+#: apps/accounts/exceptions.py:110
 msgid "An error occurred while syncing with Google"
 msgstr "Google'iga sünkroonimisel ilmnes viga"
 
-#: apps/accounts/exceptions.py:109
+#: apps/accounts/exceptions.py:115
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr "Google'iga sünkroonimisel ilmnes viga: {message}"
 
-#: apps/accounts/exceptions.py:124
+#: apps/accounts/exceptions.py:130
 msgid "The organization of a group cannot be changed"
 msgstr "Grupi organisatsiooni ei saa muuta"
 
-#: apps/accounts/exceptions.py:130
+#: apps/accounts/exceptions.py:136
 msgid "The root group cannot have a parent group"
 msgstr "Juurgrupil ei saa olla peagruppi"
 
-#: apps/accounts/exceptions.py:136
+#: apps/accounts/exceptions.py:142
 msgid "A non-root group must have a parent group"
 msgstr "Mitte-juurgrupil peab olema peagrupp"
 
-#: apps/accounts/exceptions.py:142
+#: apps/accounts/exceptions.py:148
 msgid "The parent group must belong to the same organization"
 msgstr "Peagrupp peab kuuluma samasse organisatsiooni"
 
-#: apps/accounts/exceptions.py:148
+#: apps/accounts/exceptions.py:154
+msgid "This group is not linked to a Crisalid structure"
+msgstr "See grupp ei ole seotud Crisalidi struktuuriga"
+
+#: apps/accounts/exceptions.py:160
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Püüad luua ahelat grupi hierarhias"
 
-#: apps/accounts/exceptions.py:154
+#: apps/accounts/exceptions.py:166
 msgid "You cannot assign this role to a user"
 msgstr "Sa ei saa seda rolli kasutajale määrata"
 
-#: apps/accounts/exceptions.py:159
+#: apps/accounts/exceptions.py:171
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sa ei saa seda rolli kasutajale määrata: {role}"
@@ -191,7 +199,7 @@ msgstr "Vale tüüp. Oodati stringi väärtust, saadi {data_type}."
 
 #: apps/commons/serializers.py:217
 msgid "The value must be between -90 and 90."
-msgstr ""
+msgstr "Väärtus peab olema vahemikus -90 kuni 90."
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -1595,10 +1603,8 @@ msgid "Only custom tags classifications can be updated"
 msgstr "Ainult kohandatud siltide klassifikatsioone saab uuendada"
 
 #: apps/skills/exceptions.py:61
-#, fuzzy
-#| msgid "You can only search for 50 Wikipedia tags at a time"
 msgid "You can only search for 50 tags at a time"
-msgstr "Saate korraga otsida vaid 50 Wikipedia silti"
+msgstr "Korraga saab otsida kuni 50 silti"
 
 #: apps/skills/exceptions.py:67
 msgid "You already made a mentoring request for this skill"
@@ -2604,117 +2610,432 @@ msgstr ""
 "\n"
 "Kas soovite, et teid juhendataks %(skill)s valdkonnas? (meeldetuletus)\n"
 
-#: services/crisalid/models/document.py:122
+#: services/crisalid/models/config.py:58
+msgid "The group must belong to the organization"
+msgstr "Grupp peab kuuluma organisatsiooni"
+
+#: services/crisalid/models/config.py:66
+msgid "The group cannot be linked to a crisalid structure"
+msgstr "Grupp ei tohi olla seotud Crisalidi struktuuriga"
+
+#: services/crisalid/models/document.py:121
 msgid "Document"
-msgstr ""
+msgstr "Dokument"
+
+#: services/crisalid/models/document.py:122
+msgid "Scholarly Publication"
+msgstr "Teaduspublikatsioon"
 
 #: services/crisalid/models/document.py:123
-msgid "Scholarly Publication"
-msgstr ""
+msgid "Article"
+msgstr "Artikkel"
 
 #: services/crisalid/models/document.py:124
-msgid "Article"
-msgstr ""
+msgid "Journal Article"
+msgstr "Ajakirjaartikkel"
 
 #: services/crisalid/models/document.py:125
-msgid "Journal Article"
-msgstr ""
-
-#: services/crisalid/models/document.py:126
 msgid "Conference Article"
 msgstr "Konverentsiartikkel"
 
-#: services/crisalid/models/document.py:127
+#: services/crisalid/models/document.py:126
 msgid "Conference Abstract"
-msgstr ""
+msgstr "Konverentsi kokkuvõte"
+
+#: services/crisalid/models/document.py:127
+msgid "Preface"
+msgstr "Eessõna"
 
 #: services/crisalid/models/document.py:128
-msgid "Preface"
-msgstr ""
-
-#: services/crisalid/models/document.py:129
 msgid "Comment"
 msgstr "Kommentaar"
 
-#: services/crisalid/models/document.py:130
+#: services/crisalid/models/document.py:129
 msgid "Book Chapter"
-msgstr ""
+msgstr "Raamatu peatükk"
+
+#: services/crisalid/models/document.py:130
+msgid "Book"
+msgstr "Raamat"
 
 #: services/crisalid/models/document.py:131
-msgid "Book"
-msgstr ""
+msgid "Monograph"
+msgstr "Monograafia"
 
 #: services/crisalid/models/document.py:132
-msgid "Monograph"
-msgstr ""
+msgid "Proceedings"
+msgstr "Konverentsi kogumik"
 
 #: services/crisalid/models/document.py:133
-msgid "Proceedings"
-msgstr ""
+msgid "Book Of Chapters"
+msgstr "Kogumikteos"
 
 #: services/crisalid/models/document.py:134
-msgid "Book Of Chapters"
-msgstr ""
+msgid "Presentation"
+msgstr "Ettekanne"
 
 #: services/crisalid/models/document.py:135
-msgid "Presentation"
-msgstr ""
-
-#: services/crisalid/models/document.py:136
 msgid "Unknown"
+msgstr "Teadmata"
+
+#: services/crisalid/models/organization.py:13
+msgid "Organization"
+msgstr "Organisatsioon"
+
+#: services/crisalid/models/organization.py:14
+#: services/crisalid/models/structure.py:52
+msgid "Institution"
+msgstr "Asutus"
+
+#: services/crisalid/models/organization.py:15
+msgid "Institution group"
+msgstr "Asutuste rühm"
+
+#: services/crisalid/models/organization.py:16
+msgid "Laboratory"
+msgstr "Labor"
+
+#: services/crisalid/models/organization.py:17
+msgid "Laboratory group"
+msgstr "Laborite rühm"
+
+#: services/crisalid/models/organization.py:18
+msgid "Research team"
+msgstr "Uurimisrühm"
+
+#: services/crisalid/models/organization.py:19
+msgid "Research team group"
+msgstr "Uurimisrühmade rühm"
+
+#: services/crisalid/models/structure.py:55
+msgid "Institution subdivision"
+msgstr "Asutuse allüksus"
+
+#: services/crisalid/models/structure.py:57
+msgid "Doctoral school"
+msgstr "Doktorikool"
+
+#: services/crisalid/models/structure.py:58
+msgid "Unit"
+msgstr "Üksus"
+
+#: services/crisalid/models/structure.py:59
+msgid "Unit subdivision"
+msgstr "Allüksus"
+
+#: services/crisalid/models/structure.py:60
+msgid "Team"
+msgstr "Meeskond"
+
+#: services/crisalid/models/structure.py:63
+msgid "Research"
+msgstr "Teadus"
+
+#: services/crisalid/models/structure.py:64
+msgid "Scientific services"
+msgstr "Teadusteenused"
+
+#: services/crisalid/models/structure.py:67
+msgid "Administrative services"
+msgstr "Haldusteenused"
+
+#: services/crisalid/models/structure.py:69
+msgid "Teaching"
+msgstr "Õpetamine"
+
+#: services/crisalid/models/structure.py:202
+msgid "Professor"
+msgstr "Professor"
+
+#: services/crisalid/models/structure.py:203
+msgid "Director of studies"
+msgstr "Õppedirektor"
+
+#: services/crisalid/models/structure.py:204
+msgid "Physicist"
+msgstr "Füüsik"
+
+#: services/crisalid/models/structure.py:205
+msgid "Astronomer"
+msgstr "Astronoom"
+
+#: services/crisalid/models/structure.py:206
+msgid "University professor - Hospital practitioner"
+msgstr "Ülikooli professor - Haiglaarst"
+
+#: services/crisalid/models/structure.py:207
+msgid "Professor in institutions under other ministries"
+msgstr "Teiste ministeeriumide asutuste professor"
+
+#: services/crisalid/models/structure.py:208
+msgid "Temporary teaching and research assistant"
+msgstr "Ajutine õppe- ja teadusassistent"
+
+#: services/crisalid/models/structure.py:209
+msgid "Associate professor"
+msgstr "Dotsent"
+
+#: services/crisalid/models/structure.py:210
+msgid "Assistant physicist"
+msgstr "Abifüüsik"
+
+#: services/crisalid/models/structure.py:211
+msgid "Assistant astronomer"
+msgstr "Abiastronoom"
+
+#: services/crisalid/models/structure.py:212
+msgid "Associate professor - Hospital practitioner"
+msgstr "Dotsent - Haiglaarst"
+
+#: services/crisalid/models/structure.py:216
+msgid "Associate or assistant professor in institutions under other ministries"
+msgstr "Teiste ministeeriumide asutuste dotsent või lektor"
+
+#: services/crisalid/models/structure.py:219
+msgid "Professor emeritus"
+msgstr "Emeriitprofessor"
+
+#: services/crisalid/models/structure.py:220
+msgid "Associate professor emeritus"
+msgstr "Emeriitdotsent"
+
+#: services/crisalid/models/structure.py:221
+msgid "Clinical fellow"
+msgstr "Kliiniline assistent"
+
+#: services/crisalid/models/structure.py:222
+msgid "University hospital fellow"
+msgstr "Ülikoolihaigla assistent"
+
+#: services/crisalid/models/structure.py:223
+msgid "University hospital practitioner"
+msgstr "Ülikoolihaigla arst"
+
+#: services/crisalid/models/structure.py:224
+msgid "Contract lecturer-researcher"
+msgstr "Lepinguline õppejõud-teadur"
+
+#: services/crisalid/models/structure.py:225
+msgid "Associate lecturer-researcher (part-time or full-time)"
+msgstr "Kaasatud õppejõud-teadur (osa- või täiskoormusega)"
+
+#: services/crisalid/models/structure.py:226
+#: services/crisalid/models/structure.py:243
+#: services/crisalid/models/structure.py:276
+msgid "Other status"
+msgstr "Muu staatus"
+
+#: services/crisalid/models/structure.py:227
+msgid "Junior professor chair"
+msgstr "Nooremprofessori ametikoht"
+
+#: services/crisalid/models/structure.py:228
+msgid "Research director and equivalent"
+msgstr "Juhtivteadur ja samaväärsed"
+
+#: services/crisalid/models/structure.py:229
+msgid "Research scientist and equivalent"
+msgstr "Teadur ja samaväärsed"
+
+#: services/crisalid/models/structure.py:230
+msgid "Library curator"
+msgstr "Raamatukogu hoidja"
+
+#: services/crisalid/models/structure.py:231
+msgid "Heritage curator"
+msgstr "Kultuuripärandi hoidja"
+
+#: services/crisalid/models/structure.py:232
+msgid "Research director emeritus"
+msgstr "Emeriitjuhtivteadur"
+
+#: services/crisalid/models/structure.py:233
+msgid "Young researcher contract (3/5-year fixed term, ATIP-Avenir)"
+msgstr "Noorteadlase leping (tähtajaline 3/5 aastat, ATIP-Avenir)"
+
+#: services/crisalid/models/structure.py:234
+msgid "Contract researcher"
+msgstr "Lepinguline teadur"
+
+#: services/crisalid/models/structure.py:235
+msgid "Postdoctoral researcher"
+msgstr "Järeldoktor"
+
+#: services/crisalid/models/structure.py:239
+msgid ""
+"Foreign visitor: visiting professor or associate researcher, staying at "
+"least 3 months in the unit"
 msgstr ""
+"Välismaalasest külaline: külalisprofessor või kaasteadur, vähemalt 3 kuud "
+"üksuses"
+
+#: services/crisalid/models/structure.py:242
+msgid "Doctor of medicine, pharmacy, etc."
+msgstr "Meditsiini-, farmaatsia- jm doktor"
+
+#: services/crisalid/models/structure.py:244
+msgid "Agrégé teacher"
+msgstr "Agrégé-õpetaja"
+
+#: services/crisalid/models/structure.py:245
+msgid "Certified teacher"
+msgstr "Sertifitseeritud õpetaja"
+
+#: services/crisalid/models/structure.py:246
+msgid "Research engineer or equivalent"
+msgstr "Teadusinsener või samaväärne"
+
+#: services/crisalid/models/structure.py:247
+msgid "Study engineer or equivalent"
+msgstr "Uuringuinsener või samaväärne"
+
+#: services/crisalid/models/structure.py:248
+msgid "Assistant engineer or equivalent"
+msgstr "Inseneri assistent või samaväärne"
+
+#: services/crisalid/models/structure.py:249
+msgid "Research technician or equivalent"
+msgstr "Teadustehnik või samaväärne"
+
+#: services/crisalid/models/structure.py:250
+msgid "Research technical staff and administrative staff"
+msgstr "Teaduse tehniline ja haldustöötaja"
+
+#: services/crisalid/models/structure.py:251
+msgid "State librarian"
+msgstr "Riiklik raamatukoguhoidja"
+
+#: services/crisalid/models/structure.py:252
+msgid "Specialised assistant librarian"
+msgstr "Spetsialiseerunud raamatukoguhoidja assistent"
+
+#: services/crisalid/models/structure.py:253
+msgid "Library assistant"
+msgstr "Raamatukogu assistent"
+
+#: services/crisalid/models/structure.py:254
+msgid "Library storekeeper"
+msgstr "Raamatukogu hoidlatöötaja"
+
+#: services/crisalid/models/structure.py:255
+msgid "Hospital practitioner"
+msgstr "Haiglaarst"
+
+#: services/crisalid/models/structure.py:256
+msgid "Hospital administrative, technical, labour or service staff"
+msgstr "Haigla haldus-, tehniline või teenindav personal"
+
+#: services/crisalid/models/structure.py:260
+msgid "Nursing assistant, childcare assistant, medical-psychological assistant"
+msgstr "Hooldusabi, lapsehooldusabi, meditsiinilis-psühholoogiline abi"
+
+#: services/crisalid/models/structure.py:263
+msgid "Hospital secretary"
+msgstr "Haigla sekretär"
+
+#: services/crisalid/models/structure.py:264
+msgid "Hospital technician"
+msgstr "Haigla tehnik"
+
+#: services/crisalid/models/structure.py:265
+msgid "Nurse"
+msgstr "Õde"
+
+#: services/crisalid/models/structure.py:266
+msgid "Midwife"
+msgstr "Ämmaemand"
+
+#: services/crisalid/models/structure.py:267
+msgid "Clinical research associate"
+msgstr "Kliiniliste uuringute koordinaator"
+
+#: services/crisalid/models/structure.py:268
+msgid "Healthcare manager"
+msgstr "Tervishoiujuht"
+
+#: services/crisalid/models/structure.py:269
+msgid "Hospital engineer"
+msgstr "Haigla insener"
+
+#: services/crisalid/models/structure.py:270
+msgid "Project manager (hospital)"
+msgstr "Projektijuht (haigla)"
+
+#: services/crisalid/models/structure.py:271
+msgid "Part-time associate staff"
+msgstr "Osalise tööajaga kaastöötaja"
+
+#: services/crisalid/models/structure.py:272
+msgid "Fixed-term contract (unspecified category)"
+msgstr "Tähtajaline leping (kategooria täpsustamata)"
+
+#: services/crisalid/models/structure.py:273
+msgid "Fixed-term contract (category A)"
+msgstr "Tähtajaline leping (kategooria A)"
+
+#: services/crisalid/models/structure.py:274
+msgid "Fixed-term contract (category B)"
+msgstr "Tähtajaline leping (kategooria B)"
+
+#: services/crisalid/models/structure.py:275
+msgid "Fixed-term contract (category C)"
+msgstr "Tähtajaline leping (kategooria C)"
+
+#: services/crisalid/models/structure.py:277
+msgid "Intern (BTS, M1 or M2) present at least 3 months in the unit"
+msgstr "Praktikant (BTS, M1 või M2), vähemalt 3 kuud üksuses"
 
 #: services/crisalid/relators.py:779
 msgid "abridger"
-msgstr ""
+msgstr "lühendaja"
 
 #: services/crisalid/relators.py:780
 msgid "art copyist"
-msgstr ""
+msgstr "kunstikopeerija"
 
 #: services/crisalid/relators.py:781
 msgid "actor"
-msgstr ""
+msgstr "näitleja"
 
 #: services/crisalid/relators.py:782
 msgid "art director"
-msgstr ""
+msgstr "kunstiline juht"
 
 #: services/crisalid/relators.py:783
 msgid "adapter"
-msgstr ""
+msgstr "adapteerija"
 
 #: services/crisalid/relators.py:784
 msgid "author of afterword, colophon, etc."
-msgstr ""
+msgstr "järelsõna, kolofoni jms autor"
 
 #: services/crisalid/relators.py:785
 msgid "announcer"
-msgstr ""
+msgstr "diktor"
 
 #: services/crisalid/relators.py:786
 msgid "analyst"
-msgstr ""
+msgstr "analüütik"
 
 #: services/crisalid/relators.py:787
 msgid "animator"
-msgstr ""
+msgstr "animaator"
 
 #: services/crisalid/relators.py:788
 msgid "annotator"
-msgstr ""
+msgstr "annoteerija"
 
 #: services/crisalid/relators.py:789
 msgid "bibliographic antecedent"
-msgstr ""
+msgstr "bibliograafiline eelkäija"
 
 #: services/crisalid/relators.py:790
 msgid "appellee"
-msgstr ""
+msgstr "apellatsiooni vastustaja"
 
 #: services/crisalid/relators.py:791
 msgid "appellant"
-msgstr ""
+msgstr "apellant"
 
 #: services/crisalid/relators.py:792
 msgid "applicant"
@@ -2722,51 +3043,51 @@ msgstr "taotleja"
 
 #: services/crisalid/relators.py:793
 msgid "author in quotations or text abstracts"
-msgstr ""
+msgstr "tsitaatide või tekstikatkete autor"
 
 #: services/crisalid/relators.py:794
 msgid "architect"
-msgstr ""
+msgstr "arhitekt"
 
 #: services/crisalid/relators.py:795
 msgid "artistic director"
-msgstr ""
+msgstr "kunstiline juht"
 
 #: services/crisalid/relators.py:796
 msgid "arranger"
-msgstr ""
+msgstr "arranžeerija"
 
 #: services/crisalid/relators.py:797
 msgid "artist"
-msgstr ""
+msgstr "kunstnik"
 
 #: services/crisalid/relators.py:798
 msgid "assignee"
-msgstr ""
+msgstr "õigusjärglane"
 
 #: services/crisalid/relators.py:799
 msgid "associated name"
-msgstr ""
+msgstr "seotud nimi"
 
 #: services/crisalid/relators.py:800
 msgid "autographer"
-msgstr ""
+msgstr "autograafija"
 
 #: services/crisalid/relators.py:801
 msgid "attributed name"
-msgstr ""
+msgstr "omistatud nimi"
 
 #: services/crisalid/relators.py:802
 msgid "auctioneer"
-msgstr ""
+msgstr "oksjonipidaja"
 
 #: services/crisalid/relators.py:803
 msgid "author of dialog"
-msgstr ""
+msgstr "dialoogide autor"
 
 #: services/crisalid/relators.py:804
 msgid "audio engineer"
-msgstr ""
+msgstr "helitehnik"
 
 #: services/crisalid/relators.py:805
 msgid "author of introduction, etc."
@@ -2774,163 +3095,163 @@ msgstr "sissejuhatuse autor jne."
 
 #: services/crisalid/relators.py:806
 msgid "audio producer"
-msgstr ""
+msgstr "heliprodutsent"
 
 #: services/crisalid/relators.py:807
 msgid "screenwriter"
-msgstr ""
+msgstr "stsenarist"
 
 #: services/crisalid/relators.py:808
 msgid "author"
-msgstr ""
+msgstr "autor"
 
 #: services/crisalid/relators.py:809
 msgid "binding designer"
-msgstr ""
+msgstr "köiteskujundaja"
 
 #: services/crisalid/relators.py:810
 msgid "bookjacket designer"
-msgstr ""
+msgstr "kaanepaberi kujundaja"
 
 #: services/crisalid/relators.py:811
 msgid "book artist"
-msgstr ""
+msgstr "raamatukunstnik"
 
 #: services/crisalid/relators.py:812
 msgid "book designer"
-msgstr ""
+msgstr "raamatukujundaja"
 
 #: services/crisalid/relators.py:813
 msgid "book producer"
-msgstr ""
+msgstr "raamatu tootja"
 
 #: services/crisalid/relators.py:814
 msgid "blurb writer"
-msgstr ""
+msgstr "tutvustusteksti kirjutaja"
 
 #: services/crisalid/relators.py:815
 msgid "binder"
-msgstr ""
+msgstr "köitja"
 
 #: services/crisalid/relators.py:816
 msgid "bookplate designer"
-msgstr ""
+msgstr "eksliibrise kujundaja"
 
 #: services/crisalid/relators.py:817
 msgid "broadcaster"
-msgstr ""
+msgstr "ringhäälinguorganisatsioon"
 
 #: services/crisalid/relators.py:818
 msgid "braille embosser"
-msgstr ""
+msgstr "punktkirja trükkija"
 
 #: services/crisalid/relators.py:819
 msgid "bookseller"
-msgstr ""
+msgstr "raamatumüüja"
 
 #: services/crisalid/relators.py:820
 msgid "casting director"
-msgstr ""
+msgstr "casting-režissöör"
 
 #: services/crisalid/relators.py:821
 msgid "caster"
-msgstr ""
+msgstr "valaja"
 
 #: services/crisalid/relators.py:822
 msgid "conceptor"
-msgstr ""
+msgstr "kontseptsiooni looja"
 
 #: services/crisalid/relators.py:823
 msgid "choreographer"
-msgstr ""
+msgstr "koreograaf"
 
 #: services/crisalid/relators.py:824
 msgid "client"
-msgstr ""
+msgstr "tellija"
 
 #: services/crisalid/relators.py:825
 msgid "calligrapher"
-msgstr ""
+msgstr "kalligraaf"
 
 #: services/crisalid/relators.py:826
 msgid "colorist"
-msgstr ""
+msgstr "koloreerija"
 
 #: services/crisalid/relators.py:827
 msgid "collotyper"
-msgstr ""
+msgstr "valgustrükkija"
 
 #: services/crisalid/relators.py:828
 msgid "commentator"
-msgstr ""
+msgstr "kommentaator"
 
 #: services/crisalid/relators.py:829
 msgid "composer"
-msgstr ""
+msgstr "helilooja"
 
 #: services/crisalid/relators.py:830
 msgid "compositor"
-msgstr ""
+msgstr "laduja"
 
 #: services/crisalid/relators.py:831
 msgid "conductor"
-msgstr ""
+msgstr "dirigent"
 
 #: services/crisalid/relators.py:832
 msgid "cinematographer"
-msgstr ""
+msgstr "operaator"
 
 #: services/crisalid/relators.py:833
 msgid "censor"
-msgstr ""
+msgstr "tsensor"
 
 #: services/crisalid/relators.py:834
 msgid "contestant-appellee"
-msgstr ""
+msgstr "vaidlustaja ja apellatsiooni vastustaja"
 
 #: services/crisalid/relators.py:835
 msgid "collector"
-msgstr ""
+msgstr "koguja"
 
 #: services/crisalid/relators.py:836
 msgid "compiler"
-msgstr ""
+msgstr "koostaja"
 
 #: services/crisalid/relators.py:837
 msgid "conservator"
-msgstr ""
+msgstr "konservaator"
 
 #: services/crisalid/relators.py:838
 msgid "camera operator"
-msgstr ""
+msgstr "kaameraoperaator"
 
 #: services/crisalid/relators.py:839
 msgid "collection registrar"
-msgstr ""
+msgstr "kogude registraator"
 
 #: services/crisalid/relators.py:840
 msgid "contestant"
-msgstr ""
+msgstr "vaidlustaja"
 
 #: services/crisalid/relators.py:841
 msgid "contestant-appellant"
-msgstr ""
+msgstr "vaidlustaja ja apellant"
 
 #: services/crisalid/relators.py:842
 msgid "court governed"
-msgstr ""
+msgstr "asjaomane kohus"
 
 #: services/crisalid/relators.py:843
 msgid "cover designer"
-msgstr ""
+msgstr "kaanekujundaja"
 
 #: services/crisalid/relators.py:844
 msgid "copyright claimant"
-msgstr ""
+msgstr "autoriõiguse taotleja"
 
 #: services/crisalid/relators.py:845
 msgid "complainant-appellee"
-msgstr ""
+msgstr "kaebaja ja apellatsiooni vastustaja"
 
 #: services/crisalid/relators.py:846
 msgid "copyright holder"
@@ -2938,31 +3259,31 @@ msgstr "autoriõiguse valdaja"
 
 #: services/crisalid/relators.py:847
 msgid "complainant"
-msgstr ""
+msgstr "kaebaja"
 
 #: services/crisalid/relators.py:848
 msgid "complainant-appellant"
-msgstr ""
+msgstr "kaebaja ja apellant"
 
 #: services/crisalid/relators.py:849
 msgid "creator"
-msgstr ""
+msgstr "looja"
 
 #: services/crisalid/relators.py:850
 msgid "correspondent"
-msgstr ""
+msgstr "korrespondent"
 
 #: services/crisalid/relators.py:851
 msgid "corrector"
-msgstr ""
+msgstr "korrektor"
 
 #: services/crisalid/relators.py:852
 msgid "court reporter"
-msgstr ""
+msgstr "kohtustenografist"
 
 #: services/crisalid/relators.py:853
 msgid "consultant"
-msgstr ""
+msgstr "konsultant"
 
 #: services/crisalid/relators.py:854
 msgid "consultant to a project"
@@ -2970,99 +3291,99 @@ msgstr "projekti konsultant"
 
 #: services/crisalid/relators.py:855
 msgid "costume designer"
-msgstr ""
+msgstr "kostüümikunstnik"
 
 #: services/crisalid/relators.py:856
 msgid "contributor"
-msgstr ""
+msgstr "kaastööline"
 
 #: services/crisalid/relators.py:857
 msgid "contestee-appellee"
-msgstr ""
+msgstr "vaidlustatu ja apellatsiooni vastustaja"
 
 #: services/crisalid/relators.py:858
 msgid "cartographer"
-msgstr ""
+msgstr "kartograaf"
 
 #: services/crisalid/relators.py:859
 msgid "contractor"
-msgstr ""
+msgstr "töövõtja"
 
 #: services/crisalid/relators.py:860
 msgid "contestee"
-msgstr ""
+msgstr "vaidlustatu"
 
 #: services/crisalid/relators.py:861
 msgid "contestee-appellant"
-msgstr ""
+msgstr "vaidlustatu ja apellant"
 
 #: services/crisalid/relators.py:862
 msgid "curator"
-msgstr ""
+msgstr "kuraator"
 
 #: services/crisalid/relators.py:863
 msgid "commentator for written text"
-msgstr ""
+msgstr "kirjaliku teksti kommentaator"
 
 #: services/crisalid/relators.py:864
 msgid "dubbing director"
-msgstr ""
+msgstr "dublaažirežissöör"
 
 #: services/crisalid/relators.py:865
 msgid "distribution place"
-msgstr ""
+msgstr "levitamiskoht"
 
 #: services/crisalid/relators.py:866
 msgid "defendant"
-msgstr ""
+msgstr "kostja"
 
 #: services/crisalid/relators.py:867
 msgid "defendant-appellee"
-msgstr ""
+msgstr "kostja ja apellatsiooni vastustaja"
 
 #: services/crisalid/relators.py:868
 msgid "defendant-appellant"
-msgstr ""
+msgstr "kostja ja apellant"
 
 #: services/crisalid/relators.py:869
 msgid "degree committee member"
-msgstr ""
+msgstr "kaitsmiskomisjoni liige"
 
 #: services/crisalid/relators.py:870
 msgid "degree granting institution"
-msgstr ""
+msgstr "kraadi andev asutus"
 
 #: services/crisalid/relators.py:871
 msgid "degree supervisor"
-msgstr ""
+msgstr "juhendaja"
 
 #: services/crisalid/relators.py:872
 msgid "dissertant"
-msgstr ""
+msgstr "väitekirja autor"
 
 #: services/crisalid/relators.py:873
 msgid "dj"
-msgstr ""
+msgstr "DJ"
 
 #: services/crisalid/relators.py:874
 msgid "United States, Library of Congress"
-msgstr ""
+msgstr "Ameerika Ühendriigid, Kongressi Raamatukogu"
 
 #: services/crisalid/relators.py:875
 msgid "delineator"
-msgstr ""
+msgstr "joonestaja"
 
 #: services/crisalid/relators.py:876
 msgid "dancer"
-msgstr ""
+msgstr "tantsija"
 
 #: services/crisalid/relators.py:877
 msgid "donor"
-msgstr ""
+msgstr "annetaja"
 
 #: services/crisalid/relators.py:878
 msgid "depicted"
-msgstr ""
+msgstr "kujutatu"
 
 #: services/crisalid/relators.py:879
 msgid "depositor"
@@ -3070,95 +3391,95 @@ msgstr "deposiitor"
 
 #: services/crisalid/relators.py:880
 msgid "draftsman"
-msgstr ""
+msgstr "tehniline joonestaja"
 
 #: services/crisalid/relators.py:881
 msgid "director"
-msgstr ""
+msgstr "režissöör"
 
 #: services/crisalid/relators.py:882
 msgid "designer"
-msgstr ""
+msgstr "disainer"
 
 #: services/crisalid/relators.py:883
 msgid "distributor"
-msgstr ""
+msgstr "levitaja"
 
 #: services/crisalid/relators.py:884
 msgid "data contributor"
-msgstr ""
+msgstr "andmete esitaja"
 
 #: services/crisalid/relators.py:885
 msgid "dedicatee"
-msgstr ""
+msgstr "pühendusaadressaat"
 
 #: services/crisalid/relators.py:886
 msgid "data manager"
-msgstr ""
+msgstr "andmehaldur"
 
 #: services/crisalid/relators.py:887
 msgid "dedicator"
-msgstr ""
+msgstr "pühendaja"
 
 #: services/crisalid/relators.py:888
 msgid "dubious author"
-msgstr ""
+msgstr "kaheldav autor"
 
 #: services/crisalid/relators.py:889
 msgid "editor of compilation"
-msgstr ""
+msgstr "kogumiku toimetaja"
 
 #: services/crisalid/relators.py:890
 msgid "editorial director"
-msgstr ""
+msgstr "peatoimetaja"
 
 #: services/crisalid/relators.py:891
 msgid "editor of moving image work"
-msgstr ""
+msgstr "audiovisuaalse teose monteerija"
 
 #: services/crisalid/relators.py:893
 msgid "engraver"
-msgstr ""
+msgstr "graveerija"
 
 #: services/crisalid/relators.py:894
 msgid "electrician"
-msgstr ""
+msgstr "elektrik"
 
 #: services/crisalid/relators.py:895
 msgid "electrotyper"
-msgstr ""
+msgstr "galvanotüüpija"
 
 #: services/crisalid/relators.py:896
 msgid "engineer"
-msgstr ""
+msgstr "insener"
 
 #: services/crisalid/relators.py:897
 msgid "enacting jurisdiction"
-msgstr ""
+msgstr "õigusakti andnud jurisdiktsioon"
 
 #: services/crisalid/relators.py:898
 msgid "etcher"
-msgstr ""
+msgstr "söövitaja"
 
 #: services/crisalid/relators.py:899
 msgid "event place"
-msgstr ""
+msgstr "sündmuse toimumiskoht"
 
 #: services/crisalid/relators.py:900
 msgid "expert"
-msgstr ""
+msgstr "ekspert"
 
 #: services/crisalid/relators.py:901
 msgid "facsimilist"
-msgstr ""
+msgstr "faksiimile valmistaja"
 
 #: services/crisalid/relators.py:902
 msgid "film distributor"
-msgstr ""
+msgstr "filmilevitaja"
 
 #: services/crisalid/relators.py:903
 msgid "field director"
-msgstr ""
+msgstr "välitööde juht"
 
 #: services/crisalid/relators.py:904
 msgid "film editor"
@@ -3166,43 +3487,43 @@ msgstr "filmi monteerija"
 
 #: services/crisalid/relators.py:905
 msgid "film director"
-msgstr ""
+msgstr "filmirežissöör"
 
 #: services/crisalid/relators.py:906
 msgid "filmmaker"
-msgstr ""
+msgstr "filmitegija"
 
 #: services/crisalid/relators.py:907
 msgid "former owner"
-msgstr ""
+msgstr "endine omanik"
 
 #: services/crisalid/relators.py:908
 msgid "film producer"
-msgstr ""
+msgstr "filmiprodutsent"
 
 #: services/crisalid/relators.py:909
 msgid "funder"
-msgstr ""
+msgstr "rahastaja"
 
 #: services/crisalid/relators.py:910
 msgid "founder"
-msgstr ""
+msgstr "asutaja"
 
 #: services/crisalid/relators.py:911
 msgid "first party"
-msgstr ""
+msgstr "esimene pool"
 
 #: services/crisalid/relators.py:912
 msgid "forger"
-msgstr ""
+msgstr "võltsija"
 
 #: services/crisalid/relators.py:913
 msgid "game developer"
-msgstr ""
+msgstr "mänguarendaja"
 
 #: services/crisalid/relators.py:914
 msgid "geographic information specialist"
-msgstr ""
+msgstr "geoinfospetsialist"
 
 #: services/crisalid/relators.py:915
 msgid "host institution"
@@ -3210,39 +3531,39 @@ msgstr "vastuvõttev asutus"
 
 #: services/crisalid/relators.py:916
 msgid "honoree"
-msgstr ""
+msgstr "austatu"
 
 #: services/crisalid/relators.py:917
 msgid "host"
-msgstr ""
+msgstr "saatejuht"
 
 #: services/crisalid/relators.py:918
 msgid "illustrator"
-msgstr ""
+msgstr "illustraator"
 
 #: services/crisalid/relators.py:919
 msgid "illuminator"
-msgstr ""
+msgstr "illuminaator"
 
 #: services/crisalid/relators.py:920
 msgid "inker"
-msgstr ""
+msgstr "tušeerija"
 
 #: services/crisalid/relators.py:921
 msgid "inscriber"
-msgstr ""
+msgstr "pühenduse kirjutaja"
 
 #: services/crisalid/relators.py:922
 msgid "inventor"
-msgstr ""
+msgstr "leiutaja"
 
 #: services/crisalid/relators.py:923
 msgid "issuing body"
-msgstr ""
+msgstr "väljaandev asutus"
 
 #: services/crisalid/relators.py:924
 msgid "instrumentalist"
-msgstr ""
+msgstr "instrumentalist"
 
 #: services/crisalid/relators.py:925
 msgid "interviewee"
@@ -3254,111 +3575,111 @@ msgstr "intervjueerija"
 
 #: services/crisalid/relators.py:927
 msgid "judge"
-msgstr ""
+msgstr "kohtunik"
 
 #: services/crisalid/relators.py:928
 msgid "jurisdiction governed"
-msgstr ""
+msgstr "asjaomane jurisdiktsioon"
 
 #: services/crisalid/relators.py:929
 msgid "laboratory"
-msgstr ""
+msgstr "labor"
 
 #: services/crisalid/relators.py:930
 msgid "librettist"
-msgstr ""
+msgstr "libretist"
 
 #: services/crisalid/relators.py:931
 msgid "laboratory director"
-msgstr ""
+msgstr "labori juhataja"
 
 #: services/crisalid/relators.py:932
 msgid "lead"
-msgstr ""
+msgstr "juht"
 
 #: services/crisalid/relators.py:933
 msgid "libelee-appellee"
-msgstr ""
+msgstr "kostja ja apellatsiooni vastustaja (mereõigus)"
 
 #: services/crisalid/relators.py:934
 msgid "libelee"
-msgstr ""
+msgstr "kostja (mereõigus)"
 
 #: services/crisalid/relators.py:935
 msgid "lender"
-msgstr ""
+msgstr "laenuandja"
 
 #: services/crisalid/relators.py:936
 msgid "libelee-appellant"
-msgstr ""
+msgstr "kostja ja apellant (mereõigus)"
 
 #: services/crisalid/relators.py:937
 msgid "lighting designer"
-msgstr ""
+msgstr "valguskunstnik"
 
 #: services/crisalid/relators.py:938
 msgid "libelant-appellee"
-msgstr ""
+msgstr "hageja ja apellatsiooni vastustaja (mereõigus)"
 
 #: services/crisalid/relators.py:939
 msgid "libelant"
-msgstr ""
+msgstr "hageja (mereõigus)"
 
 #: services/crisalid/relators.py:940
 msgid "libelant-appellant"
-msgstr ""
+msgstr "hageja ja apellant (mereõigus)"
 
 #: services/crisalid/relators.py:941
 msgid "landscape architect"
-msgstr ""
+msgstr "maastikuarhitekt"
 
 #: services/crisalid/relators.py:942
 msgid "licensee"
-msgstr ""
+msgstr "litsentsisaaja"
 
 #: services/crisalid/relators.py:943
 msgid "licensor"
-msgstr ""
+msgstr "litsentsiandja"
 
 #: services/crisalid/relators.py:944
 msgid "lithographer"
-msgstr ""
+msgstr "litograaf"
 
 #: services/crisalid/relators.py:945
 msgid "letterer"
-msgstr ""
+msgstr "tähekunstnik"
 
 #: services/crisalid/relators.py:946
 msgid "lyricist"
-msgstr ""
+msgstr "sõnade autor"
 
 #: services/crisalid/relators.py:947
 msgid "music copyist"
-msgstr ""
+msgstr "noodikopeerija"
 
 #: services/crisalid/relators.py:948
 msgid "metadata contact"
-msgstr ""
+msgstr "metaandmete kontaktisik"
 
 #: services/crisalid/relators.py:949
 msgid "medium"
-msgstr ""
+msgstr "meedium"
 
 #: services/crisalid/relators.py:950
 msgid "manufacture place"
-msgstr ""
+msgstr "valmistamiskoht"
 
 #: services/crisalid/relators.py:951
 msgid "manufacturer"
-msgstr ""
+msgstr "tootja"
 
 #: services/crisalid/relators.py:952
 msgid "makeup artist"
-msgstr ""
+msgstr "grimeerija"
 
 #: services/crisalid/relators.py:953
 msgid "moderator"
-msgstr ""
+msgstr "moderaator"
 
 #: services/crisalid/relators.py:954
 msgid "monitor"
@@ -3366,7 +3687,7 @@ msgstr "monitor"
 
 #: services/crisalid/relators.py:955
 msgid "marbler"
-msgstr ""
+msgstr "marmoreerija"
 
 #: services/crisalid/relators.py:956
 msgid "markup editor"
@@ -3374,35 +3695,35 @@ msgstr "märgistusredaktor"
 
 #: services/crisalid/relators.py:957
 msgid "musical director"
-msgstr ""
+msgstr "muusikajuht"
 
 #: services/crisalid/relators.py:958
 msgid "metal engraver"
-msgstr ""
+msgstr "metalligraveerija"
 
 #: services/crisalid/relators.py:959
 msgid "minute taker"
-msgstr ""
+msgstr "protokollija"
 
 #: services/crisalid/relators.py:960
 msgid "music programmer"
-msgstr ""
+msgstr "muusikaprogrammeerija"
 
 #: services/crisalid/relators.py:961
 msgid "musician"
-msgstr ""
+msgstr "muusik"
 
 #: services/crisalid/relators.py:962
 msgid "mixing engineer"
-msgstr ""
+msgstr "miksimisinsener"
 
 #: services/crisalid/relators.py:963
 msgid "news anchor"
-msgstr ""
+msgstr "uudisteankur"
 
 #: services/crisalid/relators.py:964
 msgid "narrator"
-msgstr ""
+msgstr "jutustaja"
 
 #: services/crisalid/relators.py:965
 msgid "onscreen participant"
@@ -3410,139 +3731,139 @@ msgstr "ekraanil osaleja"
 
 #: services/crisalid/relators.py:966
 msgid "opponent"
-msgstr ""
+msgstr "oponent"
 
 #: services/crisalid/relators.py:967
 msgid "originator"
-msgstr ""
+msgstr "algataja"
 
 #: services/crisalid/relators.py:968
 msgid "organizer"
-msgstr ""
+msgstr "korraldaja"
 
 #: services/crisalid/relators.py:969
 msgid "onscreen presenter"
-msgstr ""
+msgstr "ekraanil esineja"
 
 #: services/crisalid/relators.py:970
 msgid "other"
-msgstr ""
+msgstr "muu"
 
 #: services/crisalid/relators.py:971
 msgid "owner"
-msgstr ""
+msgstr "omanik"
 
 #: services/crisalid/relators.py:972
 msgid "place of address"
-msgstr ""
+msgstr "aadressi koht"
 
 #: services/crisalid/relators.py:973
 msgid "panelist"
-msgstr ""
+msgstr "paneeli liige"
 
 #: services/crisalid/relators.py:974
 msgid "patron"
-msgstr ""
+msgstr "metseen"
 
 #: services/crisalid/relators.py:975
 msgid "publisher director"
-msgstr ""
+msgstr "kirjastuse direktor"
 
 #: services/crisalid/relators.py:976
 msgid "publisher"
-msgstr ""
+msgstr "kirjastaja"
 
 #: services/crisalid/relators.py:977
 msgid "project director"
-msgstr ""
+msgstr "projektijuht"
 
 #: services/crisalid/relators.py:978
 msgid "proofreader"
-msgstr ""
+msgstr "korrektor"
 
 #: services/crisalid/relators.py:979
 msgid "photographer"
-msgstr ""
+msgstr "fotograaf"
 
 #: services/crisalid/relators.py:980
 msgid "platemaker"
-msgstr ""
+msgstr "trükiplaatide valmistaja"
 
 #: services/crisalid/relators.py:981
 msgid "permitting agency"
-msgstr ""
+msgstr "loa andja asutus"
 
 #: services/crisalid/relators.py:982
 msgid "production manager"
-msgstr ""
+msgstr "tootmisjuht"
 
 #: services/crisalid/relators.py:983
 msgid "penciller"
-msgstr ""
+msgstr "pliiatsijoonistaja"
 
 #: services/crisalid/relators.py:984
 msgid "printer of plates"
-msgstr ""
+msgstr "tahvlite trükkija"
 
 #: services/crisalid/relators.py:985
 msgid "papermaker"
-msgstr ""
+msgstr "paberivalmistaja"
 
 #: services/crisalid/relators.py:986
 msgid "puppeteer"
-msgstr ""
+msgstr "nukunäitleja"
 
 #: services/crisalid/relators.py:987
 msgid "praeses"
-msgstr ""
+msgstr "praeses"
 
 #: services/crisalid/relators.py:988
 msgid "process contact"
-msgstr ""
+msgstr "protsessi kontaktisik"
 
 #: services/crisalid/relators.py:989
 msgid "production personnel"
-msgstr ""
+msgstr "tootmispersonal"
 
 #: services/crisalid/relators.py:990
 msgid "presenter"
-msgstr ""
+msgstr "esitleja"
 
 #: services/crisalid/relators.py:991
 msgid "performer"
-msgstr ""
+msgstr "esitaja"
 
 #: services/crisalid/relators.py:992
 msgid "programmer"
-msgstr ""
+msgstr "programmeerija"
 
 #: services/crisalid/relators.py:993
 msgid "printmaker"
-msgstr ""
+msgstr "graafik"
 
 #: services/crisalid/relators.py:994
 msgid "production company"
-msgstr ""
+msgstr "tootmisettevõte"
 
 #: services/crisalid/relators.py:995
 msgid "producer"
-msgstr ""
+msgstr "produtsent"
 
 #: services/crisalid/relators.py:996
 msgid "production place"
-msgstr ""
+msgstr "tootmiskoht"
 
 #: services/crisalid/relators.py:997
 msgid "production designer"
-msgstr ""
+msgstr "lavastuskunstnik"
 
 #: services/crisalid/relators.py:998
 msgid "printer"
-msgstr ""
+msgstr "trükkal"
 
 #: services/crisalid/relators.py:999
 msgid "provider"
-msgstr ""
+msgstr "pakkuja"
 
 #: services/crisalid/relators.py:1000
 msgid "patent applicant"
@@ -3550,19 +3871,19 @@ msgstr "patenditaotleja"
 
 #: services/crisalid/relators.py:1001
 msgid "plaintiff-appellee"
-msgstr ""
+msgstr "hageja ja apellatsiooni vastustaja"
 
 #: services/crisalid/relators.py:1002
 msgid "plaintiff"
-msgstr ""
+msgstr "hageja"
 
 #: services/crisalid/relators.py:1003
 msgid "patent holder"
-msgstr ""
+msgstr "patendiomanik"
 
 #: services/crisalid/relators.py:1004
 msgid "plaintiff-appellant"
-msgstr ""
+msgstr "hageja ja apellant"
 
 #: services/crisalid/relators.py:1005
 msgid "publication place"
@@ -3570,43 +3891,43 @@ msgstr "ilmumiskoht"
 
 #: services/crisalid/relators.py:1006
 msgid "rapporteur"
-msgstr ""
+msgstr "ettekandja"
 
 #: services/crisalid/relators.py:1007
 msgid "rubricator"
-msgstr ""
+msgstr "rubrikaator"
 
 #: services/crisalid/relators.py:1008
 msgid "recordist"
-msgstr ""
+msgstr "helisalvestaja"
 
 #: services/crisalid/relators.py:1009
 msgid "recording engineer"
-msgstr ""
+msgstr "salvestusinsener"
 
 #: services/crisalid/relators.py:1010
 msgid "addressee"
-msgstr ""
+msgstr "adressaat"
 
 #: services/crisalid/relators.py:1011
 msgid "radio director"
-msgstr ""
+msgstr "raadiorežissöör"
 
 #: services/crisalid/relators.py:1012
 msgid "redaktor"
-msgstr ""
+msgstr "toimetaja"
 
 #: services/crisalid/relators.py:1013
 msgid "renderer"
-msgstr ""
+msgstr "visualiseerija"
 
 #: services/crisalid/relators.py:1014
 msgid "researcher"
-msgstr ""
+msgstr "teadur"
 
 #: services/crisalid/relators.py:1016
 msgid "radio producer"
-msgstr ""
+msgstr "raadioprodutsent"
 
 #: services/crisalid/relators.py:1017
 msgid "repository"
@@ -3614,251 +3935,251 @@ msgstr "repositoorium"
 
 #: services/crisalid/relators.py:1018
 msgid "reporter"
-msgstr ""
+msgstr "reporter"
 
 #: services/crisalid/relators.py:1019
 msgid "responsible party"
-msgstr ""
+msgstr "vastutav pool"
 
 #: services/crisalid/relators.py:1020
 msgid "respondent-appellee"
-msgstr ""
+msgstr "vastustaja ja apellatsiooni vastustaja"
 
 #: services/crisalid/relators.py:1021
 msgid "restager"
-msgstr ""
+msgstr "uuslavastaja"
 
 #: services/crisalid/relators.py:1022
 msgid "respondent"
-msgstr ""
+msgstr "vastustaja"
 
 #: services/crisalid/relators.py:1023
 msgid "restorationist"
-msgstr ""
+msgstr "restauraator"
 
 #: services/crisalid/relators.py:1024
 msgid "respondent-appellant"
-msgstr ""
+msgstr "vastustaja ja apellant"
 
 #: services/crisalid/relators.py:1025
 msgid "research team head"
-msgstr ""
+msgstr "uurimisrühma juht"
 
 #: services/crisalid/relators.py:1026
 msgid "research team member"
-msgstr ""
+msgstr "uurimisrühma liige"
 
 #: services/crisalid/relators.py:1027
 msgid "remix artist"
-msgstr ""
+msgstr "remiksija"
 
 #: services/crisalid/relators.py:1028
 msgid "scientific advisor"
-msgstr ""
+msgstr "teaduslik nõustaja"
 
 #: services/crisalid/relators.py:1029
 msgid "scenarist"
-msgstr ""
+msgstr "stsenarist"
 
 #: services/crisalid/relators.py:1030
 msgid "sculptor"
-msgstr ""
+msgstr "skulptor"
 
 #: services/crisalid/relators.py:1031
 msgid "scribe"
-msgstr ""
+msgstr "kirjutaja"
 
 #: services/crisalid/relators.py:1032
 msgid "sound engineer"
-msgstr ""
+msgstr "helirežissöör"
 
 #: services/crisalid/relators.py:1033
 msgid "sound designer"
-msgstr ""
+msgstr "helikujundaja"
 
 #: services/crisalid/relators.py:1034
 msgid "secretary"
-msgstr ""
+msgstr "sekretär"
 
 #: services/crisalid/relators.py:1035
 msgid "special effects provider"
-msgstr ""
+msgstr "eriefektide tegija"
 
 #: services/crisalid/relators.py:1036
 msgid "stage director"
-msgstr ""
+msgstr "lavastaja"
 
 #: services/crisalid/relators.py:1037
 msgid "signer"
-msgstr ""
+msgstr "allkirjastaja"
 
 #: services/crisalid/relators.py:1038
 msgid "supporting host"
-msgstr ""
+msgstr "kaassaatejuht"
 
 #: services/crisalid/relators.py:1039
 msgid "seller"
-msgstr ""
+msgstr "müüja"
 
 #: services/crisalid/relators.py:1040
 msgid "singer"
-msgstr ""
+msgstr "laulja"
 
 #: services/crisalid/relators.py:1041
 msgid "speaker"
-msgstr ""
+msgstr "kõneleja"
 
 #: services/crisalid/relators.py:1042
 msgid "sponsor"
-msgstr ""
+msgstr "sponsor"
 
 #: services/crisalid/relators.py:1043
 msgid "second party"
-msgstr ""
+msgstr "teine pool"
 
 #: services/crisalid/relators.py:1044
 msgid "surveyor"
-msgstr ""
+msgstr "maamõõtja"
 
 #: services/crisalid/relators.py:1045
 msgid "set designer"
-msgstr ""
+msgstr "stsenograaf"
 
 #: services/crisalid/relators.py:1046
 msgid "setting"
-msgstr ""
+msgstr "tegevuspaik"
 
 #: services/crisalid/relators.py:1047
 msgid "storyteller"
-msgstr ""
+msgstr "jutuvestja"
 
 #: services/crisalid/relators.py:1048
 msgid "stage manager"
-msgstr ""
+msgstr "inspitsient"
 
 #: services/crisalid/relators.py:1049
 msgid "standards body"
-msgstr ""
+msgstr "standardiorganisatsioon"
 
 #: services/crisalid/relators.py:1050
 msgid "stereotyper"
-msgstr ""
+msgstr "stereotüüpija"
 
 #: services/crisalid/relators.py:1051
 msgid "software developer"
-msgstr ""
+msgstr "tarkvaraarendaja"
 
 #: services/crisalid/relators.py:1052
 msgid "technical advisor"
-msgstr ""
+msgstr "tehniline nõustaja"
 
 #: services/crisalid/relators.py:1053
 msgid "television writer"
-msgstr ""
+msgstr "telestsenarist"
 
 #: services/crisalid/relators.py:1054
 msgid "technical director"
-msgstr ""
+msgstr "tehniline juht"
 
 #: services/crisalid/relators.py:1055
 msgid "teacher"
-msgstr ""
+msgstr "õpetaja"
 
 #: services/crisalid/relators.py:1056
 msgid "thesis advisor"
-msgstr ""
+msgstr "väitekirja juhendaja"
 
 #: services/crisalid/relators.py:1057
 msgid "television director"
-msgstr ""
+msgstr "telerežissöör"
 
 #: services/crisalid/relators.py:1058
 msgid "television guest"
-msgstr ""
+msgstr "telekülaline"
 
 #: services/crisalid/relators.py:1059
 msgid "television host"
-msgstr ""
+msgstr "telesaatejuht"
 
 #: services/crisalid/relators.py:1060
 msgid "television producer"
-msgstr ""
+msgstr "teleprodutsent"
 
 #: services/crisalid/relators.py:1061
 msgid "transcriber"
-msgstr ""
+msgstr "transkribeerija"
 
 #: services/crisalid/relators.py:1062
 msgid "translator"
-msgstr ""
+msgstr "tõlkija"
 
 #: services/crisalid/relators.py:1063
 msgid "type designer"
-msgstr ""
+msgstr "kirjatüübi kujundaja"
 
 #: services/crisalid/relators.py:1064
 msgid "typographer"
-msgstr ""
+msgstr "tüpograaf"
 
 #: services/crisalid/relators.py:1065
 msgid "university place"
-msgstr ""
+msgstr "ülikooli asukoht"
 
 #: services/crisalid/relators.py:1066
 msgid "voice actor"
-msgstr ""
+msgstr "häälnäitleja"
 
 #: services/crisalid/relators.py:1067
 msgid "videographer"
-msgstr ""
+msgstr "videograaf"
 
 #: services/crisalid/relators.py:1068
 msgid "visual effects provider"
-msgstr ""
+msgstr "visuaalefektide tegija"
 
 #: services/crisalid/relators.py:1069
 msgid "vocalist"
-msgstr ""
+msgstr "vokalist"
 
 #: services/crisalid/relators.py:1070
 msgid "writer of added commentary"
-msgstr ""
+msgstr "lisatud kommentaari autor"
 
 #: services/crisalid/relators.py:1071
 msgid "writer of added lyrics"
-msgstr ""
+msgstr "lisatud laulusõnade autor"
 
 #: services/crisalid/relators.py:1072
 msgid "writer of accompanying material"
-msgstr ""
+msgstr "kaasneva materjali autor"
 
 #: services/crisalid/relators.py:1073
 msgid "writer of added text"
-msgstr ""
+msgstr "lisatud teksti autor"
 
 #: services/crisalid/relators.py:1074
 msgid "writer of afterword"
-msgstr ""
+msgstr "järelsõna autor"
 
 #: services/crisalid/relators.py:1075
 msgid "woodcutter"
-msgstr ""
+msgstr "puulõikaja"
 
 #: services/crisalid/relators.py:1076
 msgid "wood engraver"
-msgstr ""
+msgstr "puugraveerija"
 
 #: services/crisalid/relators.py:1077
 msgid "writer of film story"
-msgstr ""
+msgstr "filmiloo autor"
 
 #: services/crisalid/relators.py:1078
 msgid "writer of intertitles"
-msgstr ""
+msgstr "vahetiitrite autor"
 
 #: services/crisalid/relators.py:1079
 msgid "writer of foreword"
-msgstr ""
+msgstr "eessõna autor"
 
 #: services/crisalid/relators.py:1080
 msgid "writer of introduction"
@@ -3866,19 +4187,19 @@ msgstr "sissejuhatuse kirjutaja"
 
 #: services/crisalid/relators.py:1081
 msgid "witness"
-msgstr ""
+msgstr "tunnistaja"
 
 #: services/crisalid/relators.py:1082
 msgid "writer of preface"
-msgstr ""
+msgstr "eessõna autor"
 
 #: services/crisalid/relators.py:1083
 msgid "writer of supplementary textual content"
-msgstr ""
+msgstr "täiendava tekstisisu autor"
 
 #: services/crisalid/relators.py:1084
 msgid "writer of television story"
-msgstr ""
+msgstr "teleloo autor"
 
 #: services/google/exceptions.py:7
 msgid "This email is already used by another group"
@@ -4375,16 +4696,13 @@ msgid "The given queryset does not match the related model"
 msgstr "Antud päringu tulemus ei vasta seotud mudelile"
 
 #: services/openalex/exceptions.py:10
-#, fuzzy
-#| msgid "Wikipedia API error"
-msgid "openlaex API error"
-msgstr "Wikipedia API viga"
+msgid "OpenAlex API error"
+msgstr "OpenAlexi API viga"
 
 #: services/openalex/exceptions.py:15
-#, fuzzy, python-brace-format
-#| msgid "Wikipedia API returned {status_code}"
-msgid "openlaex API returned {status_code}"
-msgstr "Wikipedia API tagastas {status_code}"
+#, python-brace-format
+msgid "OpenAlex API returned {status_code}"
+msgstr "OpenAlexi API tagastas {status_code}"
 
 #: services/wikipedia/exceptions.py:10
 msgid "Wikipedia API error"
@@ -4411,15 +4729,3 @@ msgstr "Autoriõigus"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Kõik õigused kaitstud."
-
-#~ msgid "Book Review"
-#~ msgstr "Raamatuarvustus"
-
-#~ msgid "Editorial"
-#~ msgstr "Juhtkiri"
-
-#~ msgid "Peer review"
-#~ msgstr "Eelretsenseerimine"
-
-#~ msgid "Review Paper"
-#~ msgstr "Ülevaateartikkel"
