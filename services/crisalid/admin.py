@@ -26,14 +26,23 @@ from services.crisalid.tasks import (
     vectorize_documents,
     vectorize_researchers,
 )
+from services.crisalid.utils.structures import (
+    sync_group_members,
+    sync_structures,
+    with_ancestors,
+)
 
 from .models import (
+    AuthorityOrganization,
     CrisalidConfig,
     Document,
     DocumentContributor,
     Identifier,
     Journal,
     Researcher,
+    ResearcherStructure,
+    Structure,
+    StructureRelation,
 )
 
 logger = logging.getLogger(__name__)
@@ -304,6 +313,11 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
                 notfound += 1
 
         Researcher.objects.bulk_update(researcher_updated, fields=["user"])
+        # new users are now members of their structures groups
+        for structure in with_ancestors(
+            Structure.objects.filter(researchers__in=researcher_updated).distinct()
+        ):
+            sync_group_members(structure)
 
         if assigned:
             messages.add_message(request, messages.INFO, f"Assign {assigned} user.")
@@ -331,11 +345,83 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         return None
 
 
+class StructureRelationAdminInline(admin.TabularInline):
+    model = StructureRelation
+    fk_name = "structure"
+    extra = 0
+    autocomplete_fields = ("related_structure",)
+
+
+class ResearcherStructureAdminInline(admin.TabularInline):
+    model = ResearcherStructure
+    extra = 0
+    autocomplete_fields = ("researcher",)
+
+
+@admin.register(Structure)
+class StructureAdmin(IdentifierAdminMixin, admin.ModelAdmin):
+    list_display = (
+        "name",
+        "acronym",
+        "generic_type",
+        "national_type",
+        "organization",
+        "get_researchers",
+        "get_identifiers",
+    )
+    list_filter = ("generic_type", "organization")
+    search_fields = (
+        "name",
+        "acronym",
+        "crisalid_uid",
+        "identifiers__value",
+    )
+    autocomplete_fields = ("organization", "people_group")
+    inlines = (StructureRelationAdminInline, ResearcherStructureAdminInline)
+    actions = ("sync_groups",)
+
+    @admin.action(description="sync people groups (creation, parents and members)")
+    def sync_groups(self, request, queryset):
+        sync_structures(queryset.select_related("organization", "people_group"))
+        messages.add_message(
+            request, messages.INFO, f"{queryset.count()} structures synced."
+        )
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("organization")
+            .prefetch_related("identifiers")
+            .annotate(identifiers_count=Count("identifiers", distinct=True))
+            .annotate(researchers_count=Count("researchers", distinct=True))
+        )
+
+    @admin.display(description="researchers count", ordering="researchers_count")
+    def get_researchers(self, instance):
+        return instance.researchers_count
+
+
+@admin.register(AuthorityOrganization)
+class AuthorityOrganizationAdmin(IdentifierAdminMixin, admin.ModelAdmin):
+    list_display = ("name", "type", "get_identifiers")
+    list_filter = ("type",)
+    search_fields = ("name", "crisalid_uid", "identifiers__value")
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related("identifiers")
+            .annotate(identifiers_count=Count("identifiers", distinct=True))
+        )
+
+
 @admin.register(CrisalidConfig)
 class CrisalidConfigAdmin(admin.ModelAdmin):
     list_display = ("pk", "get_organization", "active")
     search_fields = ("organization__code", "active")
-    autocomplete_fields = ("organization",)
+    autocomplete_fields = ("organization", "structures_groups_root")
     actions = ("active_connections", "deactive_connections")
 
     @admin.action(description="run/reload crisalidbus connections")

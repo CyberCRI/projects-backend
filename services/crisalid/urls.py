@@ -13,6 +13,7 @@ from services.crisalid.views import (
     GroupPublicationViewSet,
     PublicationViewSet,
     ResearcherViewSet,
+    StructureViewSet,
 )
 
 researcher_router = DefaultRouter()
@@ -23,6 +24,10 @@ organization_router_register(
 
 organization_router_register(
     researcher_router, r"document", DocumentViewSet, basename="CrisalidDocument"
+)
+
+organization_router_register(
+    researcher_router, r"structure", StructureViewSet, basename="Structure"
 )
 
 organization_researcher_router_register(

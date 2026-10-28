@@ -1,11 +1,14 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from apps.accounts.models import ProjectUser
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.commons.fields import PrivacySettingProtectedMethodField
 from apps.commons.serializers import PrivacySerializer
 from apps.modules.serializers import ModulesSerializers
+from apps.skills.models import Tag
 from apps.skills.serializers import TagSerializer
 from services.crisalid.models import (
+    AuthorityOrganization,
     Award,
     Document,
     DocumentDomains,
@@ -15,6 +18,9 @@ from services.crisalid.models import (
     Patent,
     Researcher,
     ResearcherDomains,
+    ResearcherStructure,
+    Structure,
+    StructureRelation,
 )
 from services.translator.serializers import auto_translated
 
@@ -174,3 +180,109 @@ class AwardSerializer(serializers.ModelSerializer):
             "date",
             "link",
         )
+class StructurePeopleGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeopleGroup
+        fields = ("id", "slug", "name")
+
+
+class StructureLightSerializer(serializers.ModelSerializer):
+    people_group = StructurePeopleGroupSerializer(read_only=True)
+
+    class Meta:
+        model = Structure
+        fields = (
+            "id",
+            "crisalid_uid",
+            "name",
+            "acronym",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+        )
+
+
+class SupervisingInstitutionSerializer(serializers.ModelSerializer):
+    structure = StructureLightSerializer(source="related_structure", read_only=True)
+
+    class Meta:
+        model = StructureRelation
+        fields = ("position", "start_date", "end_date", "structure")
+
+
+class StructureSerializer(ModulesSerializers, serializers.ModelSerializer):
+    people_group = StructurePeopleGroupSerializer(read_only=True)
+    supervising_institutions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Structure
+        fields = (
+            "id",
+            "crisalid_uid",
+            "name",
+            "acronym",
+            "description",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+            "supervising_institutions",
+            "modules",
+        )
+
+    @extend_schema_field(SupervisingInstitutionSerializer(many=True))
+    def get_supervising_institutions(self, instance: Structure) -> list[dict]:
+        modules = instance.modules_by_user(
+            self.context["request"].user, self.context.get("organization")
+        )
+        return SupervisingInstitutionSerializer(
+            modules.supervising_institutions(), many=True
+        ).data
+
+
+class ResearchDomainSerializer(serializers.ModelSerializer):
+    documents_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Tag
+        fields = (
+            "id",
+            "type",
+            "secondary_type",
+            "title",
+            "description",
+            "documents_count",
+        )
+
+
+class CollaborationSerializer(serializers.ModelSerializer):
+    identifiers = IdentifierSerializer(many=True, read_only=True)
+    documents_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = AuthorityOrganization
+        fields = ("id", "name", "type", "identifiers", "documents_count")
+
+
+class StructureResearcherSerializer(serializers.ModelSerializer):
+    """researcher of a structure, with its position (annotated in structure modules)"""
+
+    user = ProjectUserMinimalSerializer(read_only=True)
+    position_code = serializers.CharField(read_only=True, allow_null=True)
+    position = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Researcher
+        fields = ("id", "display_name", "user", "position_code", "position")
+
+    def get_position(self, instance: Researcher) -> str | None:
+        code = getattr(instance, "position_code", None)
+        if not code:
+            return None
+        if code in ResearcherStructure.PositionCode:
+            return str(ResearcherStructure.PositionCode(code).label)
+        # unknown code from crisalid
+        return code
