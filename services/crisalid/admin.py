@@ -15,7 +15,7 @@ from django.views.generic import TemplateView
 
 from apps.accounts.models import ProjectUser
 from apps.commons.admin import ExtraAdminMixins, TranslateObjectAdminMixin
-from services.crisalid.models.award import Award
+from services.crisalid.models.award import AwardContributor
 from services.crisalid.models.document import DocumentDomains, DocumentJournal
 from services.crisalid.models.patent import Patent
 from services.crisalid.models.researcher import ResearcherDomains
@@ -176,7 +176,7 @@ class ResearcherPatentInline(admin.StackedInline):
 
 
 class ResearcherAwardInline(admin.StackedInline):
-    model = Award
+    model = AwardContributor
     extra = 0
 
 
