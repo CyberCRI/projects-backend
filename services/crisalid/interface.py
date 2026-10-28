@@ -70,43 +70,43 @@ class CrisalidService:
             raise ValueError(f"Multiple people found for UID: {uid}")
         return response["people"][0]
 
-    def textual_documents(
+    def documents(
         self, limit: int = 100, offset: int = 0, **kwargs
     ) -> tuple[list[dict[str, Any]], int | None]:
         """
-        Get a list of textual documents from the Crisalid API.
+        Get a list of documents from the Crisalid API.
 
         Args:
-            - limit (int): The number of textual documents to return.
-            - offset (int): The number of textual documents to skip.
+            - limit (int): The number of documents to return.
+            - offset (int): The number of documents to skip.
             - kwargs: Additional query parameters.
 
         Returns:
-            - Tuple[List[Dict[str, Any]], int | None]: The list of textual documents
-                and the next page offset.
+            - Tuple[List[Dict[str, Any]], int | None]: The list of documents and the
+                next page offset.
         """
-        response = self.query("textual_documents", limit=limit, offset=offset, **kwargs)
-        count = response["textualDocumentsAggregate"]["count"]
+        response = self.query("documents", limit=limit, offset=offset, **kwargs)
+        count = response["documentsAggregate"]["count"]
         next_page = offset + limit if offset + limit < count else None
-        return response["textualDocuments"], next_page
+        return response["documents"], next_page
 
-    def textual_document(self, uid: str) -> dict[str, Any]:
+    def document(self, uid: str) -> dict[str, Any]:
         """
-        Get a textual document from the Crisalid API.
+        Get a document from the Crisalid API.
 
         Args:
-            - uid (str): The UID of the textual document.
+            - uid (str): The UID of the document.
 
         Returns:
-            - Dict[str, Any]: The textual document.
+            - Dict[str, Any]: The document.
         """
-        response = self.query("textual_documents", where={"uid_EQ": uid})
-        total = response["textualDocumentsAggregate"]["count"]
+        response = self.query("documents", where={"uid_EQ": uid})
+        total = response["documentsAggregate"]["count"]
         if total == 0:
             return None
         if total > 1:
-            raise ValueError(f"Multiple textual documents found for UID: {uid}")
-        return response["textualDocuments"][0]
+            raise ValueError(f"Multiple documents found for UID: {uid}")
+        return response["documents"][0]
 
     def structures(
         self, limit: int = 100, offset: int = 0, **kwargs

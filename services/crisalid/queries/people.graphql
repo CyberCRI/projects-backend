@@ -1,4 +1,7 @@
 query PopulateFromCrisalid($limit: Int, $offset: Int, $where: PersonWhere) {
+  peopleAggregate(where: $where) {
+    count
+  }
   people(limit: $limit, offset: $offset, where: $where) {
     uid
     display_name
