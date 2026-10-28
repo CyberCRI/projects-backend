@@ -14,12 +14,13 @@ class CrisalidTypeEnum(enum.StrEnum):
 
 class CrisalidEventEnum(enum.StrEnum):
     """Event from crisalid
-    "unchanged" event is ignored
+    "unchanged" event is only used for people (memberships/employments changes)
     """
 
     UPDATED = "updated"
     CREATED = "created"
     DELETED = "deleted"
+    UNCHANGED = "unchanged"
 
 
 # schema received from crisalid

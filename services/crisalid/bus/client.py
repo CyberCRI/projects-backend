@@ -32,6 +32,9 @@ class CrisalidBusClient:
             "documents.document",
         )
         for event in CrisalidEventEnum
+        # "unchanged" events are sent for every person/structure/document on each import,
+        # only people ones are needed (memberships/employments changes)
+        if event != CrisalidEventEnum.UNCHANGED or entity == "people.person"
     ]
 
     def __init__(self, config: CrisalidConfig):
