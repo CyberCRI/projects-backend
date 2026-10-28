@@ -16,6 +16,7 @@ from services.crisalid.views import (
     PatentViewSet,
     PublicationViewSet,
     ResearcherViewSet,
+    StructureViewSet,
     TeachingViewSet,
 )
 
@@ -39,8 +40,13 @@ organization_router_register(
 organization_router_register(
     researcher_router, r"teaching", TeachingViewSet, basename="CrisalidTeaching"
 )
+
 organization_router_register(
     researcher_router, r"funding", FundingViewSet, basename="CrisalidFunding"
+)
+
+organization_router_register(
+    researcher_router, r"structure", StructureViewSet, basename="Structure"
 )
 
 organization_researcher_router_register(
