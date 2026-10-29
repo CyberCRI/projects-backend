@@ -5,13 +5,13 @@ from apps.modules.base import AbstractModules, ignore_method, register_module
 from services.crisalid.constants import RolesCentralized
 from services.crisalid.models import (
     Document,
+    DocumentJournal,
     DocumentTypeCentralized,
     Researcher,
-    patent,
+    ResearcherDomains,
 )
-from services.crisalid.models.award import Award
-from services.crisalid.models.document import DocumentJournal
-from services.crisalid.models.researcher import ResearcherDomains
+from services.crisalid.models.award import AwardContributor
+from services.crisalid.models.patent import PatentContributor
 
 
 @register_module(Researcher)
@@ -71,8 +71,8 @@ class ResearcherModules(AbstractModules):
     def domains(self) -> BaseManager[ResearcherDomains]:
         return self.instance.researcher_domains.all()
 
-    def patents(self) -> BaseManager[patent]:
-        return self.instance.patents.all()
+    def patents(self) -> BaseManager[PatentContributor]:
+        return self.instance.patents_conributor.all()
 
-    def awards(self) -> BaseManager[Award]:
-        return self.instance.awards.all()
+    def awards(self) -> BaseManager[AwardContributor]:
+        return self.instance.awards_conributor.all()

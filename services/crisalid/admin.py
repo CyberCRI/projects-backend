@@ -8,6 +8,8 @@ from django.contrib import admin, messages
 from django.contrib.admin.widgets import AdminFileWidget
 from django.core.exceptions import ValidationError
 from django.db.models import Count
+from django.db.models.query import QuerySet
+from django.http import HttpRequest
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.html import format_html
@@ -15,9 +17,9 @@ from django.views.generic import TemplateView
 
 from apps.accounts.models import ProjectUser
 from apps.commons.admin import ExtraAdminMixins, TranslateObjectAdminMixin
-from services.crisalid.models.award import AwardContributor
+from services.crisalid.models.award import Award, AwardContributor
 from services.crisalid.models.document import DocumentDomains, DocumentJournal
-from services.crisalid.models.patent import Patent
+from services.crisalid.models.patent import Patent, PatentContributor
 from services.crisalid.models.researcher import ResearcherDomains
 from services.crisalid.tasks import (
     load_apollo_data,
@@ -165,13 +167,51 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Model
         return instance.citations_count
 
 
+@admin.register(Award)
+class AwardAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
+    list_display = ("pk", "name", "get_researcher")
+    search_fields = ("name", "description")
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(ann_researcher_count=Count("researchers"))
+        )
+
+    @admin.display(
+        ordering="ann_researcher_count", description="number of researcher(s)"
+    )
+    def get_researcher(self, instance: Award):
+        return instance.ann_researcher_count
+
+
+@admin.register(Patent)
+class PatentAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
+    list_display = ("pk", "name", "get_researcher")
+    search_fields = ("name", "description")
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(ann_researcher_count=Count("researchers"))
+        )
+
+    @admin.display(
+        ordering="ann_researcher_count", description="number of researcher(s)"
+    )
+    def get_researcher(self, instance: Award):
+        return instance.ann_researcher_count
+
+
 class ResearcherDomainsAdminInline(admin.StackedInline):
     model = ResearcherDomains
     extra = 0
 
 
 class ResearcherPatentInline(admin.StackedInline):
-    model = Patent
+    model = PatentContributor
     extra = 0
 
 

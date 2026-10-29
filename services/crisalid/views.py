@@ -21,7 +21,7 @@ from apps.commons.views import (
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
 )
-from services.crisalid.filters import AwardFilter, PatentFilter
+from services.crisalid.filters import AwardContributorFilter, PatentContributorFilter
 from services.crisalid.models import (
     Document,
     DocumentContributor,
@@ -31,11 +31,11 @@ from services.crisalid.models import (
 )
 from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
-    AwardSerializer,
+    AwardContributorSerializer,
     CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
-    PatentSerializer,
+    PatentContributorSerializer,
     ResearcherSerializer,
 )
 from services.crisalid.utils.bio import generate_bio_from_researcher
@@ -374,6 +374,90 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
             ),
         ],
     ),
+    affiliated=extend_schema(
+        description="return affiliated list of researchers.",
+        responses=ResearcherSerializer(many=True),
+    ),
+    similars=extend_schema(
+        description="return similars list of researchers.",
+        responses=ResearcherSerializer(many=True),
+    ),
+    bio_ia=extend_schema(
+        description="return description generate by ia.",
+        parameters=[
+            OpenApiParameter(
+                name="minial",
+                description="return a short description",
+                required=False,
+                type=bool,
+            )
+        ],
+        responses=str,
+    ),
+    citations=extend_schema(
+        description="return all journal citations where researcher is cited.",
+        responses=CitationSerializer(many=True),
+    ),
+    patents=extend_schema(
+        description="return patents of researcher",
+        responses=PatentContributorSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+        ],
+    ),
+    awards=extend_schema(
+        description="return awards of researcher",
+        responses=AwardContributorSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+        ],
+    ),
 )
 class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
@@ -476,7 +560,7 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
             request.user, self.organization
         ).patents()
 
-        filterset = PatentFilter(
+        filterset = PatentContributorFilter(
             data=request.query_params,
             queryset=patents_qs,
             request=request,
@@ -489,7 +573,7 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         paginated_qs = self.paginate_queryset(patents_qs)
 
         return self.get_paginated_response(
-            PatentSerializer(
+            PatentContributorSerializer(
                 paginated_qs, many=True, context=self.get_serializer_context()
             ).data
         )
@@ -499,7 +583,7 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         researcher = self.get_object()
         awards_qs = researcher.modules_by_user(request.user, self.organization).awards()
 
-        filterset = AwardFilter(
+        filterset = AwardContributorFilter(
             data=request.query_params,
             queryset=awards_qs,
             request=request,
@@ -512,7 +596,7 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         paginated_qs = self.paginate_queryset(awards_qs)
 
         return self.get_paginated_response(
-            AwardSerializer(
+            AwardContributorSerializer(
                 paginated_qs, many=True, context=self.get_serializer_context()
             ).data
         )

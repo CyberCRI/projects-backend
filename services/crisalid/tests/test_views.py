@@ -11,7 +11,7 @@ from services.crisalid.factories import (
     DocumentContributorFactory,
     DocumentFactory,
     DocumentJournalFactory,
-    PatentFactory,
+    PatentContributorFactory,
     ResearcherFactory,
 )
 from services.crisalid.models import DocumentTypeCentralized
@@ -383,9 +383,9 @@ class TestResearcherView(JwtAPITestCase):
         self.assertEqual(response.data, bio)
 
     def test_get_patents(self):
-        patent = PatentFactory(researcher=self.researcher)
-        patent_2 = PatentFactory(researcher=self.researcher)
-        PatentFactory(researcher=self.researcher_2)
+        patent = PatentContributorFactory(researcher=self.researcher)
+        patent_2 = PatentContributorFactory(researcher=self.researcher)
+        PatentContributorFactory(researcher=self.researcher_2)
 
         response = self.client.get(
             reverse(

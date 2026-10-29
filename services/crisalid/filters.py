@@ -1,40 +1,44 @@
 from django_filters import rest_framework as filters
 
-from services.crisalid.models.award import Award
-from services.crisalid.models.patent import Patent
+from services.crisalid.models.award import AwardContributor
+from services.crisalid.models.patent import PatentContributor
 
 
-class PatentFilter(filters.FilterSet):
-    name = filters.CharFilter(lookup_expr="icontains", label="Search by name")
+class PatentContributorFilter(filters.FilterSet):
+    name = filters.CharFilter(
+        lookup_expr="icontains", label="Search by name", field_name="patent__name"
+    )
 
     description = filters.CharFilter(
-        lookup_expr="icontains", label="Search by description"
+        lookup_expr="icontains",
+        label="Search by description",
+        field_name="patent__desription",
     )
 
     date = filters.DateFromToRangeFilter(label="Date period")
 
     class Meta:
-        model = Patent
+        model = PatentContributor
         fields = {
-            "name": ["icontains", "exact"],
-            "description": ["icontains", "exact"],
             "date": ["gte", "lte", "exact"],
         }
 
 
-class AwardFilter(filters.FilterSet):
-    name = filters.CharFilter(lookup_expr="icontains", label="Search by name")
+class AwardContributorFilter(filters.FilterSet):
+    name = filters.CharFilter(
+        lookup_expr="icontains", label="Search by name", field_name="award__name"
+    )
 
     description = filters.CharFilter(
-        lookup_expr="icontains", label="Search by description"
+        lookup_expr="icontains",
+        label="Search by description",
+        field_name="award__description",
     )
 
     date = filters.DateFromToRangeFilter(label="Date period")
 
     class Meta:
-        model = Award
+        model = AwardContributor
         fields = {
-            "name": ["icontains", "exact"],
-            "description": ["icontains", "exact"],
             "date": ["gte", "lte", "exact"],
         }

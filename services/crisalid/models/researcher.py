@@ -11,6 +11,7 @@ from apps.skills.models import Tag
 from services.crisalid.manager import CrisalidQuerySet
 from services.crisalid.models.award import Award, AwardContributor
 from services.crisalid.models.indentifier import Identifier
+from services.crisalid.models.patent import Patent, PatentContributor
 from services.translator.mixins import HasAutoTranslatedFields
 
 
@@ -84,6 +85,10 @@ class Researcher(
 
     awards = models.ManyToManyField(
         Award, through=AwardContributor, related_name="researchers"
+    )
+
+    patents = models.ManyToManyField(
+        Patent, through=PatentContributor, related_name="researchers"
     )
 
     objects = CrisalidQuerySet.as_manager()

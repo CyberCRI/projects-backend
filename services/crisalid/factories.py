@@ -8,7 +8,7 @@ from services.crisalid import relators
 from services.crisalid.models.award import Award
 from services.crisalid.models.document import DocumentJournal
 from services.crisalid.models.journal import Journal
-from services.crisalid.models.patent import Patent
+from services.crisalid.models.patent import Patent, PatentContributor
 
 from .models import (
     AwardContributor,
@@ -114,19 +114,24 @@ class DocumentJournalFactory(factory.django.DjangoModelFactory):
 class PatentFactory(factory.django.DjangoModelFactory):
     name = faker.sentences(2)
     description = faker.text()
-    date = faker.date()
-    link = faker.url()
-    researcher = factory.LazyFunction(lambda: ResearcherFactory())
 
     class Meta:
         model = Patent
 
 
+class PatentContributorFactory(factory.django.DjangoModelFactory):
+    researcher = factory.LazyFunction(lambda: ResearcherFactory())
+    patent = factory.LazyFunction(lambda: PatentFactory())
+    date = faker.date()
+    link = faker.url()
+
+    class Meta:
+        model = PatentContributor
+
+
 class AwardFactory(factory.django.DjangoModelFactory):
     name = faker.sentences(2)
     description = faker.text()
-    date = faker.date()
-    link = faker.url()
 
     class Meta:
         model = Award
@@ -135,6 +140,8 @@ class AwardFactory(factory.django.DjangoModelFactory):
 class AwardContributorFactory(factory.django.DjangoModelFactory):
     researcher = factory.LazyFunction(lambda: ResearcherFactory())
     award = factory.LazyFunction(lambda: AwardFactory())
+    date = faker.date()
+    link = faker.url()
 
     class Meta:
         model = AwardContributor
