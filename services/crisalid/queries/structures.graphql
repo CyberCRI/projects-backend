@@ -1,35 +1,12 @@
+#import "nodes/structure.graphql"
+
 query PopulateFromCrisalid($limit: Int, $offset: Int, $where: OrganizationUnitWhere) {
-  organizationUnitsAggregate(where: $where) {
+  structuresAggregate: organizationUnitsAggregate(where: $where) {
     count
   }
-  organizationUnits(limit: $limit, offset: $offset, where: $where) {
-    uid
-    external
-    generic_type
-    national_type
-    types
-
-    long_labels {
-      language
-      value
-    }
-    short_labels {
-      language
-      value
-    }
-    local_types {
-      language
-      value
-    }
-    descriptions {
-      language
-      value
-    }
-
-    identifiers {
-      harvester: type
-      value
-    }
+  # aliased to the query file name (key used by populate_crisalid)
+  structures: organizationUnits(limit: $limit, offset: $offset, where: $where) {
+    ...StructureNode
 
     # parents (inclusions)
     part_ofConnection {
@@ -39,7 +16,7 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: OrganizationUnitWh
           end_date
         }
         node {
-          uid
+          ...StructureNode
         }
       }
     }
@@ -53,7 +30,7 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: OrganizationUnitWh
           end_date
         }
         node {
-          uid
+          ...StructureNode
         }
       }
     }

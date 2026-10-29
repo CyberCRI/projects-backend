@@ -1,0 +1,17 @@
+fragment DocumentNode on Document {
+  uid
+  publication_date
+  document_type
+  titles {
+    language
+    value
+  }
+  abstracts {
+    language
+    value
+  }
+  recorded_by {
+    harvester
+    value: uid
+  }
+}

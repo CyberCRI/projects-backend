@@ -69,8 +69,22 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
             queryset.model.objects.bulk_create(relations)
 
     @abc.abstractmethod
-    def single(self, data):
+    def node(self, data):
+        """create/update the object only (used for related objects missing in the database)"""
         raise NotImplementedError
+
+    def relations(self, instance, data: dict):
+        """create/update the relations owned by the object
+        related objects missing in the database are created (node only, never their relations)
+        """
+        return
+
+    def single(self, data):
+        """create/update the object and its relations"""
+        instance = self.node(data)
+        if instance is not None:
+            self.relations(instance, data)
+        return instance
 
     def multiple(self, datas: list) -> list:
         """return all objects create"""

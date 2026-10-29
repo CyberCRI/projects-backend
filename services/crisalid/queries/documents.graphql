@@ -1,21 +1,14 @@
+#import "nodes/document.graphql"
+#import "nodes/journal.graphql"
+#import "nodes/organization.graphql"
+#import "nodes/person.graphql"
+
 query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
   documentsAggregate(where: $where) {
     count
   }
   documents(limit: $limit, offset: $offset, where: $where) {
-    uid,
-    publication_date,
-    document_type,
-
-    titles {
-      language
-      value
-    }
-
-    abstracts {
-      language
-      value
-    }
+    ...DocumentNode
 
     publishedInConnection {
       edges {
@@ -25,45 +18,19 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
           pages
         }
         node {
-          uid
-          titles
+          ...JournalNode
         }
       }
     }
 
     has_contributions {
-      roles,
+      roles
       contributor {
-        display_name,
-        names {
-          first_names {
-              value
-              language
-          }
-          last_names {
-            value
-            language
-          }
-        }
-        identifiers {
-          harvester: type
-          value
-        }
+        ...PersonNode
       }
       affiliations {
-        uid
-        display_names
-        type
-        identifiers {
-          harvester: type
-          value
-        }
+        ...OrganizationNode
       }
-    }
-
-    recorded_by {
-      harvester
-      value: uid,
     }
   }
 }

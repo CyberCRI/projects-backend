@@ -21,9 +21,7 @@ RELATIONS_CONNECTIONS = {
 
 class PopulateStructure(AbstractPopulate):
     """Populate structures from crisalid "organizationUnits" query
-
-    structures are created first, then relations between structures
-    (a related structure can be created after the structure)
+    with relations to other structures (part_of / member_of)
     """
 
     def __init__(self, *ar, populate_identifiers=None, **kw):
@@ -44,7 +42,7 @@ class PopulateStructure(AbstractPopulate):
                 return MISSION_FROM_TYPES[structure_type].value
         return ""
 
-    def single(self, data: dict) -> Structure | None:
+    def node(self, data: dict) -> Structure | None:
         uid = self.sanitize_string(data.get("uid"))
         generic_type = self.sanitize_generic_type(data.get("generic_type"))
         if not all((uid, generic_type)):
@@ -75,32 +73,19 @@ class PopulateStructure(AbstractPopulate):
         self.cache.save_m2m(structure, identifiers=identifiers)
         return structure
 
-    def relations(self, structure: Structure, data: dict):
-        """recreate relations from the structure to others structures (graph is the source of truth)"""
-        related_uids = {
-            edge["node"]["uid"]
-            for connection in RELATIONS_CONNECTIONS
-            for edge in data.get(connection, {}).get("edges", [])
-        }
-        related_structures = {
-            related.crisalid_uid: related
-            for related in Structure.objects.filter(
-                organization=self.config.organization, crisalid_uid__in=related_uids
-            )
-        }
+    def relations(self, structure: Structure, data: dict) -> list[Structure]:
+        """recreate relations from the structure to others structures (graph is the source of truth)
+
+        :return: structures whose groups must be synced
+        """
+        # old ancestors lose the members of this structure if it is moved
+        touched = [structure, *structure.ancestors()]
 
         relations = []
         for connection, relation_type in RELATIONS_CONNECTIONS.items():
             for edge in data.get(connection, {}).get("edges", []):
-                related_uid = edge["node"]["uid"]
-                related_structure = related_structures.get(related_uid)
+                related_structure = self.node(edge["node"])
                 if related_structure is None:
-                    logger.warning(
-                        "Related structure %s not found for %s %s",
-                        related_uid,
-                        relation_type,
-                        structure.crisalid_uid,
-                    )
                     continue
 
                 properties = edge.get("properties") or {}
@@ -114,20 +99,26 @@ class PopulateStructure(AbstractPopulate):
                         end_date=self.sanitize_date(properties.get("end_date")),
                     )
                 )
+                touched.append(related_structure)
 
         self.replace_relations(structure.relations.all(), relations)
+        return touched
+
+    def single(self, data: dict) -> Structure | None:
+        structure = self.node(data)
+        if structure is not None:
+            sync_structures(with_ancestors(self.relations(structure, data)))
+        return structure
 
     def multiple(self, datas: list) -> list[Structure]:
-        structures = []
+        """groups are synced once, after all structures"""
+        structures, touched = [], []
         for data in datas:
-            structure = self.single(data)
+            structure = self.node(data)
             if structure is not None:
-                structures.append((structure, data))
+                structures.append(structure)
+                touched.extend(self.relations(structure, data))
 
-        for structure, data in structures:
-            self.relations(structure, data)
-
-        structures = [structure for structure, _ in structures]
         # members of these structures are also members of their ancestors groups
-        sync_structures(with_ancestors(structures))
+        sync_structures(with_ancestors(touched))
         return structures

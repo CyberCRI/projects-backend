@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from gql import Client, gql
@@ -8,6 +9,8 @@ from services.crisalid.models import CrisalidConfig
 
 class CrisalidService:
     QUERIES_DIRECTORY = "services/crisalid/queries"
+    # nodes fragments used in a query file: #import "nodes/structure.graphql"
+    IMPORT_PATTERN = re.compile(r'^#import "(.+)"$', re.MULTILINE)
 
     def __init__(self, config: CrisalidConfig):
         self.transport = RequestsHTTPTransport(
@@ -30,7 +33,43 @@ class CrisalidService:
         """
         with open(f"{self.QUERIES_DIRECTORY}/{query_file}.graphql") as f:
             query = f.read()
-        return self.client.execute(gql(query), variable_values=kwargs)
+        fragments = []
+        for path in self.IMPORT_PATTERN.findall(query):
+            with open(f"{self.QUERIES_DIRECTORY}/{path}") as f:
+                fragments.append(f.read())
+        return self.client.execute(
+            gql("\n".join([query, *fragments])), variable_values=kwargs
+        )
+
+    def journals(
+        self, limit: int = 100, offset: int = 0, **kwargs
+    ) -> tuple[list[dict[str, Any]], int | None]:
+        """
+        Get a list of journals from the Crisalid API.
+
+        Returns:
+            - Tuple[List[Dict[str, Any]], int | None]: The list of journals and the
+                next page offset.
+        """
+        response = self.query("journals", limit=limit, offset=offset, **kwargs)
+        count = response["journalsAggregate"]["count"]
+        next_page = offset + limit if offset + limit < count else None
+        return response["journals"], next_page
+
+    def organizations(
+        self, limit: int = 100, offset: int = 0, **kwargs
+    ) -> tuple[list[dict[str, Any]], int | None]:
+        """
+        Get a list of authority organizations (documents affiliations) from the Crisalid API.
+
+        Returns:
+            - Tuple[List[Dict[str, Any]], int | None]: The list of authority
+                organizations and the next page offset.
+        """
+        response = self.query("organizations", limit=limit, offset=offset, **kwargs)
+        count = response["organizationsAggregate"]["count"]
+        next_page = offset + limit if offset + limit < count else None
+        return response["organizations"], next_page
 
     def profiles(
         self, limit: int = 100, offset: int = 0, **kwargs
@@ -124,9 +163,9 @@ class CrisalidService:
                 next page offset.
         """
         response = self.query("structures", limit=limit, offset=offset, **kwargs)
-        count = response["organizationUnitsAggregate"]["count"]
+        count = response["structuresAggregate"]["count"]
         next_page = offset + limit if offset + limit < count else None
-        return response["organizationUnits"], next_page
+        return response["structures"], next_page
 
     def structure(self, uid: str) -> dict[str, Any]:
         """
@@ -139,9 +178,9 @@ class CrisalidService:
             - Dict[str, Any]: The structure.
         """
         response = self.query("structures", where={"uid_EQ": uid})
-        total = response["organizationUnitsAggregate"]["count"]
+        total = response["structuresAggregate"]["count"]
         if total == 0:
             return None
         if total > 1:
             raise ValueError(f"Multiple structures found for UID: {uid}")
-        return response["organizationUnits"][0]
+        return response["structures"][0]

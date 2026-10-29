@@ -1,7 +1,9 @@
 import datetime
+from io import StringIO
 
 from django import test
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
@@ -24,19 +26,8 @@ from services.crisalid.populates import (
 )
 
 
-def edges(*uids, **properties):
-    return {
-        "edges": [
-            {
-                "properties": {"start_date": None, "end_date": None, **properties},
-                "node": {"uid": uid},
-            }
-            for uid in uids
-        ]
-    }
-
-
-def structure_data(uid, part_of=None, member_of=None, **kwargs):
+def structure_node(uid, **kwargs):
+    """structure fields (StructureNode fragment)"""
     return {
         "uid": uid,
         "external": False,
@@ -48,10 +39,29 @@ def structure_data(uid, part_of=None, member_of=None, **kwargs):
         "local_types": [],
         "descriptions": [],
         "identifiers": [{"harvester": "local", "value": uid}],
-        "part_ofConnection": part_of or edges(),
-        "member_ofConnection": member_of or edges(),
         **kwargs,
     }
+
+
+def edges(*uids, **properties):
+    return {
+        "edges": [
+            {
+                "properties": {"start_date": None, "end_date": None, **properties},
+                "node": structure_node(uid),
+            }
+            for uid in uids
+        ]
+    }
+
+
+def structure_data(uid, part_of=None, member_of=None, **kwargs):
+    return structure_node(
+        uid,
+        part_ofConnection=part_of or edges(),
+        member_ofConnection=member_of or edges(),
+        **kwargs,
+    )
 
 
 def researcher_data(eppn, memberships=None, employments=None):
@@ -803,10 +813,13 @@ class TestPopulateResearcherStructures(test.TestCase):
             )
         )
 
-        relation = ResearcherStructure.objects.get(researcher=researcher)
-        self.assertEqual(relation.structure, self.structure)
+        relation = ResearcherStructure.objects.get(
+            researcher=researcher, structure=self.structure
+        )
         self.assertEqual(relation.position_code, "stat_mmb")
         self.assertIn(researcher.user, self.structure.people_group.members.all())
+        # missing structure is created (node only) with its group
+        self.assertIn(researcher.user, group_of("local-UNKNOWN").members.all())
 
     def test_membership_periods(self):
         old = edges("local-LAB", start_date="2010-01-01", end_date="2015-01-01")
@@ -914,3 +927,48 @@ class TestPopulateResearcherStructures(test.TestCase):
             }
         )
         self.assertTrue(ResearcherStructure.objects.exists())
+
+
+class TestPopulateCrisalidDelete(test.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.config = CrisalidConfigFactory(active=True)
+        PopulateStructure(self.config).multiple([structure_data("local-LAB")])
+        self.researcher = PopulateResearcher(self.config).single(
+            researcher_data("marty@example.com", memberships=edges("local-LAB"))
+        )
+
+    def delete(self):
+        call_command(
+            "populate_crisalid",
+            self.config.organization.code,
+            "all",
+            "--delete",
+            stdout=StringIO(),
+        )
+
+    def test_delete_with_other_organization(self):
+        other = CrisalidConfigFactory(active=True)
+        PopulateStructure(other).multiple([structure_data("local-OTHER")])
+        other_researcher = PopulateResearcher(other).single(
+            researcher_data("doc@example.com", memberships=edges("local-OTHER"))
+        )
+        other_group = group_of("local-OTHER")
+        lab_group = group_of("local-LAB")
+        user = self.researcher.user
+
+        self.delete()
+
+        # objects of the organization are deleted
+        self.assertFalse(Structure.objects.filter(crisalid_uid="local-LAB").exists())
+        self.assertFalse(PeopleGroup.objects.filter(pk=lab_group.pk).exists())
+        self.assertFalse(Researcher.objects.filter(pk=self.researcher.pk).exists())
+        # users are kept
+        self.assertTrue(ProjectUser.objects.filter(pk=user.pk).exists())
+        # other organization objects are kept
+        self.assertTrue(Structure.objects.filter(crisalid_uid="local-OTHER").exists())
+        self.assertTrue(PeopleGroup.objects.filter(pk=other_group.pk).exists())
+        self.assertTrue(Researcher.objects.filter(pk=other_researcher.pk).exists())
+        self.assertTrue(
+            other_researcher.identifiers.filter(value="hal-doc@example.com").exists()
+        )

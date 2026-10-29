@@ -1,0 +1,4 @@
+fragment JournalNode on Journal {
+  uid
+  titles
+}

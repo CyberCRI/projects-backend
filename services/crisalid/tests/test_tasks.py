@@ -16,7 +16,6 @@ from services.crisalid.models import (
     Researcher,
     ResearcherStructure,
     Structure,
-    StructureRelation,
 )
 from services.crisalid.populates import (
     PopulateResearcher,
@@ -216,25 +215,25 @@ class TestCrisalidTasks(test.TestCase):
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
     @patch("services.crisalid.tasks.CrisalidService")
-    def test_create_structure_relinks_children(self, service):
-        # child is created before its parent: relation is skipped
+    def test_child_creates_missing_parent(self, service):
+        # child is imported before its parent: parent is created (node only)
         PopulateStructure(self.config).multiple(
             [structure_data("local-LAB", part_of=edges("local-FAC"))]
         )
-        self.assertFalse(StructureRelation.objects.exists())
-
-        service().structure.return_value = structure_data("local-FAC")
-        service().structures.return_value = (
-            [structure_data("local-LAB", part_of=edges("local-FAC"))],
-            None,
-        )
-        service().profiles.return_value = ([], None)
-
-        create_structure(self.config.pk, {"uid": "local-FAC"})
-
         lab = Structure.objects.get(crisalid_uid="local-LAB")
         self.assertEqual([s.crisalid_uid for s in lab.parents()], ["local-FAC"])
-        self.assertEqual(group_of("local-LAB").parent, self.root)
+        self.assertEqual(group_of("local-FAC").parent, self.root)
+
+        # parent event: parent is updated, child relation is kept
+        service().structure.return_value = structure_data(
+            "local-FAC", descriptions=[{"language": "fr", "value": "faculty"}]
+        )
+        create_structure(self.config.pk, {"uid": "local-FAC"})
+
+        self.assertEqual(
+            Structure.objects.get(crisalid_uid="local-FAC").description, "faculty"
+        )
+        self.assertEqual([s.crisalid_uid for s in lab.parents()], ["local-FAC"])
 
     def test_delete_structure_deletes_group(self):
         PopulateStructure(self.config).multiple(
