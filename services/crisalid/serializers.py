@@ -178,6 +178,8 @@ class AwardSerializer(serializers.ModelSerializer):
             "date",
             "link",
         )
+
+
 class StructurePeopleGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = PeopleGroup

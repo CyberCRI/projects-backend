@@ -141,6 +141,8 @@ class AwardContributorFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = AwardContributor
+
+
 class StructureFactory(factory.django.DjangoModelFactory):
     organization = factory.LazyFunction(lambda: OrganizationFactory())
     crisalid_uid = factory.LazyFunction(lambda: f"local-{faker.unique.uuid4()}")

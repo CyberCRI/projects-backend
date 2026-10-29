@@ -526,6 +526,7 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
             ).data
         )
 
+
 class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
     """crisalid structures (laboratories, teams ...) of the organization"""
 

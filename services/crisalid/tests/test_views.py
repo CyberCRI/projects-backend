@@ -443,6 +443,7 @@ class TestResearcherView(JwtAPITestCase):
         # test modules
         self.assertEqual(self.researcher.modules.awards().count(), 2)
 
+
 class StructureViewsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
