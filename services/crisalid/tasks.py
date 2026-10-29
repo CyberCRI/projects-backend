@@ -17,7 +17,9 @@ from services.crisalid.models import (
     Structure,
 )
 from services.crisalid.populates import (
+    PopulateAuthorityOrganization,
     PopulateDocument,
+    PopulateJournal,
     PopulateResearcher,
     PopulateStructure,
 )
@@ -165,37 +167,9 @@ def create_structure(crisalid_config_id: int, fields: dict):
         logger.warning("no result fetching crisalid_uid=%s", uid)
         return
 
-    # structures related to this one are refreshed too,
-    # their relations may have been skipped if this structure didn't exist
-    structures = [data]
-    offset = 0
-    while offset is not None:
-        related, offset = service.structures(
-            offset=offset,
-            where={
-                "OR": [
-                    {"part_of_SOME": {"uid_EQ": uid}},
-                    {"member_of_SOME": {"uid_EQ": uid}},
-                ]
-            },
-        )
-        structures.extend(related)
-    PopulateStructure(config).multiple(structures)
-
-    # same for researchers memberships
-    populate_researcher = PopulateResearcher(config)
-    offset = 0
-    while offset is not None:
-        people, offset = service.profiles(
-            offset=offset,
-            where={
-                "OR": [
-                    {"memberships_SOME": {"uid_EQ": uid}},
-                    {"employments_SOME": {"uid_EQ": uid}},
-                ]
-            },
-        )
-        populate_researcher.multiple(people)
+    # structures and people related to this one already have their relations:
+    # they created it (node only) if it was missing
+    PopulateStructure(config).single(data)
 
 
 @on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.DELETED)
@@ -246,18 +220,17 @@ def load_apollo_data(crisalid_config_id: int, content: dict):
     logger.info("load apollo data file for organization %s", config.organization)
 
     cache = LiveCache()
-
-    populate_structures = PopulateStructure(config, cache=cache)
-    populate_researcher = PopulateResearcher(config, cache=cache)
-    populate_document = PopulateDocument(config, cache=cache)
-
-    keys = content.keys()
-    if "organizationUnits" in keys:
-        populate_structures.multiple(content["organizationUnits"])
-    if "documents" in keys:
-        populate_document.multiple(content["documents"])
-    if "people" in keys:
-        populate_researcher.multiple(content["people"])
+    # same order as the initial import
+    populates = (
+        ("authorityOrganizations", PopulateAuthorityOrganization(config, cache=cache)),
+        ("journals", PopulateJournal(config, cache=cache)),
+        ("organizationUnits", PopulateStructure(config, cache=cache)),
+        ("people", PopulateResearcher(config, cache=cache)),
+        ("documents", PopulateDocument(config, cache=cache)),
+    )
+    for key, populate in populates:
+        if key in content:
+            populate.multiple(content[key])
 
 
 @app.task(name="Update Researcher Bio generate by Ia")

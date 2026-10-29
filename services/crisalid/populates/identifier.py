@@ -23,7 +23,7 @@ class PopulateIdentifier(AbstractPopulate):
 
         return harvester
 
-    def single(self, data: dict) -> Identifier | None:
+    def node(self, data: dict) -> Identifier | None:
         harvester = self.sanitize_harvester(
             self.sanitize_string(data["harvester"]).lower()
         )

@@ -1,22 +1,25 @@
 from apps.commons.utils import BeautifulSoupProjects
 from services.crisalid import relators
 from services.crisalid.models import (
-    AuthorityOrganization,
     CrisalidConfig,
     Document,
     DocumentContributor,
     DocumentJournal,
-    Identifier,
-    Journal,
 )
 from services.crisalid.populates.identifier import PopulateIdentifier
 
 from .base import AbstractPopulate
+from .journal import PopulateJournal
 from .logger import logger
+from .organization import PopulateAuthorityOrganization
 from .researcher import PopulateResearcher
 
 
 class PopulateDocument(AbstractPopulate):
+    """Populate documents from crisalid "documents" query
+    with relations to journals, affiliations (authority organizations) and contributors
+    """
+
     def __init__(self, config: CrisalidConfig, cache=None):
         super().__init__(config, cache)
         self.populate_identifiers = PopulateIdentifier(self.config, self.cache)
@@ -25,6 +28,10 @@ class PopulateDocument(AbstractPopulate):
             self.cache,
             populate_identifiers=self.populate_identifiers,
         )
+        self.populate_journal = PopulateJournal(self.config, self.cache)
+        self.populate_organization = PopulateAuthorityOrganization(
+            self.config, self.cache, populate_identifiers=self.populate_identifiers
+        )
 
     def sanitize_document_type(self, data: str | None):
         """Check documentType , and return unknow value if is not set in enum"""
@@ -32,15 +39,6 @@ class PopulateDocument(AbstractPopulate):
             return data
         logger.warning("Document type %r not found", data)
         return Document.DocumentType.UNKNOWN.value
-
-    def sanitize_organization_type(self, data: str | None) -> str:
-        """Check authority organization type, and return empty value if is not set in enum"""
-        if not data:
-            return ""
-        if data in AuthorityOrganization.OrganizationType:
-            return data
-        logger.warning("Authority organization type %r not found", data)
-        return ""
 
     def sanitize_roles(self, data: list[str]) -> list[str]:
         """return all roles from relators json"""
@@ -65,15 +63,9 @@ class PopulateDocument(AbstractPopulate):
         """recreate relations from the document to journals where it is published"""
         relations = []
         for edge in connection.get("edges", []):
-            data = edge["node"]
-            uid = self.sanitize_string(data.get("uid"))
-            if not uid:
+            journal = self.populate_journal.node(edge["node"])
+            if journal is None:
                 continue
-            journal = self.cache.model(Journal, uid=uid)
-            titles = [title for title in data.get("titles") or [] if title]
-            self.cache.save(
-                journal, title=self.sanitize_string(titles[0] if titles else uid)
-            )
 
             properties = edge.get("properties") or {}
             relations.append(
@@ -88,15 +80,26 @@ class PopulateDocument(AbstractPopulate):
 
         self.replace_relations(document.document_journals.all(), relations)
 
+    def affiliations(self, document: Document, contributions: list[dict]):
+        """recreate relations from the document to its contributors affiliations"""
+        organizations = {}
+        for contribution in contributions:
+            for data in contribution.get("affiliations") or []:
+                organization = self.populate_organization.node(data)
+                if organization is not None:
+                    organizations[organization.pk] = organization
+        self.cache.save_m2m(document, affiliations=list(organizations.values()))
+
     def contributors(self, document: Document, contributions: list[dict]):
         """recreate relations from the document to its contributors"""
         # a researcher can have multiple contributions, roles are merged
         roles = {}
         for contribution in contributions:
             contribution_roles = self.sanitize_roles(contribution["roles"])
-            for researcher in self.populate_researcher.multiple(
-                contribution["contributor"]
-            ):
+            for data in contribution["contributor"]:
+                researcher = self.populate_researcher.node(data)
+                if researcher is None:
+                    continue
                 researcher_roles = roles.setdefault(researcher, [])
                 researcher_roles += [
                     role for role in contribution_roles if role not in researcher_roles
@@ -112,35 +115,7 @@ class PopulateDocument(AbstractPopulate):
             ],
         )
 
-    def affiliations(self, contributions: list[dict]) -> list[AuthorityOrganization]:
-        organizations = {}
-        for contribution in contributions:
-            for data in contribution.get("affiliations") or []:
-                uid = self.sanitize_string(data.get("uid"))
-                if not uid or uid in organizations:
-                    continue
-                organization = self.cache.model(AuthorityOrganization, crisalid_uid=uid)
-                names = [name for name in data.get("display_names") or [] if name]
-                self.cache.save(
-                    organization,
-                    name=self.sanitize_string(names[0] if names else uid),
-                    type=self.sanitize_organization_type(data.get("type")),
-                )
-                # only keep identifiers known by projects
-                identifiers = self.populate_identifiers.multiple(
-                    [
-                        identifier
-                        for identifier in data.get("identifiers") or []
-                        if self.sanitize_string(identifier.get("harvester")).lower()
-                        in Identifier.Harvester
-                    ]
-                )
-                self.cache.save_m2m(organization, identifiers=identifiers)
-                organizations[uid] = organization
-        return list(organizations.values())
-
-    def single(self, data: dict) -> Document | None:
-        """this method create/update only on document from crisalid"""
+    def node(self, data: dict) -> Document | None:
         # identifiers (hal, openalex, idref ...ect)
         documents_identifiers = self.populate_identifiers.multiple(data["recorded_by"])
 
@@ -158,12 +133,10 @@ class PopulateDocument(AbstractPopulate):
             publication_date=self.sanitize_date(data["publication_date"]),
             document_type=self.sanitize_document_type(data["document_type"]),
         )
-        self.cache.save_m2m(
-            document,
-            identifiers=documents_identifiers,
-            affiliations=self.affiliations(data["has_contributions"]),
-        )
-        self.journals(document, data.get("publishedInConnection") or {})
-        self.contributors(document, data["has_contributions"])
-
+        self.cache.save_m2m(document, identifiers=documents_identifiers)
         return document
+
+    def relations(self, document: Document, data: dict):
+        self.journals(document, data.get("publishedInConnection") or {})
+        self.affiliations(document, data["has_contributions"])
+        self.contributors(document, data["has_contributions"])

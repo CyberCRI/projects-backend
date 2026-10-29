@@ -1,19 +1,24 @@
 import math
 
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 
 from apps.accounts.models import PeopleGroup
 from services.crisalid.interface import CrisalidService
 from services.crisalid.models import (
+    AuthorityOrganization,
     CrisalidConfig,
     Document,
     DocumentContributor,
     Identifier,
+    Journal,
     Researcher,
     Structure,
 )
 from services.crisalid.populates import (
+    PopulateAuthorityOrganization,
     PopulateDocument,
+    PopulateJournal,
     PopulateResearcher,
     PopulateStructure,
 )
@@ -37,7 +42,14 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "command",
-            choices=("document", "researcher", "structure", "all"),
+            choices=(
+                "organization",
+                "journal",
+                "structure",
+                "researcher",
+                "document",
+                "all",
+            ),
             help="elements to populate",
         )
         parser.add_argument(
@@ -50,31 +62,64 @@ class Command(BaseCommand):
         parser.add_argument("--limit", help="limit for graphql", default=100)
         parser.add_argument("--max", help="max loop for graphql", default=math.inf)
 
-    def delete_crisalid_models(self, command):
-        models = []
+    def delete_crisalid_models(self, config: CrisalidConfig, command: str):
+        """delete crisalid models of the organization, cascades only delete crisalid
+        objects (relations, embeddings) and the structures groups
+        """
+        organization = config.organization
+        documents = Document.objects.filter(
+            contributors__user__groups__organizations=organization
+        )
+        researchers = Researcher.objects.filter(
+            user__groups__organizations=organization
+        )
+        structures = Structure.objects.filter(organization=organization)
+        organizations = AuthorityOrganization.objects.filter(documents__in=documents)
+        identifiers = Identifier.objects.filter(
+            Q(documents__in=documents)
+            | Q(researchers__in=researchers)
+            | Q(structures__in=structures)
+            | Q(authority_organizations__in=organizations)
+        )
 
+        # reverse order of the import (dependent objects first)
+        querysets = []
         if command in ("all", "document"):
-            models.extend(
+            querysets.extend(
                 (
-                    Document,
-                    DocumentEmbedding,
-                    DocumentContributor,
+                    DocumentEmbedding.objects.filter(item__in=documents),
+                    DocumentContributor.objects.filter(document__in=documents),
+                    documents,
                 )
             )
+
         if command in ("all", "researcher"):
-            models.append(Researcher)
+            # users linked to researchers are kept
+            querysets.append(researchers)
 
         if command in ("all", "structure"):
-            # groups are managed by crisalid, they would be duplicated on next import
-            deleted = PeopleGroup.objects.filter(structure__isnull=False).delete()
-            print(f"deleted {PeopleGroup=}: {deleted=}")
-            models.append(Structure)
+            # groups would be duplicated on next import (structure.people_group is SET_NULL),
+            # their children groups are kept
+            querysets.extend(
+                (PeopleGroup.objects.filter(structure__in=structures), structures)
+            )
+
+        if command in ("all", "journal"):
+            querysets.append(Journal.objects.filter(documents__in=documents))
+
+        if command in ("all", "organization"):
+            querysets.append(organizations)
 
         if command in ("all",):
-            models.append(Identifier)
+            querysets.append(identifiers)
 
-        for model in models:
-            deleted = model.objects.all().delete()
+        # filters use relations removed by previous deletions: get all pks first
+        to_delete = [
+            (queryset.model, list(queryset.values_list("pk", flat=True).distinct()))
+            for queryset in querysets
+        ]
+        for model, pks in to_delete:
+            deleted = model.objects.filter(pk__in=pks).delete()
             print(f"deleted {model=}: {deleted=}")
 
     def populate_crisalid(
@@ -108,40 +153,28 @@ class Command(BaseCommand):
                 offset += limit
                 max_elements -= 1
 
-    def populate_structures(
-        self, service: CrisalidService, populate: PopulateStructure, **options
-    ):
-        """structures are populated all at once, relations need all structures"""
-        offset = int(options["offset"])
-        limit = int(options["limit"])
-        data = []
-
-        with timeit(print, "Populate All Data from 'structures'"):
-            while offset is not None:
-                with timeit(print, "GrapQL request structures"):
-                    structures, offset = service.structures(limit=limit, offset=offset)
-                data.extend(structures)
-                print(f"{len(data)} fetched...")
-
-            with timeit(print, "Populate data"):
-                populate.multiple(data)
-
     def handle(self, **options):
         config = CrisalidConfig.objects.get(organization__code=options["organization"])
         command = options["command"]
         if options["delete"]:
-            self.delete_crisalid_models(command)
+            self.delete_crisalid_models(config, command)
             return
 
         service = CrisalidService(config)
 
-        # structures first, researchers are linked to them
-        if command in ("all", "structure"):
-            self.populate_structures(service, PopulateStructure(config), **options)
+        # missing related objects are created by each populate (node only),
+        # this order avoids creating them before their own import
+        if command in ("all", "organization"):
+            populate = PopulateAuthorityOrganization(config)
+            self.populate_crisalid(service, populate, query="organizations", **options)
 
-        if command in ("all", "document"):
-            populate = PopulateDocument(config)
-            self.populate_crisalid(service, populate, query="documents", **options)
+        if command in ("all", "journal"):
+            populate = PopulateJournal(config)
+            self.populate_crisalid(service, populate, query="journals", **options)
+
+        if command in ("all", "structure"):
+            populate = PopulateStructure(config)
+            self.populate_crisalid(service, populate, query="structures", **options)
 
         if command in ("all", "researcher"):
             populate = PopulateResearcher(config)
@@ -153,3 +186,7 @@ class Command(BaseCommand):
                 where={"external_EQ": False},
                 **options,
             )
+
+        if command in ("all", "document"):
+            populate = PopulateDocument(config)
+            self.populate_crisalid(service, populate, query="documents", **options)
