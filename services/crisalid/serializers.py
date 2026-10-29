@@ -287,6 +287,8 @@ class TeachingLightSerializer(TeachingSerializer):
             "researcher",
             "domains",
         )
+
+
 class StructurePeopleGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = PeopleGroup

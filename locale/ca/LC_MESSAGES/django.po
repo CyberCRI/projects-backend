@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 17:47+0100\n"
+"POT-Creation-Date: 2026-10-29 10:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2627,71 +2627,71 @@ msgstr ""
 "\n"
 "Vols ser mentoritzat en %(skill)s? (recordatori)\n"
 
-#: services/crisalid/models/config.py:58
+#: services/crisalid/models/config.py:61
 msgid "The group must belong to the organization"
 msgstr "El grup ha de pertànyer a l'organització"
 
-#: services/crisalid/models/config.py:66
+#: services/crisalid/models/config.py:69
 msgid "The group cannot be linked to a crisalid structure"
 msgstr "El grup no pot estar vinculat a una estructura de Crisalid"
 
-#: services/crisalid/models/document.py:121
+#: services/crisalid/models/document.py:122
 msgid "Document"
 msgstr "Document"
 
-#: services/crisalid/models/document.py:122
+#: services/crisalid/models/document.py:123
 msgid "Scholarly Publication"
 msgstr "Publicació científica"
 
-#: services/crisalid/models/document.py:123
+#: services/crisalid/models/document.py:124
 msgid "Article"
 msgstr "Article"
 
-#: services/crisalid/models/document.py:124
+#: services/crisalid/models/document.py:125
 msgid "Journal Article"
 msgstr "Article de revista"
 
-#: services/crisalid/models/document.py:125
+#: services/crisalid/models/document.py:126
 msgid "Conference Article"
 msgstr "Article de conferència"
 
-#: services/crisalid/models/document.py:126
+#: services/crisalid/models/document.py:127
 msgid "Conference Abstract"
 msgstr "Resum de congrés"
 
-#: services/crisalid/models/document.py:127
+#: services/crisalid/models/document.py:128
 msgid "Preface"
 msgstr "Prefaci"
 
-#: services/crisalid/models/document.py:128
+#: services/crisalid/models/document.py:129
 msgid "Comment"
 msgstr "Comentari"
 
-#: services/crisalid/models/document.py:129
+#: services/crisalid/models/document.py:130
 msgid "Book Chapter"
 msgstr "Capítol de llibre"
 
-#: services/crisalid/models/document.py:130
+#: services/crisalid/models/document.py:131
 msgid "Book"
 msgstr "Llibre"
 
-#: services/crisalid/models/document.py:131
+#: services/crisalid/models/document.py:132
 msgid "Monograph"
 msgstr "Monografia"
 
-#: services/crisalid/models/document.py:132
+#: services/crisalid/models/document.py:133
 msgid "Proceedings"
 msgstr "Actes de congrés"
 
-#: services/crisalid/models/document.py:133
+#: services/crisalid/models/document.py:134
 msgid "Book Of Chapters"
 msgstr "Obra col·lectiva"
 
-#: services/crisalid/models/document.py:134
+#: services/crisalid/models/document.py:135
 msgid "Presentation"
 msgstr "Presentació"
 
-#: services/crisalid/models/document.py:135
+#: services/crisalid/models/document.py:136
 msgid "Unknown"
 msgstr "Desconegut"
 
