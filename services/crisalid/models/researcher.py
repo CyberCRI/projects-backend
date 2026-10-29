@@ -11,7 +11,7 @@ from apps.commons.mixins import (
 from apps.skills.models import Tag
 from services.crisalid.manager import CrisalidQuerySet
 from services.crisalid.models.award import Award, AwardContributor
-from services.crisalid.models.indentifier import Identifier
+from services.crisalid.models.identifier import Identifier
 from services.crisalid.models.patent import Patent, PatentContributor
 from services.translator.mixins import HasAutoTranslatedFields
 

@@ -8,7 +8,7 @@ from .document import (
     DocumentTypeCentralized,
 )
 from .funding import Funding
-from .indentifier import Identifier
+from .identifier import Identifier
 from .journal import Journal
 from .organization import AuthorityOrganization
 from .patent import Patent, PatentContributor
