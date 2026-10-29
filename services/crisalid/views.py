@@ -35,7 +35,7 @@ from services.crisalid.serializers import (
     CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
-    PatentContributorSerializer,
+    PatentSerializer,
     ResearcherSerializer,
 )
 from services.crisalid.utils.bio import generate_bio_from_researcher
@@ -400,7 +400,7 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
     ),
     patents=extend_schema(
         description="return patents of researcher",
-        responses=PatentContributorSerializer(many=True),
+        responses=PatentSerializer(many=True),
         parameters=[
             OpenApiParameter(
                 name="name",
@@ -573,7 +573,7 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         paginated_qs = self.paginate_queryset(patents_qs)
 
         return self.get_paginated_response(
-            PatentContributorSerializer(
+            PatentSerializer(
                 paginated_qs, many=True, context=self.get_serializer_context()
             ).data
         )

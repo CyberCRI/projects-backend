@@ -114,6 +114,8 @@ class DocumentJournalFactory(factory.django.DjangoModelFactory):
 class PatentFactory(factory.django.DjangoModelFactory):
     name = faker.sentences(2)
     description = faker.text()
+    date = faker.date()
+    link = faker.url()
 
     class Meta:
         model = Patent
@@ -122,8 +124,6 @@ class PatentFactory(factory.django.DjangoModelFactory):
 class PatentContributorFactory(factory.django.DjangoModelFactory):
     researcher = factory.LazyFunction(lambda: ResearcherFactory())
     patent = factory.LazyFunction(lambda: PatentFactory())
-    date = faker.date()
-    link = faker.url()
 
     class Meta:
         model = PatentContributor
@@ -140,6 +140,7 @@ class AwardFactory(factory.django.DjangoModelFactory):
 class AwardContributorFactory(factory.django.DjangoModelFactory):
     researcher = factory.LazyFunction(lambda: ResearcherFactory())
     award = factory.LazyFunction(lambda: AwardFactory())
+    description = faker.text()
     date = faker.date()
     link = faker.url()
 

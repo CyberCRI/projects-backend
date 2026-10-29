@@ -25,6 +25,7 @@ class AwardContributor(models.Model):
         related_name="awards_conributor",
     )
     award = models.ForeignKey(Award, on_delete=models.CASCADE)
+    description = models.TextField(null=True, blank=True)
 
     date = models.DateField(null=True, blank=True)
     link = models.URLField(null=True, blank=True)

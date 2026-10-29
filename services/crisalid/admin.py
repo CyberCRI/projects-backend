@@ -170,7 +170,12 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Model
 @admin.register(Award)
 class AwardAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = ("pk", "name", "get_researcher")
-    search_fields = ("name", "description")
+    search_fields = (
+        "name",
+        "description",
+        "researchers__given_name",
+        "researchers__family_name",
+    )
 
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         return (
@@ -189,7 +194,12 @@ class AwardAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
 @admin.register(Patent)
 class PatentAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = ("pk", "name", "get_researcher")
-    search_fields = ("name", "description")
+    search_fields = (
+        "name",
+        "description",
+        "researchers__given_name",
+        "researchers__family_name",
+    )
 
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         return (

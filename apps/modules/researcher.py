@@ -11,7 +11,7 @@ from services.crisalid.models import (
     ResearcherDomains,
 )
 from services.crisalid.models.award import AwardContributor
-from services.crisalid.models.patent import PatentContributor
+from services.crisalid.models.patent import Patent
 
 
 @register_module(Researcher)
@@ -71,8 +71,8 @@ class ResearcherModules(AbstractModules):
     def domains(self) -> BaseManager[ResearcherDomains]:
         return self.instance.researcher_domains.all()
 
-    def patents(self) -> BaseManager[PatentContributor]:
-        return self.instance.patents_conributor.all()
+    def patents(self) -> BaseManager[Patent]:
+        return self.instance.patents.all().prefetch_related("researchers")
 
     def awards(self) -> BaseManager[AwardContributor]:
         return self.instance.awards_conributor.all()

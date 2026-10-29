@@ -17,7 +17,6 @@ from services.crisalid.models import (
     ResearcherDomains,
 )
 from services.crisalid.models.award import AwardContributor
-from services.crisalid.models.patent import PatentContributor
 from services.translator.serializers import auto_translated
 
 
@@ -154,21 +153,11 @@ class CitationSerializer(serializers.ModelSerializer):
 
 @auto_translated
 class PatentSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSerializerLight(many=True)
+
     class Meta:
         model = Patent
-        fields = (
-            "id",
-            "name",
-            "description",
-        )
-
-
-class PatentContributorSerializer(serializers.ModelSerializer):
-    patent = PatentSerializer()
-
-    class Meta:
-        model = PatentContributor
-        fields = ("id", "patent", "date", "link")
+        fields = ("id", "name", "description", "date", "link", "researchers")
 
 
 @auto_translated

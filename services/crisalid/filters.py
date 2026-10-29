@@ -12,16 +12,13 @@ class PatentContributorFilter(filters.FilterSet):
     description = filters.CharFilter(
         lookup_expr="icontains",
         label="Search by description",
-        field_name="patent__desription",
     )
 
-    date = filters.DateFromToRangeFilter(label="Date period")
+    date = filters.DateFromToRangeFilter(label="Date period", field_name="patent__date")
 
     class Meta:
         model = PatentContributor
-        fields = {
-            "date": ["gte", "lte", "exact"],
-        }
+        fields = {}
 
 
 class AwardContributorFilter(filters.FilterSet):
@@ -32,7 +29,6 @@ class AwardContributorFilter(filters.FilterSet):
     description = filters.CharFilter(
         lookup_expr="icontains",
         label="Search by description",
-        field_name="award__description",
     )
 
     date = filters.DateFromToRangeFilter(label="Date period")
@@ -41,4 +37,5 @@ class AwardContributorFilter(filters.FilterSet):
         model = AwardContributor
         fields = {
             "date": ["gte", "lte", "exact"],
+            "description": ["icontains", "exact"],
         }

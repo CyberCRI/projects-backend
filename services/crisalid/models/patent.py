@@ -10,6 +10,8 @@ class Patent(HasAutoTranslatedFields, models.Model):
 
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=True, blank=True)
+    date = models.DateField(null=True, blank=True)
+    link = models.URLField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -26,8 +28,7 @@ class PatentContributor(models.Model):
     )
     patent = models.ForeignKey(Patent, on_delete=models.CASCADE)
 
-    date = models.DateField(null=True, blank=True)
-    link = models.URLField(null=True, blank=True)
+    # TODO(remi): add researcher role in this patent ?
 
     def __repr__(self):
         return f"<PatentContributor pk={self.pk} researcher={self.researcher_id} award={self.patent}>"
