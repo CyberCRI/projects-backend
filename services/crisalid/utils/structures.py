@@ -25,7 +25,7 @@ def structures_root(organization: Organization) -> PeopleGroup:
 
 
 def ensure_people_group(structure: Structure) -> PeopleGroup:
-    """create the structure group if missing, and keep crisalid fields up to date"""
+    """create the structure group if missing (initialized from the structure)"""
     people_group = structure.people_group
     if people_group is None:
         with transaction.atomic():
@@ -83,7 +83,7 @@ def with_ancestors(structures: Iterable[Structure]) -> list[Structure]:
 
 
 def sync_structures(structures: Iterable[Structure]):
-    """sync groups (creation, parents and members) of structures"""
+    """sync groups (creation and members) of structures"""
     structures = list(structures)
     for structure in structures:
         ensure_people_group(structure)

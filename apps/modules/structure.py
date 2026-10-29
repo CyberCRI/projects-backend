@@ -35,13 +35,14 @@ class StructureModules(AbstractModules):
         """the structure and its sub-structures"""
         return [self.instance.pk, *(s.pk for s in self.instance.descendants())]
 
-    def _position_code(self) -> Subquery:
+    def _position_code(self, **relation) -> Subquery:
         """crisalid position (HCERES code) of the researcher in the structure"""
         return Subquery(
             ResearcherStructure.objects.filter(
                 ResearcherStructure.active_query(),
                 researcher=OuterRef("pk"),
                 structure__in=self._structures_pks,
+                **relation,
             )
             .exclude(position_code="")
             # position in the structure first, then in sub-structures
@@ -57,18 +58,23 @@ class StructureModules(AbstractModules):
             output_field=CharField(),
         )
 
-    def researchers(self) -> BaseManager[Researcher]:
-        """researchers with an active relation to the structure or its sub-structures"""
-        # same filter() call, so both conditions apply to the same relation
+    def researchers(self, relation_type: str | None = None) -> BaseManager[Researcher]:
+        """researchers with an active relation to the structure or its sub-structures
+
+        :param relation_type: only researchers with this relation (membership/employment)
+        """
+        relation = {"relation_type": relation_type} if relation_type else {}
+        # same filter() call, so all conditions apply to the same relation
         researchers = Researcher.objects.filter(
             ResearcherStructure.active_query("researcherstructure__"),
             researcherstructure__structure__in=self._structures_pks,
+            **{f"researcherstructure__{key}": value for key, value in relation.items()},
         )
         return (
             self.user.get_user_related_queryset(researchers)
             .distinct()
             .select_related("user")
-            .annotate(position_code=self._position_code())
+            .annotate(position_code=self._position_code(**relation))
         )
 
     @ignore_method
@@ -94,14 +100,55 @@ class StructureModules(AbstractModules):
             self.instance.parents().select_related("people_group")
         )
 
-    def supervising_institutions(self) -> BaseManager[StructureRelation]:
-        relations = StructureRelation.objects.filter(
-            StructureRelation.active_query(),
-            structure=self.instance,
-            relation_type=StructureRelation.RelationType.MEMBER_OF,
-        ).select_related("related_structure__people_group")
-        return self.user.get_people_group_related_queryset(
-            relations, "related_structure__people_group"
+    def _supervision_position(self, **relation) -> Subquery:
+        """position of the supervision (crisalid "member_of") between two structures"""
+        return Subquery(
+            StructureRelation.objects.filter(
+                StructureRelation.active_query(),
+                relation_type=StructureRelation.RelationType.MEMBER_OF,
+                **relation,
+            )
+            .order_by("position")
+            .values("position")[:1],
+            output_field=CharField(),
+        )
+
+    def supervising_structures(self) -> BaseManager[Structure]:
+        """structures supervising the structure, with the supervision position"""
+        # same filter() call, so all conditions apply to the same relation
+        structures = Structure.objects.filter(
+            StructureRelation.active_query("reverse_relations__"),
+            reverse_relations__structure=self.instance,
+            reverse_relations__relation_type=StructureRelation.RelationType.MEMBER_OF,
+        )
+        return (
+            self.user.get_people_group_related_queryset(structures)
+            .distinct()
+            .select_related("people_group")
+            .annotate(
+                position=self._supervision_position(
+                    structure=self.instance, related_structure=OuterRef("pk")
+                )
+            )
+        )
+
+    def supervised_structures(self) -> BaseManager[Structure]:
+        """structures supervised by the structure, with the supervision position"""
+        # same filter() call, so all conditions apply to the same relation
+        structures = Structure.objects.filter(
+            StructureRelation.active_query("relations__"),
+            relations__related_structure=self.instance,
+            relations__relation_type=StructureRelation.RelationType.MEMBER_OF,
+        )
+        return (
+            self.user.get_people_group_related_queryset(structures)
+            .distinct()
+            .select_related("people_group")
+            .annotate(
+                position=self._supervision_position(
+                    structure=OuterRef("pk"), related_structure=self.instance
+                )
+            )
         )
 
     def research_domains(self) -> BaseManager[Tag]:

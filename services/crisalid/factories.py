@@ -17,6 +17,9 @@ from .models import (
     DocumentContributor,
     Identifier,
     Researcher,
+    ResearcherStructure,
+    Structure,
+    StructureRelation,
 )
 
 faker = Faker()
@@ -138,6 +141,34 @@ class AwardContributorFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = AwardContributor
+class StructureFactory(factory.django.DjangoModelFactory):
+    organization = factory.LazyFunction(lambda: OrganizationFactory())
+    crisalid_uid = factory.LazyFunction(lambda: f"local-{faker.unique.uuid4()}")
+    generic_type = Structure.GenericType.UNIT
+    name = factory.Faker("company")
+
+    class Meta:
+        model = Structure
+
+
+class StructureRelationFactory(factory.django.DjangoModelFactory):
+    structure = factory.SubFactory(StructureFactory)
+    related_structure = factory.SubFactory(
+        StructureFactory, organization=factory.SelfAttribute("..structure.organization")
+    )
+    relation_type = StructureRelation.RelationType.PART_OF
+
+    class Meta:
+        model = StructureRelation
+
+
+class ResearcherStructureFactory(factory.django.DjangoModelFactory):
+    researcher = factory.SubFactory(ResearcherFactory)
+    structure = factory.SubFactory(StructureFactory)
+    relation_type = ResearcherStructure.RelationType.MEMBERSHIP
+
+    class Meta:
+        model = ResearcherStructure
 
 
 class CrisalidConfigFactory(factory.django.DjangoModelFactory):

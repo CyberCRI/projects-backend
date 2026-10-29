@@ -1,19 +1,41 @@
+import datetime
 from unittest.mock import patch
 
 from django import test
 
+from apps.accounts.models import PeopleGroup
 from services.crisalid.factories import (
     CrisalidConfigFactory,
     DocumentFactory,
     ResearcherFactory,
     faker,
 )
-from services.crisalid.models import Document, Identifier, Researcher
+from services.crisalid.models import (
+    Document,
+    Identifier,
+    Researcher,
+    ResearcherStructure,
+    Structure,
+    StructureRelation,
+)
+from services.crisalid.populates import (
+    PopulateResearcher,
+    PopulateStructure,
+)
 from services.crisalid.tasks import (
     create_document,
     create_researcher,
+    create_structure,
     delete_document,
     delete_researcher,
+    delete_structure,
+    update_researcher_structures,
+)
+from services.crisalid.tests.test_populate import (
+    edges,
+    group_of,
+    researcher_data,
+    structure_data,
 )
 
 
@@ -22,6 +44,7 @@ class TestCrisalidTasks(test.TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.config = CrisalidConfigFactory()
+        cls.root = PeopleGroup.update_or_create_root(cls.config.organization)
 
     def test_delete_document(self):
         document = DocumentFactory()
@@ -62,7 +85,7 @@ class TestCrisalidTasks(test.TestCase):
 
         fields = {
             "identifiers": [
-                {"harvester": identifier.harvester, "value": identifier.value}
+                {"type": identifier.harvester, "value": identifier.value}
                 for identifier in researcher.identifiers.all()
             ]
         }
@@ -78,7 +101,7 @@ class TestCrisalidTasks(test.TestCase):
         fields = {
             "identifiers": [
                 {
-                    "harvester": identifier.harvester,
+                    "type": identifier.harvester,
                     "value": identifier.value + "rand",
                 }
                 for identifier in researcher.identifiers.all()
@@ -105,7 +128,10 @@ class TestCrisalidTasks(test.TestCase):
             ],
         }
 
-        client_gql().execute.return_value = {"people": [data]}
+        client_gql().execute.return_value = {
+            "peopleAggregate": {"count": 1},
+            "people": [data],
+        }
 
         create_researcher(self.config.pk, fields)
 
@@ -122,7 +148,10 @@ class TestCrisalidTasks(test.TestCase):
     @patch("services.crisalid.interface.Client")
     def test_create_document_empty(self, client_gql):
         fields = {"uid": faker.uuid4()}
-        client_gql().execute.return_value = {"documents": []}
+        client_gql().execute.return_value = {
+            "documentsAggregate": {"count": 0},
+            "documents": [],
+        }
 
         self.assertEqual(Document.objects.count(), 0)
         create_document(self.config.pk, fields)
@@ -170,7 +199,10 @@ class TestCrisalidTasks(test.TestCase):
             ],
         }
 
-        client_gql().execute.return_value = {"documents": [data]}
+        client_gql().execute.return_value = {
+            "documentsAggregate": {"count": 1},
+            "documents": [data],
+        }
 
         create_document(self.config.pk, fields)
         # check obj from db
@@ -182,3 +214,135 @@ class TestCrisalidTasks(test.TestCase):
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+
+    @patch("services.crisalid.tasks.CrisalidService")
+    def test_create_structure_relinks_children(self, service):
+        # child is created before its parent: relation is skipped
+        PopulateStructure(self.config).multiple(
+            [structure_data("local-LAB", part_of=edges("local-FAC"))]
+        )
+        self.assertFalse(StructureRelation.objects.exists())
+
+        service().structure.return_value = structure_data("local-FAC")
+        service().structures.return_value = (
+            [structure_data("local-LAB", part_of=edges("local-FAC"))],
+            None,
+        )
+        service().profiles.return_value = ([], None)
+
+        create_structure(self.config.pk, {"uid": "local-FAC"})
+
+        lab = Structure.objects.get(crisalid_uid="local-LAB")
+        self.assertEqual([s.crisalid_uid for s in lab.parents()], ["local-FAC"])
+        self.assertEqual(group_of("local-LAB").parent, self.root)
+
+    def test_delete_structure_deletes_group(self):
+        PopulateStructure(self.config).multiple(
+            [
+                structure_data("local-LAB", part_of=edges("local-FAC")),
+                structure_data("local-FAC"),
+            ]
+        )
+        researcher = PopulateResearcher(self.config).single(
+            researcher_data("marty@example.com", memberships=edges("local-LAB"))
+        )
+        fac_group = group_of("local-FAC")
+        self.assertIn(researcher.user, fac_group.members.all())
+        lab_group = group_of("local-LAB")
+
+        delete_structure(self.config.pk, {"uid": "local-LAB"})
+
+        self.assertFalse(Structure.objects.filter(crisalid_uid="local-LAB").exists())
+        self.assertFalse(PeopleGroup.objects.filter(pk=lab_group.pk).exists())
+        # laboratory members are no longer members of the faculty
+        self.assertNotIn(researcher.user, fac_group.members.all())
+
+    def test_delete_researcher_syncs_groups(self):
+        PopulateStructure(self.config).multiple([structure_data("local-LAB")])
+        researcher = PopulateResearcher(self.config).single(
+            researcher_data("marty@example.com", memberships=edges("local-LAB"))
+        )
+        user = researcher.user
+
+        # ikg payload format
+        delete_researcher(
+            self.config.pk,
+            {"identifiers": [{"type": "hal", "value": "hal-marty@example.com"}]},
+        )
+
+        self.assertFalse(ResearcherStructure.objects.exists())
+        self.assertNotIn(user, group_of("local-LAB").members.all())
+
+
+class TestUnchangedPersonEvent(test.TestCase):
+    """ikg sends "unchanged" events when only memberships/employments changed"""
+
+    def setUp(self):
+        super().setUp()
+        self.config = CrisalidConfigFactory()
+        PopulateStructure(self.config).multiple(
+            [structure_data("local-LAB"), structure_data("local-TEAM")]
+        )
+        self.researcher = PopulateResearcher(self.config).single(
+            researcher_data(
+                "marty@example.com",
+                memberships=edges("local-LAB", start_date="2020-01-01"),
+                employments=edges("local-TEAM", position_code="CR"),
+            )
+        )
+
+    def fields(self, memberships, employments=None):
+        # ikg payload format
+        return {
+            "uid": "marty@example.com",
+            "identifiers": [
+                {"type": "eppn", "value": "marty@example.com"},
+                {"type": "hal", "value": "hal-marty@example.com"},
+            ],
+            "memberships": memberships,
+            "employments": employments
+            or [
+                {
+                    "entity_uid": "local-TEAM",
+                    "position": {"title": "CR", "code": "CR"},
+                    "start_date": None,
+                    "end_date": None,
+                }
+            ],
+        }
+
+    @patch("services.crisalid.tasks.CrisalidService")
+    def test_relations_changed(self, service):
+        fields = self.fields(
+            [
+                {
+                    "entity_uid": "local-LAB",
+                    "start_date": "2020-01-01",
+                    "end_date": "2024-01-01",
+                }
+            ]
+        )
+        service().profile.return_value = researcher_data(
+            "marty@example.com",
+            memberships=edges(
+                "local-LAB", start_date="2020-01-01", end_date="2024-01-01"
+            ),
+            employments=edges("local-TEAM", position_code="CR"),
+        )
+
+        update_researcher_structures(self.config.pk, fields)
+
+        service().profile.assert_called_once()
+        membership = ResearcherStructure.objects.get(
+            researcher=self.researcher,
+            relation_type=ResearcherStructure.RelationType.MEMBERSHIP,
+        )
+        self.assertEqual(membership.end_date, datetime.date(2024, 1, 1))
+        self.assertNotIn(self.researcher.user, group_of("local-LAB").members.all())
+
+    @patch("services.crisalid.tasks.CrisalidService")
+    def test_unknown_researcher(self, service):
+        fields = self.fields([])
+        fields["identifiers"] = [{"type": "hal", "value": "hal-unknown"}]
+        update_researcher_structures(self.config.pk, fields)
+        service().profile.assert_not_called()

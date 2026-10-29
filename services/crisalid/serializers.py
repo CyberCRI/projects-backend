@@ -1,4 +1,3 @@
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup, ProjectUser
@@ -20,7 +19,6 @@ from services.crisalid.models import (
     ResearcherDomains,
     ResearcherStructure,
     Structure,
-    StructureRelation,
 )
 from services.translator.serializers import auto_translated
 
@@ -204,17 +202,30 @@ class StructureLightSerializer(serializers.ModelSerializer):
         )
 
 
-class SupervisingInstitutionSerializer(serializers.ModelSerializer):
-    structure = StructureLightSerializer(source="related_structure", read_only=True)
+class StructureSupervisionSerializer(serializers.ModelSerializer):
+    """supervising/supervised structure, with the supervision position (annotated in structure modules)"""
+
+    people_group = StructurePeopleGroupSerializer(read_only=True)
+    position = serializers.CharField(read_only=True, allow_null=True)
 
     class Meta:
-        model = StructureRelation
-        fields = ("position", "start_date", "end_date", "structure")
+        model = Structure
+        fields = (
+            "id",
+            "crisalid_uid",
+            "name",
+            "acronym",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+            "position",
+        )
 
 
 class StructureSerializer(ModulesSerializers, serializers.ModelSerializer):
     people_group = StructurePeopleGroupSerializer(read_only=True)
-    supervising_institutions = serializers.SerializerMethodField()
 
     class Meta:
         model = Structure
@@ -229,18 +240,8 @@ class StructureSerializer(ModulesSerializers, serializers.ModelSerializer):
             "main_mission",
             "external",
             "people_group",
-            "supervising_institutions",
             "modules",
         )
-
-    @extend_schema_field(SupervisingInstitutionSerializer(many=True))
-    def get_supervising_institutions(self, instance: Structure) -> list[dict]:
-        modules = instance.modules_by_user(
-            self.context["request"].user, self.context.get("organization")
-        )
-        return SupervisingInstitutionSerializer(
-            modules.supervising_institutions(), many=True
-        ).data
 
 
 class ResearchDomainSerializer(serializers.ModelSerializer):
