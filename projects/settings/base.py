@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 import os
 import re
+from datetime import timedelta
 from pathlib import Path
 from socket import gethostbyname_ex, gethostname
 
@@ -749,3 +750,35 @@ JAZZMIN_UI_TWEAKS = {
 #  CRISALID  #
 ##############
 ENABLE_CRISALID_BUS = os.getenv("ENABLE_CRISALID_BUS", "false").lower() == "true"
+
+
+# parse timedelta from env
+@lambda _: _()
+def RESEARCHER_DELTA_UPDATE_BIO() -> timedelta:  # noqa
+    # generate delta from env
+    delta_update = os.getenv("RESEARCHER_DELTA_UPDATE_BIO") or "180d"
+
+    # format 20d == 20 days, 8h === 8 hoours, 15d6h == 15 days and 6 hours
+    total_seconds = 0
+
+    patterns_regex = [
+        (r"(\d+)d", "days"),
+        (r"(\d+)h", "hours"),
+        (r"(\d+)m(?!s)", "minutes"),
+        (r"(\d+)s", "seconds"),
+    ]
+
+    for pattern, unit in patterns_regex:
+        match = re.search(pattern, delta_update)
+        if match:
+            total_seconds += int(match.group(1)) * (
+                86400
+                if unit == "days"
+                else 3600
+                if unit == "hours"
+                else 60
+                if unit == "minutes"
+                else 1
+            )
+
+    return timedelta(seconds=total_seconds)

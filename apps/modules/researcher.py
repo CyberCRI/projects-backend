@@ -1,0 +1,78 @@
+from django.db.models import Count, Q
+from django.db.models.manager import BaseManager
+
+from apps.modules.base import AbstractModules, ignore_method, register_module
+from services.crisalid.constants import RolesCentralized
+from services.crisalid.models import (
+    Document,
+    DocumentJournal,
+    DocumentTypeCentralized,
+    Researcher,
+    ResearcherDomains,
+)
+from services.crisalid.models.award import AwardContributor
+from services.crisalid.models.patent import Patent
+
+
+@register_module(Researcher)
+class ResearcherModules(AbstractModules):
+    instance: Researcher
+
+    @ignore_method
+    def identifiers(self):
+        return self.instance.identifiers.all()
+
+    @ignore_method
+    def public_identifiers(self):
+        return self.identifiers().exclude(harvester__in=Researcher.PRIVACY_HARVESTER)
+
+    @ignore_method
+    def documents(self) -> BaseManager[Document]:
+        return self.instance.documents.all()
+
+    # create dynamicly all research plucations types to modules
+    for name, document_types in DocumentTypeCentralized.items():
+
+        def _name(self, document_types=document_types):
+            return self.documents().filter(document_type__in=document_types)
+
+        _name.__name__ = name
+        locals()[name] = _name
+
+    def similars(self) -> BaseManager[Researcher]:
+        return self.instance.similars()
+
+    def affiliated(self) -> BaseManager[Researcher]:
+        # TODO: filter documents by only where researcher is Authors/Co-Authors ...ect
+        #       not only reviewer/cited ...ect
+        researchers = Researcher.objects.filter(user__in=self.user.get_user_queryset())
+        documents_qs = self.documents()
+        return (
+            researchers.filter(documents__in=documents_qs)
+            # exclude self
+            .exclude(pk=self.instance.pk)
+            .annotate(
+                contributions_count=Count(
+                    "documents", filter=Q(documents__in=documents_qs), distinct=True
+                )
+            )
+            .order_by("-contributions_count")
+        )
+
+    def citations(self) -> BaseManager[DocumentJournal]:
+        # calculate only citations in doucments where research is author/co-author ..ect
+        documents = (
+            self.documents()
+            .filter(documentcontributor__roles__overlap=list(RolesCentralized.LEVEL_2))
+            .distinct()
+        )
+        return DocumentJournal.objects.filter(document__in=documents)
+
+    def domains(self) -> BaseManager[ResearcherDomains]:
+        return self.instance.researcher_domains.all()
+
+    def patents(self) -> BaseManager[Patent]:
+        return self.instance.patents.all().prefetch_related("researchers")
+
+    def awards(self) -> BaseManager[AwardContributor]:
+        return self.instance.awards_conributor.all()

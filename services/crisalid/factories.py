@@ -5,8 +5,13 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.organizations.factories import OrganizationFactory
 from services.crisalid import relators
+from services.crisalid.models.award import Award
+from services.crisalid.models.document import DocumentJournal
+from services.crisalid.models.journal import Journal
+from services.crisalid.models.patent import Patent, PatentContributor
 
 from .models import (
+    AwardContributor,
     CrisalidConfig,
     Document,
     DocumentContributor,
@@ -84,6 +89,63 @@ class DocumentContributorFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = DocumentContributor
+
+
+class JournalFactory(factory.django.DjangoModelFactory):
+    uid = faker.sentences(1)
+    title = factory.Faker("company")
+    acronym = [faker.sentence(1)]
+
+    class Meta:
+        model = Journal
+
+
+class DocumentJournalFactory(factory.django.DjangoModelFactory):
+    document = factory.LazyFunction(lambda: DocumentFactory())
+    journal = factory.LazyFunction(lambda: JournalFactory())
+    pages = faker.sentences(2)
+    volume = faker.sentences(2)
+    issue = faker.sentences(2)
+
+    class Meta:
+        model = DocumentJournal
+
+
+class PatentFactory(factory.django.DjangoModelFactory):
+    name = faker.sentences(2)
+    description = faker.text()
+    date = faker.date()
+    link = faker.url()
+
+    class Meta:
+        model = Patent
+
+
+class PatentContributorFactory(factory.django.DjangoModelFactory):
+    researcher = factory.LazyFunction(lambda: ResearcherFactory())
+    patent = factory.LazyFunction(lambda: PatentFactory())
+
+    class Meta:
+        model = PatentContributor
+
+
+class AwardFactory(factory.django.DjangoModelFactory):
+    name = faker.sentences(2)
+    description = faker.text()
+
+    class Meta:
+        model = Award
+
+
+class AwardContributorFactory(factory.django.DjangoModelFactory):
+    researcher = factory.LazyFunction(lambda: ResearcherFactory())
+    award = factory.LazyFunction(lambda: AwardFactory())
+    description = faker.text()
+    date = faker.date()
+    link = faker.url()
+
+    class Meta:
+        model = AwardContributor
 
 
 class CrisalidConfigFactory(factory.django.DjangoModelFactory):

@@ -158,6 +158,8 @@ class PaginatedViewSet(viewsets.ViewSet):
 
 
 class NestedOrganizationViewMixins:
+    organization: Organization
+
     def initial(self, request, *args, **kwargs):
         self.organization = self.get_organization(request, *args, **kwargs)
 

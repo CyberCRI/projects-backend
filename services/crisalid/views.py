@@ -14,11 +14,14 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
+from rest_framework.response import Response
 
 from apps.commons.views import (
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
 )
+from services.crisalid.filters import AwardContributorFilter, PatentContributorFilter
 from services.crisalid.models import (
     Document,
     DocumentContributor,
@@ -28,10 +31,14 @@ from services.crisalid.models import (
 )
 from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
+    AwardContributorSerializer,
+    CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
+    PatentSerializer,
     ResearcherSerializer,
 )
+from services.crisalid.utils.bio import generate_bio_from_researcher
 from services.crisalid.utils.views import NestedResearcherViewMixins
 
 OPENAPI_PARAMTERS_DOCUMENTS = [
@@ -205,6 +212,19 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
             ).data
         )
 
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *ar, **kw):
+        """get all journals linked to a publications/conférence"""
+
+        document: Document = self.get_object()
+        journals_qs = document.modules_by_user(request.user).citations()
+        queryset_page = self.paginate_queryset(journals_qs)
+        data = CitationSerializer(
+            queryset_page, many=True, context=self.get_serializer_context()
+        )
+
+        return self.get_paginated_response(data.data)
+
 
 class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
     """general viewset documents"""
@@ -354,6 +374,90 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
             ),
         ],
     ),
+    affiliated=extend_schema(
+        description="return affiliated list of researchers.",
+        responses=ResearcherSerializer(many=True),
+    ),
+    similars=extend_schema(
+        description="return similars list of researchers.",
+        responses=ResearcherSerializer(many=True),
+    ),
+    bio_ia=extend_schema(
+        description="return description generate by ia.",
+        parameters=[
+            OpenApiParameter(
+                name="minial",
+                description="return a short description",
+                required=False,
+                type=bool,
+            )
+        ],
+        responses=str,
+    ),
+    citations=extend_schema(
+        description="return all journal citations where researcher is cited.",
+        responses=CitationSerializer(many=True),
+    ),
+    patents=extend_schema(
+        description="return patents of researcher",
+        responses=PatentSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+        ],
+    ),
+    awards=extend_schema(
+        description="return awards of researcher",
+        responses=AwardContributorSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+        ],
+    ),
 )
 class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
@@ -396,3 +500,103 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
                     final[identifier["value"]] = user
 
         return self.get_paginated_response(final)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="affiliated")
+    def affiliated(self, request, *args, **kwargs):
+        """Method to return affiliated researchers"""
+        researcher = self.get_object()
+
+        qs = researcher.modules_by_user(request.user, self.organization).affiliated()
+        data = self.get_serializer_class()(
+            self.paginate_queryset(qs), context=self.get_serializer_context(), many=True
+        ).data
+
+        return self.get_paginated_response(data)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="similars")
+    def similars(self, request, *args, **kwargs):
+        """Method to return similars researchers"""
+        researcher = self.get_object()
+
+        qs = researcher.modules_by_user(request.user, self.organization).similars()
+        data = self.get_serializer_class()(
+            self.paginate_queryset(qs), context=self.get_serializer_context(), many=True
+        ).data
+
+        return self.get_paginated_response(data)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="bio-ia")
+    def bio_ia(self, request, *args, **kwargs):
+        """Method to return new generate bio ia from researcher"""
+        researcher = self.get_object()
+        bio = generate_bio_from_researcher(
+            researcher,
+            minimal=request.query_params.get("minial", "").lower() == "true",
+        )
+
+        return Response(
+            data=bio,
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        citations_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).citations()
+
+        paginated_qs = self.paginate_queryset(citations_qs)
+
+        return self.get_paginated_response(
+            CitationSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="patents")
+    def patents(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        patents_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).patents()
+
+        filterset = PatentContributorFilter(
+            data=request.query_params,
+            queryset=patents_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        patents_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(patents_qs)
+
+        return self.get_paginated_response(
+            PatentSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="awards")
+    def awards(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        awards_qs = researcher.modules_by_user(request.user, self.organization).awards()
+
+        filterset = AwardContributorFilter(
+            data=request.query_params,
+            queryset=awards_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        awards_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(awards_qs)
+
+        return self.get_paginated_response(
+            AwardContributorSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
