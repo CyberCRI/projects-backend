@@ -16,6 +16,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 
 from apps.commons.views import (
     NestedOrganizationViewMixins,
@@ -28,15 +29,23 @@ from services.crisalid.models import (
     DocumentTypeCentralized,
     Identifier,
     Researcher,
+    ResearcherStructure,
+    Structure,
 )
 from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
     AwardSerializer,
     CitationSerializer,
+    CollaborationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
     PatentSerializer,
+    ResearchDomainSerializer,
     ResearcherSerializer,
+    StructureLightSerializer,
+    StructureResearcherSerializer,
+    StructureSerializer,
+    StructureSupervisionSerializer,
 )
 from services.crisalid.utils.bio import generate_bio_from_researcher
 from services.crisalid.utils.views import NestedResearcherViewMixins
@@ -516,3 +525,99 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
                 paginated_qs, many=True, context=self.get_serializer_context()
             ).data
         )
+
+
+class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
+    """crisalid structures (laboratories, teams ...) of the organization"""
+
+    serializer_class = StructureSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ("id", "people_group", "generic_type")
+
+    def get_queryset(self) -> QuerySet[Structure]:
+        return self.request.user.get_people_group_related_queryset(
+            Structure.objects.filter(organization=self.organization).select_related(
+                "people_group"
+            )
+        )
+
+    def _paginated_module(
+        self, module: str, serializer_class: type[BaseSerializer], **kwargs
+    ) -> Response:
+        structure = self.get_object()
+        qs = getattr(
+            structure.modules_by_user(self.request.user, self.organization), module
+        )(**kwargs)
+        return self.get_paginated_response(
+            serializer_class(
+                self.paginate_queryset(qs),
+                many=True,
+                context=self.get_serializer_context(),
+            ).data
+        )
+
+    @extend_schema(responses=StructureLightSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="children")
+    def children(self, request, *args, **kwargs):
+        """Method to return the sub-structures of the structure"""
+        return self._paginated_module("sub_structures", StructureLightSerializer)
+
+    @extend_schema(responses=StructureLightSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="parents")
+    def parents(self, request, *args, **kwargs):
+        """Method to return the parent structures of the structure"""
+        return self._paginated_module("parent_structures", StructureLightSerializer)
+
+    @extend_schema(responses=StructureSupervisionSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="supervising-structures")
+    def supervising_structures(self, request, *args, **kwargs):
+        """Method to return the structures supervising the structure"""
+        return self._paginated_module(
+            "supervising_structures", StructureSupervisionSerializer
+        )
+
+    @extend_schema(responses=StructureSupervisionSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="supervised-structures")
+    def supervised_structures(self, request, *args, **kwargs):
+        """Method to return the structures supervised by the structure"""
+        return self._paginated_module(
+            "supervised_structures", StructureSupervisionSerializer
+        )
+
+    @extend_schema(
+        responses=StructureResearcherSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="relation_type",
+                description="type of the relation to the structure",
+                required=False,
+                enum=ResearcherStructure.RelationType,
+            )
+        ],
+    )
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="researchers")
+    def researchers(self, request, *args, **kwargs):
+        """Method to return researchers of the structure (and sub-structures) with their position"""
+        return self._paginated_module(
+            "researchers",
+            StructureResearcherSerializer,
+            relation_type=request.query_params.get("relation_type"),
+        )
+
+    @extend_schema(responses=ResearchDomainSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="research-domains")
+    def research_domains(self, request, *args, **kwargs):
+        """Method to return research domains of the structure documents"""
+        return self._paginated_module("research_domains", ResearchDomainSerializer)
+
+    @extend_schema(responses=CollaborationSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="collaborations")
+    def collaborations(self, request, *args, **kwargs):
+        """Method to return organizations affiliated to the structure documents"""
+        return self._paginated_module("collaborations", CollaborationSerializer)
+
+    @extend_schema(responses=CitationSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *args, **kwargs):
+        """Method to return journals where the structure documents are published"""
+        return self._paginated_module("citations", CitationSerializer)

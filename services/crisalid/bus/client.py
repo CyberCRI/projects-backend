@@ -10,8 +10,9 @@ from urllib3.util import parse_url
 from services.crisalid.bus.constant import (
     CRISALID_MESSAGE_SCHEMA,
     CrisalidEventEnum,
+    CrisalidTypeEnum,
 )
-from services.crisalid.models import CrisalidConfig
+from services.crisalid.models import CrisalidConfig, Structure
 
 from .consumer import crisalid_consumer
 
@@ -31,6 +32,9 @@ class CrisalidBusClient:
             "documents.document",
         )
         for event in CrisalidEventEnum
+        # "unchanged" events are sent for every person/structure/document on each import,
+        # only people ones are needed (memberships/employments changes)
+        if event != CrisalidEventEnum.UNCHANGED or entity == "people.person"
     ]
 
     def __init__(self, config: CrisalidConfig):
@@ -203,6 +207,9 @@ class CrisalidBusClient:
             return
 
         crisalid_type = payload["type"]
+        # structure events type is the structure generic type
+        if crisalid_type in Structure.GenericType:
+            crisalid_type = CrisalidTypeEnum.STRUCTURE.value
         crisalid_event = payload["event"]
         if not crisalid_consumer[crisalid_type][crisalid_event]:
             self.logger.info(

@@ -87,7 +87,7 @@ services:
     build: .
     env_file:
       - .env
-    command: celery -A projects worker -B -l info
+    command: watchfiles --filter python "celery -A projects worker -B -l info" apps projects services
     restart: unless-stopped
     depends_on:
       - projects-backend

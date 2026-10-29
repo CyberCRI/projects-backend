@@ -1,5 +1,9 @@
 query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
+  documentsAggregate(where: $where) {
+    count
+  }
   documents(limit: $limit, offset: $offset, where: $where) {
+    uid,
     publication_date,
     document_type,
 
@@ -11,6 +15,20 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
     abstracts {
       language
       value
+    }
+
+    publishedInConnection {
+      edges {
+        properties {
+          volume
+          issue
+          pages
+        }
+        node {
+          uid
+          titles
+        }
+      }
     }
 
     has_contributions {
@@ -27,6 +45,15 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
             language
           }
         }
+        identifiers {
+          harvester: type
+          value
+        }
+      }
+      affiliations {
+        uid
+        display_names
+        type
         identifiers {
           harvester: type
           value

@@ -1,11 +1,13 @@
 from rest_framework import serializers
 
-from apps.accounts.models import ProjectUser
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.commons.fields import PrivacySettingProtectedMethodField
 from apps.commons.serializers import PrivacySerializer
 from apps.modules.serializers import ModulesSerializers
+from apps.skills.models import Tag
 from apps.skills.serializers import TagSerializer
 from services.crisalid.models import (
+    AuthorityOrganization,
     Award,
     Document,
     DocumentDomains,
@@ -15,6 +17,8 @@ from services.crisalid.models import (
     Patent,
     Researcher,
     ResearcherDomains,
+    ResearcherStructure,
+    Structure,
 )
 from services.translator.serializers import auto_translated
 
@@ -174,3 +178,114 @@ class AwardSerializer(serializers.ModelSerializer):
             "date",
             "link",
         )
+
+
+class StructurePeopleGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeopleGroup
+        fields = ("id", "slug", "name")
+
+
+class StructureLightSerializer(serializers.ModelSerializer):
+    people_group = StructurePeopleGroupSerializer(read_only=True)
+
+    class Meta:
+        model = Structure
+        fields = (
+            "id",
+            "crisalid_uid",
+            "name",
+            "acronym",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+        )
+
+
+class StructureSupervisionSerializer(serializers.ModelSerializer):
+    """supervising/supervised structure, with the supervision position (annotated in structure modules)"""
+
+    people_group = StructurePeopleGroupSerializer(read_only=True)
+    position = serializers.CharField(read_only=True, allow_null=True)
+
+    class Meta:
+        model = Structure
+        fields = (
+            "id",
+            "crisalid_uid",
+            "name",
+            "acronym",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+            "position",
+        )
+
+
+class StructureSerializer(ModulesSerializers, serializers.ModelSerializer):
+    people_group = StructurePeopleGroupSerializer(read_only=True)
+
+    class Meta:
+        model = Structure
+        fields = (
+            "id",
+            "crisalid_uid",
+            "name",
+            "acronym",
+            "description",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+            "modules",
+        )
+
+
+class ResearchDomainSerializer(serializers.ModelSerializer):
+    documents_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Tag
+        fields = (
+            "id",
+            "type",
+            "secondary_type",
+            "title",
+            "description",
+            "documents_count",
+        )
+
+
+class CollaborationSerializer(serializers.ModelSerializer):
+    identifiers = IdentifierSerializer(many=True, read_only=True)
+    documents_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = AuthorityOrganization
+        fields = ("id", "name", "type", "identifiers", "documents_count")
+
+
+class StructureResearcherSerializer(serializers.ModelSerializer):
+    """researcher of a structure, with its position (annotated in structure modules)"""
+
+    user = ProjectUserMinimalSerializer(read_only=True)
+    position_code = serializers.CharField(read_only=True, allow_null=True)
+    position = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Researcher
+        fields = ("id", "display_name", "user", "position_code", "position")
+
+    def get_position(self, instance: Researcher) -> str | None:
+        code = getattr(instance, "position_code", None)
+        if not code:
+            return None
+        if code in ResearcherStructure.PositionCode:
+            return str(ResearcherStructure.PositionCode(code).label)
+        # unknown code from crisalid
+        return code

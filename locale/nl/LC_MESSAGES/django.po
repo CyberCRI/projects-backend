@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 11:38+0100\n"
+"POT-Creation-Date: 2026-10-29 10:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,15 +43,19 @@ msgid "You cannot add projects that you do not have access to"
 msgstr "Je kunt geen projecten toevoegen waartoe je geen toegang hebt"
 
 #: apps/accounts/exceptions.py:54
+msgid "This group is managed by Crisalid"
+msgstr "Deze groep wordt beheerd door Crisalid"
+
+#: apps/accounts/exceptions.py:60
 msgid "You do not have the permission to assign this role"
 msgstr "Je hebt geen toestemming om deze rol toe te wijzen"
 
-#: apps/accounts/exceptions.py:59
+#: apps/accounts/exceptions.py:65
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
 msgstr "Je hebt geen toestemming om deze rol toe te wijzen: {role}"
 
-#: apps/accounts/exceptions.py:74
+#: apps/accounts/exceptions.py:80
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -59,55 +63,59 @@ msgstr ""
 "De zoekparameter 'email_type' ontbreekt. Keuzes zijn: admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/exceptions.py:81
+#: apps/accounts/exceptions.py:87
 msgid "Permission not found"
 msgstr "Toestemming niet gevonden"
 
-#: apps/accounts/exceptions.py:87
+#: apps/accounts/exceptions.py:93
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Er is een fout opgetreden tijdens het synchroniseren met Keycloak"
 
-#: apps/accounts/exceptions.py:92
+#: apps/accounts/exceptions.py:98
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr ""
 "Er is een fout opgetreden tijdens het synchroniseren met Keycloak: {message}"
 
-#: apps/accounts/exceptions.py:104
+#: apps/accounts/exceptions.py:110
 msgid "An error occurred while syncing with Google"
 msgstr "Er is een fout opgetreden tijdens het synchroniseren met Google"
 
-#: apps/accounts/exceptions.py:109
+#: apps/accounts/exceptions.py:115
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
 "Er is een fout opgetreden tijdens het synchroniseren met Google: {message}"
 
-#: apps/accounts/exceptions.py:124
+#: apps/accounts/exceptions.py:130
 msgid "The organization of a group cannot be changed"
 msgstr "De organisatie van een groep kan niet worden gewijzigd"
 
-#: apps/accounts/exceptions.py:130
+#: apps/accounts/exceptions.py:136
 msgid "The root group cannot have a parent group"
 msgstr "De hoofdgroep kan geen oudergroep hebben"
 
-#: apps/accounts/exceptions.py:136
+#: apps/accounts/exceptions.py:142
 msgid "A non-root group must have a parent group"
 msgstr "Een niet-hoofdgroep moet een oudergroep hebben"
 
-#: apps/accounts/exceptions.py:142
+#: apps/accounts/exceptions.py:148
 msgid "The parent group must belong to the same organization"
 msgstr "De oudergroep moet tot dezelfde organisatie behoren"
 
-#: apps/accounts/exceptions.py:148
+#: apps/accounts/exceptions.py:154
+msgid "This group is not linked to a Crisalid structure"
+msgstr "Deze groep is niet gekoppeld aan een Crisalid-structuur"
+
+#: apps/accounts/exceptions.py:160
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Je probeert een lus te creëren in de hiërarchie van de groep"
 
-#: apps/accounts/exceptions.py:154
+#: apps/accounts/exceptions.py:166
 msgid "You cannot assign this role to a user"
 msgstr "Je kunt deze rol niet toewijzen aan een gebruiker"
 
-#: apps/accounts/exceptions.py:159
+#: apps/accounts/exceptions.py:171
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Je kunt deze rol niet toewijzen aan een gebruiker: {role}"
@@ -194,7 +202,7 @@ msgstr "Onjuist type. Verwachte stringwaarde, ontvangen {data_type}."
 
 #: apps/commons/serializers.py:217
 msgid "The value must be between -90 and 90."
-msgstr ""
+msgstr "De waarde moet tussen -90 en 90 liggen."
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -1628,10 +1636,8 @@ msgid "Only custom tags classifications can be updated"
 msgstr "Alleen aangepaste tagclassificaties kunnen worden bijgewerkt"
 
 #: apps/skills/exceptions.py:61
-#, fuzzy
-#| msgid "You can only search for 50 Wikipedia tags at a time"
 msgid "You can only search for 50 tags at a time"
-msgstr "Je kunt slechts 50 Wikipedia-tags tegelijk zoeken"
+msgstr "U kunt maximaal 50 tags tegelijk zoeken"
 
 #: apps/skills/exceptions.py:67
 msgid "You already made a mentoring request for this skill"
@@ -2638,21 +2644,29 @@ msgstr ""
 "\n"
 "Wil je begeleid worden in %(skill)s? (herinnering)\n"
 
+#: services/crisalid/models/config.py:61
+msgid "The group must belong to the organization"
+msgstr "De groep moet tot de organisatie behoren"
+
+#: services/crisalid/models/config.py:69
+msgid "The group cannot be linked to a crisalid structure"
+msgstr "De groep mag niet gekoppeld zijn aan een Crisalid-structuur"
+
 #: services/crisalid/models/document.py:122
 msgid "Document"
-msgstr ""
+msgstr "Document"
 
 #: services/crisalid/models/document.py:123
 msgid "Scholarly Publication"
-msgstr ""
+msgstr "Wetenschappelijke publicatie"
 
 #: services/crisalid/models/document.py:124
 msgid "Article"
-msgstr ""
+msgstr "Artikel"
 
 #: services/crisalid/models/document.py:125
 msgid "Journal Article"
-msgstr ""
+msgstr "Tijdschriftartikel"
 
 #: services/crisalid/models/document.py:126
 msgid "Conference Article"
@@ -2660,11 +2674,11 @@ msgstr "Conferentieartikel"
 
 #: services/crisalid/models/document.py:127
 msgid "Conference Abstract"
-msgstr ""
+msgstr "Conferentieabstract"
 
 #: services/crisalid/models/document.py:128
 msgid "Preface"
-msgstr ""
+msgstr "Voorwoord"
 
 #: services/crisalid/models/document.py:129
 msgid "Comment"
@@ -2672,83 +2686,390 @@ msgstr "Commentaar"
 
 #: services/crisalid/models/document.py:130
 msgid "Book Chapter"
-msgstr ""
+msgstr "Boekhoofdstuk"
 
 #: services/crisalid/models/document.py:131
 msgid "Book"
-msgstr ""
+msgstr "Boek"
 
 #: services/crisalid/models/document.py:132
 msgid "Monograph"
-msgstr ""
+msgstr "Monografie"
 
 #: services/crisalid/models/document.py:133
 msgid "Proceedings"
-msgstr ""
+msgstr "Congresverslag"
 
 #: services/crisalid/models/document.py:134
 msgid "Book Of Chapters"
-msgstr ""
+msgstr "Verzamelbundel"
 
 #: services/crisalid/models/document.py:135
 msgid "Presentation"
-msgstr ""
+msgstr "Presentatie"
 
 #: services/crisalid/models/document.py:136
 msgid "Unknown"
+msgstr "Onbekend"
+
+#: services/crisalid/models/organization.py:13
+msgid "Organization"
+msgstr "Organisatie"
+
+#: services/crisalid/models/organization.py:14
+#: services/crisalid/models/structure.py:52
+msgid "Institution"
+msgstr "Instelling"
+
+#: services/crisalid/models/organization.py:15
+msgid "Institution group"
+msgstr "Instellingengroep"
+
+#: services/crisalid/models/organization.py:16
+msgid "Laboratory"
+msgstr "Laboratorium"
+
+#: services/crisalid/models/organization.py:17
+msgid "Laboratory group"
+msgstr "Laboratoriumgroep"
+
+#: services/crisalid/models/organization.py:18
+msgid "Research team"
+msgstr "Onderzoeksteam"
+
+#: services/crisalid/models/organization.py:19
+msgid "Research team group"
+msgstr "Groep onderzoeksteams"
+
+#: services/crisalid/models/structure.py:55
+msgid "Institution subdivision"
+msgstr "Onderdeel van instelling"
+
+#: services/crisalid/models/structure.py:57
+msgid "Doctoral school"
+msgstr "Doctorale school"
+
+#: services/crisalid/models/structure.py:58
+msgid "Unit"
+msgstr "Eenheid"
+
+#: services/crisalid/models/structure.py:59
+msgid "Unit subdivision"
+msgstr "Subeenheid"
+
+#: services/crisalid/models/structure.py:60
+msgid "Team"
+msgstr "Team"
+
+#: services/crisalid/models/structure.py:63
+msgid "Research"
+msgstr "Onderzoek"
+
+#: services/crisalid/models/structure.py:64
+msgid "Scientific services"
+msgstr "Wetenschappelijke diensten"
+
+#: services/crisalid/models/structure.py:67
+msgid "Administrative services"
+msgstr "Administratieve diensten"
+
+#: services/crisalid/models/structure.py:69
+msgid "Teaching"
+msgstr "Onderwijs"
+
+#: services/crisalid/models/structure.py:202
+msgid "Professor"
+msgstr "Hoogleraar"
+
+#: services/crisalid/models/structure.py:203
+msgid "Director of studies"
+msgstr "Studiedirecteur"
+
+#: services/crisalid/models/structure.py:204
+msgid "Physicist"
+msgstr "Natuurkundige"
+
+#: services/crisalid/models/structure.py:205
+msgid "Astronomer"
+msgstr "Astronoom"
+
+#: services/crisalid/models/structure.py:206
+msgid "University professor - Hospital practitioner"
+msgstr "Hoogleraar - Ziekenhuisarts"
+
+#: services/crisalid/models/structure.py:207
+msgid "Professor in institutions under other ministries"
+msgstr "Hoogleraar bij instellingen onder andere ministeries"
+
+#: services/crisalid/models/structure.py:208
+msgid "Temporary teaching and research assistant"
+msgstr "Tijdelijk onderwijs- en onderzoeksmedewerker"
+
+#: services/crisalid/models/structure.py:209
+msgid "Associate professor"
+msgstr "Universitair hoofddocent"
+
+#: services/crisalid/models/structure.py:210
+msgid "Assistant physicist"
+msgstr "Adjunct-natuurkundige"
+
+#: services/crisalid/models/structure.py:211
+msgid "Assistant astronomer"
+msgstr "Adjunct-astronoom"
+
+#: services/crisalid/models/structure.py:212
+msgid "Associate professor - Hospital practitioner"
+msgstr "Universitair hoofddocent - Ziekenhuisarts"
+
+#: services/crisalid/models/structure.py:216
+msgid "Associate or assistant professor in institutions under other ministries"
+msgstr "Hoofddocent of docent bij instellingen onder andere ministeries"
+
+#: services/crisalid/models/structure.py:219
+msgid "Professor emeritus"
+msgstr "Emeritus hoogleraar"
+
+#: services/crisalid/models/structure.py:220
+msgid "Associate professor emeritus"
+msgstr "Emeritus universitair hoofddocent"
+
+#: services/crisalid/models/structure.py:221
+msgid "Clinical fellow"
+msgstr "Klinisch fellow"
+
+#: services/crisalid/models/structure.py:222
+msgid "University hospital fellow"
+msgstr "Universitair ziekenhuismedewerker"
+
+#: services/crisalid/models/structure.py:223
+msgid "University hospital practitioner"
+msgstr "Universitair ziekenhuisarts"
+
+#: services/crisalid/models/structure.py:224
+msgid "Contract lecturer-researcher"
+msgstr "Docent-onderzoeker op contractbasis"
+
+#: services/crisalid/models/structure.py:225
+msgid "Associate lecturer-researcher (part-time or full-time)"
+msgstr "Geassocieerd docent-onderzoeker (deeltijds of voltijds)"
+
+#: services/crisalid/models/structure.py:226
+#: services/crisalid/models/structure.py:243
+#: services/crisalid/models/structure.py:276
+msgid "Other status"
+msgstr "Andere status"
+
+#: services/crisalid/models/structure.py:227
+msgid "Junior professor chair"
+msgstr "Leerstoel junior hoogleraar"
+
+#: services/crisalid/models/structure.py:228
+msgid "Research director and equivalent"
+msgstr "Onderzoeksdirecteur en gelijkgestelden"
+
+#: services/crisalid/models/structure.py:229
+msgid "Research scientist and equivalent"
+msgstr "Onderzoeker en gelijkgestelden"
+
+#: services/crisalid/models/structure.py:230
+msgid "Library curator"
+msgstr "Bibliotheekconservator"
+
+#: services/crisalid/models/structure.py:231
+msgid "Heritage curator"
+msgstr "Erfgoedconservator"
+
+#: services/crisalid/models/structure.py:232
+msgid "Research director emeritus"
+msgstr "Emeritus onderzoeksdirecteur"
+
+#: services/crisalid/models/structure.py:233
+msgid "Young researcher contract (3/5-year fixed term, ATIP-Avenir)"
+msgstr "Contract jonge onderzoeker (bepaalde tijd 3/5 jaar, ATIP-Avenir)"
+
+#: services/crisalid/models/structure.py:234
+msgid "Contract researcher"
+msgstr "Onderzoeker op contractbasis"
+
+#: services/crisalid/models/structure.py:235
+msgid "Postdoctoral researcher"
+msgstr "Postdoctoraal onderzoeker"
+
+#: services/crisalid/models/structure.py:239
+msgid ""
+"Foreign visitor: visiting professor or associate researcher, staying at "
+"least 3 months in the unit"
 msgstr ""
+"Buitenlandse bezoeker: gasthoogleraar of geassocieerd onderzoeker, minstens "
+"3 maanden in de eenheid"
+
+#: services/crisalid/models/structure.py:242
+msgid "Doctor of medicine, pharmacy, etc."
+msgstr "Doctor in de geneeskunde, farmacie, enz."
+
+#: services/crisalid/models/structure.py:244
+msgid "Agrégé teacher"
+msgstr "Agrégé-docent"
+
+#: services/crisalid/models/structure.py:245
+msgid "Certified teacher"
+msgstr "Gecertificeerd docent"
+
+#: services/crisalid/models/structure.py:246
+msgid "Research engineer or equivalent"
+msgstr "Onderzoeksingenieur of gelijkgestelde"
+
+#: services/crisalid/models/structure.py:247
+msgid "Study engineer or equivalent"
+msgstr "Studie-ingenieur of gelijkgestelde"
+
+#: services/crisalid/models/structure.py:248
+msgid "Assistant engineer or equivalent"
+msgstr "Assistent-ingenieur of gelijkgestelde"
+
+#: services/crisalid/models/structure.py:249
+msgid "Research technician or equivalent"
+msgstr "Onderzoekstechnicus of gelijkgestelde"
+
+#: services/crisalid/models/structure.py:250
+msgid "Research technical staff and administrative staff"
+msgstr "Technisch en administratief onderzoekspersoneel"
+
+#: services/crisalid/models/structure.py:251
+msgid "State librarian"
+msgstr "Rijksbibliothecaris"
+
+#: services/crisalid/models/structure.py:252
+msgid "Specialised assistant librarian"
+msgstr "Gespecialiseerd assistent-bibliothecaris"
+
+#: services/crisalid/models/structure.py:253
+msgid "Library assistant"
+msgstr "Bibliotheekassistent"
+
+#: services/crisalid/models/structure.py:254
+msgid "Library storekeeper"
+msgstr "Bibliotheekmagazijnier"
+
+#: services/crisalid/models/structure.py:255
+msgid "Hospital practitioner"
+msgstr "Ziekenhuisarts"
+
+#: services/crisalid/models/structure.py:256
+msgid "Hospital administrative, technical, labour or service staff"
+msgstr "Administratief, technisch of dienstpersoneel in het ziekenhuis"
+
+#: services/crisalid/models/structure.py:260
+msgid "Nursing assistant, childcare assistant, medical-psychological assistant"
+msgstr "Zorgassistent, kinderverzorger, medisch-psychologisch assistent"
+
+#: services/crisalid/models/structure.py:263
+msgid "Hospital secretary"
+msgstr "Ziekenhuissecretaris"
+
+#: services/crisalid/models/structure.py:264
+msgid "Hospital technician"
+msgstr "Ziekenhuistechnicus"
+
+#: services/crisalid/models/structure.py:265
+msgid "Nurse"
+msgstr "Verpleegkundige"
+
+#: services/crisalid/models/structure.py:266
+msgid "Midwife"
+msgstr "Verloskundige"
+
+#: services/crisalid/models/structure.py:267
+msgid "Clinical research associate"
+msgstr "Klinisch onderzoeksmedewerker"
+
+#: services/crisalid/models/structure.py:268
+msgid "Healthcare manager"
+msgstr "Zorgmanager"
+
+#: services/crisalid/models/structure.py:269
+msgid "Hospital engineer"
+msgstr "Ziekenhuisingenieur"
+
+#: services/crisalid/models/structure.py:270
+msgid "Project manager (hospital)"
+msgstr "Projectleider (ziekenhuis)"
+
+#: services/crisalid/models/structure.py:271
+msgid "Part-time associate staff"
+msgstr "Geassocieerd personeel in deeltijd"
+
+#: services/crisalid/models/structure.py:272
+msgid "Fixed-term contract (unspecified category)"
+msgstr "Tijdelijk contract (categorie niet gespecificeerd)"
+
+#: services/crisalid/models/structure.py:273
+msgid "Fixed-term contract (category A)"
+msgstr "Tijdelijk contract (categorie A)"
+
+#: services/crisalid/models/structure.py:274
+msgid "Fixed-term contract (category B)"
+msgstr "Tijdelijk contract (categorie B)"
+
+#: services/crisalid/models/structure.py:275
+msgid "Fixed-term contract (category C)"
+msgstr "Tijdelijk contract (categorie C)"
+
+#: services/crisalid/models/structure.py:277
+msgid "Intern (BTS, M1 or M2) present at least 3 months in the unit"
+msgstr "Stagiair (BTS, M1 of M2), minstens 3 maanden in de eenheid"
 
 #: services/crisalid/relators.py:779
 msgid "abridger"
-msgstr ""
+msgstr "inkorter"
 
 #: services/crisalid/relators.py:780
 msgid "art copyist"
-msgstr ""
+msgstr "kunstkopiist"
 
 #: services/crisalid/relators.py:781
 msgid "actor"
-msgstr ""
+msgstr "acteur"
 
 #: services/crisalid/relators.py:782
 msgid "art director"
-msgstr ""
+msgstr "art director"
 
 #: services/crisalid/relators.py:783
 msgid "adapter"
-msgstr ""
+msgstr "bewerker"
 
 #: services/crisalid/relators.py:784
 msgid "author of afterword, colophon, etc."
-msgstr ""
+msgstr "auteur van nawoord, colofon, enz."
 
 #: services/crisalid/relators.py:785
 msgid "announcer"
-msgstr ""
+msgstr "omroeper"
 
 #: services/crisalid/relators.py:786
 msgid "analyst"
-msgstr ""
+msgstr "analist"
 
 #: services/crisalid/relators.py:787
 msgid "animator"
-msgstr ""
+msgstr "animator"
 
 #: services/crisalid/relators.py:788
 msgid "annotator"
-msgstr ""
+msgstr "annotator"
 
 #: services/crisalid/relators.py:789
 msgid "bibliographic antecedent"
-msgstr ""
+msgstr "bibliografische voorganger"
 
 #: services/crisalid/relators.py:790
 msgid "appellee"
-msgstr ""
+msgstr "verweerder in hoger beroep"
 
 #: services/crisalid/relators.py:791
 msgid "appellant"
-msgstr ""
+msgstr "appellant"
 
 #: services/crisalid/relators.py:792
 msgid "applicant"
@@ -2756,51 +3077,51 @@ msgstr "aanvrager"
 
 #: services/crisalid/relators.py:793
 msgid "author in quotations or text abstracts"
-msgstr ""
+msgstr "auteur in citaten of tekstfragmenten"
 
 #: services/crisalid/relators.py:794
 msgid "architect"
-msgstr ""
+msgstr "architect"
 
 #: services/crisalid/relators.py:795
 msgid "artistic director"
-msgstr ""
+msgstr "artistiek directeur"
 
 #: services/crisalid/relators.py:796
 msgid "arranger"
-msgstr ""
+msgstr "arrangeur"
 
 #: services/crisalid/relators.py:797
 msgid "artist"
-msgstr ""
+msgstr "kunstenaar"
 
 #: services/crisalid/relators.py:798
 msgid "assignee"
-msgstr ""
+msgstr "rechtverkrijgende"
 
 #: services/crisalid/relators.py:799
 msgid "associated name"
-msgstr ""
+msgstr "geassocieerde naam"
 
 #: services/crisalid/relators.py:800
 msgid "autographer"
-msgstr ""
+msgstr "autograaf"
 
 #: services/crisalid/relators.py:801
 msgid "attributed name"
-msgstr ""
+msgstr "toegeschreven naam"
 
 #: services/crisalid/relators.py:802
 msgid "auctioneer"
-msgstr ""
+msgstr "veilingmeester"
 
 #: services/crisalid/relators.py:803
 msgid "author of dialog"
-msgstr ""
+msgstr "auteur van de dialogen"
 
 #: services/crisalid/relators.py:804
 msgid "audio engineer"
-msgstr ""
+msgstr "geluidstechnicus"
 
 #: services/crisalid/relators.py:805
 msgid "author of introduction, etc."
@@ -2808,163 +3129,163 @@ msgstr "auteur van de inleiding, etc."
 
 #: services/crisalid/relators.py:806
 msgid "audio producer"
-msgstr ""
+msgstr "audioproducent"
 
 #: services/crisalid/relators.py:807
 msgid "screenwriter"
-msgstr ""
+msgstr "scenarioschrijver"
 
 #: services/crisalid/relators.py:808
 msgid "author"
-msgstr ""
+msgstr "auteur"
 
 #: services/crisalid/relators.py:809
 msgid "binding designer"
-msgstr ""
+msgstr "bandontwerper"
 
 #: services/crisalid/relators.py:810
 msgid "bookjacket designer"
-msgstr ""
+msgstr "ontwerper van boekomslagen"
 
 #: services/crisalid/relators.py:811
 msgid "book artist"
-msgstr ""
+msgstr "boekkunstenaar"
 
 #: services/crisalid/relators.py:812
 msgid "book designer"
-msgstr ""
+msgstr "boekontwerper"
 
 #: services/crisalid/relators.py:813
 msgid "book producer"
-msgstr ""
+msgstr "boekproducent"
 
 #: services/crisalid/relators.py:814
 msgid "blurb writer"
-msgstr ""
+msgstr "schrijver van flaptekst"
 
 #: services/crisalid/relators.py:815
 msgid "binder"
-msgstr ""
+msgstr "boekbinder"
 
 #: services/crisalid/relators.py:816
 msgid "bookplate designer"
-msgstr ""
+msgstr "ontwerper van ex-libris"
 
 #: services/crisalid/relators.py:817
 msgid "broadcaster"
-msgstr ""
+msgstr "omroep"
 
 #: services/crisalid/relators.py:818
 msgid "braille embosser"
-msgstr ""
+msgstr "braillepersoperator"
 
 #: services/crisalid/relators.py:819
 msgid "bookseller"
-msgstr ""
+msgstr "boekhandelaar"
 
 #: services/crisalid/relators.py:820
 msgid "casting director"
-msgstr ""
+msgstr "castingdirecteur"
 
 #: services/crisalid/relators.py:821
 msgid "caster"
-msgstr ""
+msgstr "gieter"
 
 #: services/crisalid/relators.py:822
 msgid "conceptor"
-msgstr ""
+msgstr "conceptontwikkelaar"
 
 #: services/crisalid/relators.py:823
 msgid "choreographer"
-msgstr ""
+msgstr "choreograaf"
 
 #: services/crisalid/relators.py:824
 msgid "client"
-msgstr ""
+msgstr "opdrachtgever"
 
 #: services/crisalid/relators.py:825
 msgid "calligrapher"
-msgstr ""
+msgstr "kalligraaf"
 
 #: services/crisalid/relators.py:826
 msgid "colorist"
-msgstr ""
+msgstr "inkleurder"
 
 #: services/crisalid/relators.py:827
 msgid "collotyper"
-msgstr ""
+msgstr "lichtdrukker"
 
 #: services/crisalid/relators.py:828
 msgid "commentator"
-msgstr ""
+msgstr "commentator"
 
 #: services/crisalid/relators.py:829
 msgid "composer"
-msgstr ""
+msgstr "componist"
 
 #: services/crisalid/relators.py:830
 msgid "compositor"
-msgstr ""
+msgstr "letterzetter"
 
 #: services/crisalid/relators.py:831
 msgid "conductor"
-msgstr ""
+msgstr "dirigent"
 
 #: services/crisalid/relators.py:832
 msgid "cinematographer"
-msgstr ""
+msgstr "cameraman"
 
 #: services/crisalid/relators.py:833
 msgid "censor"
-msgstr ""
+msgstr "censor"
 
 #: services/crisalid/relators.py:834
 msgid "contestant-appellee"
-msgstr ""
+msgstr "betwister en verweerder in hoger beroep"
 
 #: services/crisalid/relators.py:835
 msgid "collector"
-msgstr ""
+msgstr "verzamelaar"
 
 #: services/crisalid/relators.py:836
 msgid "compiler"
-msgstr ""
+msgstr "samensteller"
 
 #: services/crisalid/relators.py:837
 msgid "conservator"
-msgstr ""
+msgstr "restaurator"
 
 #: services/crisalid/relators.py:838
 msgid "camera operator"
-msgstr ""
+msgstr "cameraman"
 
 #: services/crisalid/relators.py:839
 msgid "collection registrar"
-msgstr ""
+msgstr "collectieregistrator"
 
 #: services/crisalid/relators.py:840
 msgid "contestant"
-msgstr ""
+msgstr "betwister"
 
 #: services/crisalid/relators.py:841
 msgid "contestant-appellant"
-msgstr ""
+msgstr "betwister en appellant"
 
 #: services/crisalid/relators.py:842
 msgid "court governed"
-msgstr ""
+msgstr "betrokken rechtbank"
 
 #: services/crisalid/relators.py:843
 msgid "cover designer"
-msgstr ""
+msgstr "omslagontwerper"
 
 #: services/crisalid/relators.py:844
 msgid "copyright claimant"
-msgstr ""
+msgstr "claimant van het auteursrecht"
 
 #: services/crisalid/relators.py:845
 msgid "complainant-appellee"
-msgstr ""
+msgstr "klager en verweerder in hoger beroep"
 
 #: services/crisalid/relators.py:846
 msgid "copyright holder"
@@ -2972,31 +3293,31 @@ msgstr "houder van het auteursrecht"
 
 #: services/crisalid/relators.py:847
 msgid "complainant"
-msgstr ""
+msgstr "klager"
 
 #: services/crisalid/relators.py:848
 msgid "complainant-appellant"
-msgstr ""
+msgstr "klager en appellant"
 
 #: services/crisalid/relators.py:849
 msgid "creator"
-msgstr ""
+msgstr "maker"
 
 #: services/crisalid/relators.py:850
 msgid "correspondent"
-msgstr ""
+msgstr "correspondent"
 
 #: services/crisalid/relators.py:851
 msgid "corrector"
-msgstr ""
+msgstr "corrector"
 
 #: services/crisalid/relators.py:852
 msgid "court reporter"
-msgstr ""
+msgstr "gerechtsverslaggever"
 
 #: services/crisalid/relators.py:853
 msgid "consultant"
-msgstr ""
+msgstr "consultant"
 
 #: services/crisalid/relators.py:854
 msgid "consultant to a project"
@@ -3004,99 +3325,99 @@ msgstr "adviseur van een project"
 
 #: services/crisalid/relators.py:855
 msgid "costume designer"
-msgstr ""
+msgstr "kostuumontwerper"
 
 #: services/crisalid/relators.py:856
 msgid "contributor"
-msgstr ""
+msgstr "bijdrager"
 
 #: services/crisalid/relators.py:857
 msgid "contestee-appellee"
-msgstr ""
+msgstr "betwiste partij en verweerder in hoger beroep"
 
 #: services/crisalid/relators.py:858
 msgid "cartographer"
-msgstr ""
+msgstr "cartograaf"
 
 #: services/crisalid/relators.py:859
 msgid "contractor"
-msgstr ""
+msgstr "aannemer"
 
 #: services/crisalid/relators.py:860
 msgid "contestee"
-msgstr ""
+msgstr "betwiste partij"
 
 #: services/crisalid/relators.py:861
 msgid "contestee-appellant"
-msgstr ""
+msgstr "betwiste partij en appellant"
 
 #: services/crisalid/relators.py:862
 msgid "curator"
-msgstr ""
+msgstr "curator"
 
 #: services/crisalid/relators.py:863
 msgid "commentator for written text"
-msgstr ""
+msgstr "commentator van geschreven tekst"
 
 #: services/crisalid/relators.py:864
 msgid "dubbing director"
-msgstr ""
+msgstr "nasynchronisatieregisseur"
 
 #: services/crisalid/relators.py:865
 msgid "distribution place"
-msgstr ""
+msgstr "plaats van distributie"
 
 #: services/crisalid/relators.py:866
 msgid "defendant"
-msgstr ""
+msgstr "verweerder"
 
 #: services/crisalid/relators.py:867
 msgid "defendant-appellee"
-msgstr ""
+msgstr "verweerder in eerste aanleg en in hoger beroep"
 
 #: services/crisalid/relators.py:868
 msgid "defendant-appellant"
-msgstr ""
+msgstr "verweerder en appellant"
 
 #: services/crisalid/relators.py:869
 msgid "degree committee member"
-msgstr ""
+msgstr "lid van de promotiecommissie"
 
 #: services/crisalid/relators.py:870
 msgid "degree granting institution"
-msgstr ""
+msgstr "instelling die de graad verleent"
 
 #: services/crisalid/relators.py:871
 msgid "degree supervisor"
-msgstr ""
+msgstr "promotor"
 
 #: services/crisalid/relators.py:872
 msgid "dissertant"
-msgstr ""
+msgstr "promovendus"
 
 #: services/crisalid/relators.py:873
 msgid "dj"
-msgstr ""
+msgstr "dj"
 
 #: services/crisalid/relators.py:874
 msgid "United States, Library of Congress"
-msgstr ""
+msgstr "Verenigde Staten, Library of Congress"
 
 #: services/crisalid/relators.py:875
 msgid "delineator"
-msgstr ""
+msgstr "tekenaar"
 
 #: services/crisalid/relators.py:876
 msgid "dancer"
-msgstr ""
+msgstr "danser"
 
 #: services/crisalid/relators.py:877
 msgid "donor"
-msgstr ""
+msgstr "schenker"
 
 #: services/crisalid/relators.py:878
 msgid "depicted"
-msgstr ""
+msgstr "afgebeelde"
 
 #: services/crisalid/relators.py:879
 msgid "depositor"
@@ -3104,95 +3425,95 @@ msgstr "deposant"
 
 #: services/crisalid/relators.py:880
 msgid "draftsman"
-msgstr ""
+msgstr "technisch tekenaar"
 
 #: services/crisalid/relators.py:881
 msgid "director"
-msgstr ""
+msgstr "regisseur"
 
 #: services/crisalid/relators.py:882
 msgid "designer"
-msgstr ""
+msgstr "ontwerper"
 
 #: services/crisalid/relators.py:883
 msgid "distributor"
-msgstr ""
+msgstr "distributeur"
 
 #: services/crisalid/relators.py:884
 msgid "data contributor"
-msgstr ""
+msgstr "gegevensleverancier"
 
 #: services/crisalid/relators.py:885
 msgid "dedicatee"
-msgstr ""
+msgstr "opgedragene"
 
 #: services/crisalid/relators.py:886
 msgid "data manager"
-msgstr ""
+msgstr "gegevensbeheerder"
 
 #: services/crisalid/relators.py:887
 msgid "dedicator"
-msgstr ""
+msgstr "opdrager"
 
 #: services/crisalid/relators.py:888
 msgid "dubious author"
-msgstr ""
+msgstr "twijfelachtige auteur"
 
 #: services/crisalid/relators.py:889
 msgid "editor of compilation"
-msgstr ""
+msgstr "redacteur van de compilatie"
 
 #: services/crisalid/relators.py:890
 msgid "editorial director"
-msgstr ""
+msgstr "hoofdredacteur"
 
 #: services/crisalid/relators.py:891
 msgid "editor of moving image work"
-msgstr ""
+msgstr "editor van het audiovisuele werk"
 
 #: services/crisalid/relators.py:893
 msgid "engraver"
-msgstr ""
+msgstr "graveur"
 
 #: services/crisalid/relators.py:894
 msgid "electrician"
-msgstr ""
+msgstr "elektricien"
 
 #: services/crisalid/relators.py:895
 msgid "electrotyper"
-msgstr ""
+msgstr "galvanotypist"
 
 #: services/crisalid/relators.py:896
 msgid "engineer"
-msgstr ""
+msgstr "ingenieur"
 
 #: services/crisalid/relators.py:897
 msgid "enacting jurisdiction"
-msgstr ""
+msgstr "uitvaardigende jurisdictie"
 
 #: services/crisalid/relators.py:898
 msgid "etcher"
-msgstr ""
+msgstr "etser"
 
 #: services/crisalid/relators.py:899
 msgid "event place"
-msgstr ""
+msgstr "plaats van het evenement"
 
 #: services/crisalid/relators.py:900
 msgid "expert"
-msgstr ""
+msgstr "deskundige"
 
 #: services/crisalid/relators.py:901
 msgid "facsimilist"
-msgstr ""
+msgstr "facsimilemaker"
 
 #: services/crisalid/relators.py:902
 msgid "film distributor"
-msgstr ""
+msgstr "filmdistributeur"
 
 #: services/crisalid/relators.py:903
 msgid "field director"
-msgstr ""
+msgstr "veldwerkleider"
 
 #: services/crisalid/relators.py:904
 msgid "film editor"
@@ -3200,43 +3521,43 @@ msgstr "filmredacteur"
 
 #: services/crisalid/relators.py:905
 msgid "film director"
-msgstr ""
+msgstr "filmregisseur"
 
 #: services/crisalid/relators.py:906
 msgid "filmmaker"
-msgstr ""
+msgstr "filmmaker"
 
 #: services/crisalid/relators.py:907
 msgid "former owner"
-msgstr ""
+msgstr "vorige eigenaar"
 
 #: services/crisalid/relators.py:908
 msgid "film producer"
-msgstr ""
+msgstr "filmproducent"
 
 #: services/crisalid/relators.py:909
 msgid "funder"
-msgstr ""
+msgstr "financier"
 
 #: services/crisalid/relators.py:910
 msgid "founder"
-msgstr ""
+msgstr "oprichter"
 
 #: services/crisalid/relators.py:911
 msgid "first party"
-msgstr ""
+msgstr "eerste partij"
 
 #: services/crisalid/relators.py:912
 msgid "forger"
-msgstr ""
+msgstr "vervalser"
 
 #: services/crisalid/relators.py:913
 msgid "game developer"
-msgstr ""
+msgstr "gameontwikkelaar"
 
 #: services/crisalid/relators.py:914
 msgid "geographic information specialist"
-msgstr ""
+msgstr "specialist geografische informatie"
 
 #: services/crisalid/relators.py:915
 msgid "host institution"
@@ -3244,39 +3565,39 @@ msgstr "gastinstelling"
 
 #: services/crisalid/relators.py:916
 msgid "honoree"
-msgstr ""
+msgstr "geëerde"
 
 #: services/crisalid/relators.py:917
 msgid "host"
-msgstr ""
+msgstr "gastheer"
 
 #: services/crisalid/relators.py:918
 msgid "illustrator"
-msgstr ""
+msgstr "illustrator"
 
 #: services/crisalid/relators.py:919
 msgid "illuminator"
-msgstr ""
+msgstr "verluchter"
 
 #: services/crisalid/relators.py:920
 msgid "inker"
-msgstr ""
+msgstr "inkter"
 
 #: services/crisalid/relators.py:921
 msgid "inscriber"
-msgstr ""
+msgstr "schrijver van de opdracht"
 
 #: services/crisalid/relators.py:922
 msgid "inventor"
-msgstr ""
+msgstr "uitvinder"
 
 #: services/crisalid/relators.py:923
 msgid "issuing body"
-msgstr ""
+msgstr "uitgevende instantie"
 
 #: services/crisalid/relators.py:924
 msgid "instrumentalist"
-msgstr ""
+msgstr "instrumentalist"
 
 #: services/crisalid/relators.py:925
 msgid "interviewee"
@@ -3288,111 +3609,111 @@ msgstr "interviewer"
 
 #: services/crisalid/relators.py:927
 msgid "judge"
-msgstr ""
+msgstr "rechter"
 
 #: services/crisalid/relators.py:928
 msgid "jurisdiction governed"
-msgstr ""
+msgstr "betrokken jurisdictie"
 
 #: services/crisalid/relators.py:929
 msgid "laboratory"
-msgstr ""
+msgstr "laboratorium"
 
 #: services/crisalid/relators.py:930
 msgid "librettist"
-msgstr ""
+msgstr "librettist"
 
 #: services/crisalid/relators.py:931
 msgid "laboratory director"
-msgstr ""
+msgstr "laboratoriumdirecteur"
 
 #: services/crisalid/relators.py:932
 msgid "lead"
-msgstr ""
+msgstr "hoofdverantwoordelijke"
 
 #: services/crisalid/relators.py:933
 msgid "libelee-appellee"
-msgstr ""
+msgstr "verweerder en verweerder in hoger beroep (zeerecht)"
 
 #: services/crisalid/relators.py:934
 msgid "libelee"
-msgstr ""
+msgstr "verweerder (zeerecht)"
 
 #: services/crisalid/relators.py:935
 msgid "lender"
-msgstr ""
+msgstr "uitlener"
 
 #: services/crisalid/relators.py:936
 msgid "libelee-appellant"
-msgstr ""
+msgstr "verweerder en appellant (zeerecht)"
 
 #: services/crisalid/relators.py:937
 msgid "lighting designer"
-msgstr ""
+msgstr "lichtontwerper"
 
 #: services/crisalid/relators.py:938
 msgid "libelant-appellee"
-msgstr ""
+msgstr "eiser en verweerder in hoger beroep (zeerecht)"
 
 #: services/crisalid/relators.py:939
 msgid "libelant"
-msgstr ""
+msgstr "eiser (zeerecht)"
 
 #: services/crisalid/relators.py:940
 msgid "libelant-appellant"
-msgstr ""
+msgstr "eiser en appellant (zeerecht)"
 
 #: services/crisalid/relators.py:941
 msgid "landscape architect"
-msgstr ""
+msgstr "landschapsarchitect"
 
 #: services/crisalid/relators.py:942
 msgid "licensee"
-msgstr ""
+msgstr "licentienemer"
 
 #: services/crisalid/relators.py:943
 msgid "licensor"
-msgstr ""
+msgstr "licentiegever"
 
 #: services/crisalid/relators.py:944
 msgid "lithographer"
-msgstr ""
+msgstr "lithograaf"
 
 #: services/crisalid/relators.py:945
 msgid "letterer"
-msgstr ""
+msgstr "letteraar"
 
 #: services/crisalid/relators.py:946
 msgid "lyricist"
-msgstr ""
+msgstr "tekstschrijver"
 
 #: services/crisalid/relators.py:947
 msgid "music copyist"
-msgstr ""
+msgstr "muziekkopiist"
 
 #: services/crisalid/relators.py:948
 msgid "metadata contact"
-msgstr ""
+msgstr "contactpersoon voor metadata"
 
 #: services/crisalid/relators.py:949
 msgid "medium"
-msgstr ""
+msgstr "medium"
 
 #: services/crisalid/relators.py:950
 msgid "manufacture place"
-msgstr ""
+msgstr "plaats van vervaardiging"
 
 #: services/crisalid/relators.py:951
 msgid "manufacturer"
-msgstr ""
+msgstr "fabrikant"
 
 #: services/crisalid/relators.py:952
 msgid "makeup artist"
-msgstr ""
+msgstr "visagist"
 
 #: services/crisalid/relators.py:953
 msgid "moderator"
-msgstr ""
+msgstr "moderator"
 
 #: services/crisalid/relators.py:954
 msgid "monitor"
@@ -3400,7 +3721,7 @@ msgstr "monitor"
 
 #: services/crisalid/relators.py:955
 msgid "marbler"
-msgstr ""
+msgstr "marmeraar"
 
 #: services/crisalid/relators.py:956
 msgid "markup editor"
@@ -3408,35 +3729,35 @@ msgstr "opmaakredacteur"
 
 #: services/crisalid/relators.py:957
 msgid "musical director"
-msgstr ""
+msgstr "muzikaal leider"
 
 #: services/crisalid/relators.py:958
 msgid "metal engraver"
-msgstr ""
+msgstr "metaalgraveur"
 
 #: services/crisalid/relators.py:959
 msgid "minute taker"
-msgstr ""
+msgstr "notulist"
 
 #: services/crisalid/relators.py:960
 msgid "music programmer"
-msgstr ""
+msgstr "muziekprogrammeur"
 
 #: services/crisalid/relators.py:961
 msgid "musician"
-msgstr ""
+msgstr "muzikant"
 
 #: services/crisalid/relators.py:962
 msgid "mixing engineer"
-msgstr ""
+msgstr "mixtechnicus"
 
 #: services/crisalid/relators.py:963
 msgid "news anchor"
-msgstr ""
+msgstr "nieuwslezer"
 
 #: services/crisalid/relators.py:964
 msgid "narrator"
-msgstr ""
+msgstr "verteller"
 
 #: services/crisalid/relators.py:965
 msgid "onscreen participant"
@@ -3444,139 +3765,139 @@ msgstr "deelnemer op het scherm"
 
 #: services/crisalid/relators.py:966
 msgid "opponent"
-msgstr ""
+msgstr "opponent"
 
 #: services/crisalid/relators.py:967
 msgid "originator"
-msgstr ""
+msgstr "initiatiefnemer"
 
 #: services/crisalid/relators.py:968
 msgid "organizer"
-msgstr ""
+msgstr "organisator"
 
 #: services/crisalid/relators.py:969
 msgid "onscreen presenter"
-msgstr ""
+msgstr "presentator in beeld"
 
 #: services/crisalid/relators.py:970
 msgid "other"
-msgstr ""
+msgstr "overig"
 
 #: services/crisalid/relators.py:971
 msgid "owner"
-msgstr ""
+msgstr "eigenaar"
 
 #: services/crisalid/relators.py:972
 msgid "place of address"
-msgstr ""
+msgstr "adresplaats"
 
 #: services/crisalid/relators.py:973
 msgid "panelist"
-msgstr ""
+msgstr "panellid"
 
 #: services/crisalid/relators.py:974
 msgid "patron"
-msgstr ""
+msgstr "beschermheer"
 
 #: services/crisalid/relators.py:975
 msgid "publisher director"
-msgstr ""
+msgstr "directeur van de uitgeverij"
 
 #: services/crisalid/relators.py:976
 msgid "publisher"
-msgstr ""
+msgstr "uitgever"
 
 #: services/crisalid/relators.py:977
 msgid "project director"
-msgstr ""
+msgstr "projectleider"
 
 #: services/crisalid/relators.py:978
 msgid "proofreader"
-msgstr ""
+msgstr "corrector"
 
 #: services/crisalid/relators.py:979
 msgid "photographer"
-msgstr ""
+msgstr "fotograaf"
 
 #: services/crisalid/relators.py:980
 msgid "platemaker"
-msgstr ""
+msgstr "clichémaker"
 
 #: services/crisalid/relators.py:981
 msgid "permitting agency"
-msgstr ""
+msgstr "vergunningverlenende instantie"
 
 #: services/crisalid/relators.py:982
 msgid "production manager"
-msgstr ""
+msgstr "productiemanager"
 
 #: services/crisalid/relators.py:983
 msgid "penciller"
-msgstr ""
+msgstr "tekenaar"
 
 #: services/crisalid/relators.py:984
 msgid "printer of plates"
-msgstr ""
+msgstr "plaatdrukker"
 
 #: services/crisalid/relators.py:985
 msgid "papermaker"
-msgstr ""
+msgstr "papiermaker"
 
 #: services/crisalid/relators.py:986
 msgid "puppeteer"
-msgstr ""
+msgstr "poppenspeler"
 
 #: services/crisalid/relators.py:987
 msgid "praeses"
-msgstr ""
+msgstr "praeses"
 
 #: services/crisalid/relators.py:988
 msgid "process contact"
-msgstr ""
+msgstr "contactpersoon voor het proces"
 
 #: services/crisalid/relators.py:989
 msgid "production personnel"
-msgstr ""
+msgstr "productiepersoneel"
 
 #: services/crisalid/relators.py:990
 msgid "presenter"
-msgstr ""
+msgstr "presentator"
 
 #: services/crisalid/relators.py:991
 msgid "performer"
-msgstr ""
+msgstr "uitvoerder"
 
 #: services/crisalid/relators.py:992
 msgid "programmer"
-msgstr ""
+msgstr "programmeur"
 
 #: services/crisalid/relators.py:993
 msgid "printmaker"
-msgstr ""
+msgstr "prentmaker"
 
 #: services/crisalid/relators.py:994
 msgid "production company"
-msgstr ""
+msgstr "productiemaatschappij"
 
 #: services/crisalid/relators.py:995
 msgid "producer"
-msgstr ""
+msgstr "producent"
 
 #: services/crisalid/relators.py:996
 msgid "production place"
-msgstr ""
+msgstr "plaats van productie"
 
 #: services/crisalid/relators.py:997
 msgid "production designer"
-msgstr ""
+msgstr "productieontwerper"
 
 #: services/crisalid/relators.py:998
 msgid "printer"
-msgstr ""
+msgstr "drukker"
 
 #: services/crisalid/relators.py:999
 msgid "provider"
-msgstr ""
+msgstr "aanbieder"
 
 #: services/crisalid/relators.py:1000
 msgid "patent applicant"
@@ -3584,19 +3905,19 @@ msgstr "octrooiaanvrager"
 
 #: services/crisalid/relators.py:1001
 msgid "plaintiff-appellee"
-msgstr ""
+msgstr "eiser en verweerder in hoger beroep"
 
 #: services/crisalid/relators.py:1002
 msgid "plaintiff"
-msgstr ""
+msgstr "eiser"
 
 #: services/crisalid/relators.py:1003
 msgid "patent holder"
-msgstr ""
+msgstr "octrooihouder"
 
 #: services/crisalid/relators.py:1004
 msgid "plaintiff-appellant"
-msgstr ""
+msgstr "eiser en appellant"
 
 #: services/crisalid/relators.py:1005
 msgid "publication place"
@@ -3604,43 +3925,43 @@ msgstr "plaats van uitgave"
 
 #: services/crisalid/relators.py:1006
 msgid "rapporteur"
-msgstr ""
+msgstr "rapporteur"
 
 #: services/crisalid/relators.py:1007
 msgid "rubricator"
-msgstr ""
+msgstr "rubricator"
 
 #: services/crisalid/relators.py:1008
 msgid "recordist"
-msgstr ""
+msgstr "opnametechnicus"
 
 #: services/crisalid/relators.py:1009
 msgid "recording engineer"
-msgstr ""
+msgstr "opnametechnicus"
 
 #: services/crisalid/relators.py:1010
 msgid "addressee"
-msgstr ""
+msgstr "geadresseerde"
 
 #: services/crisalid/relators.py:1011
 msgid "radio director"
-msgstr ""
+msgstr "radioregisseur"
 
 #: services/crisalid/relators.py:1012
 msgid "redaktor"
-msgstr ""
+msgstr "redacteur"
 
 #: services/crisalid/relators.py:1013
 msgid "renderer"
-msgstr ""
+msgstr "vormgever"
 
 #: services/crisalid/relators.py:1014
 msgid "researcher"
-msgstr ""
+msgstr "onderzoeker"
 
 #: services/crisalid/relators.py:1016
 msgid "radio producer"
-msgstr ""
+msgstr "radioproducent"
 
 #: services/crisalid/relators.py:1017
 msgid "repository"
@@ -3648,251 +3969,251 @@ msgstr "opslagplaats"
 
 #: services/crisalid/relators.py:1018
 msgid "reporter"
-msgstr ""
+msgstr "verslaggever"
 
 #: services/crisalid/relators.py:1019
 msgid "responsible party"
-msgstr ""
+msgstr "verantwoordelijke partij"
 
 #: services/crisalid/relators.py:1020
 msgid "respondent-appellee"
-msgstr ""
+msgstr "verweerder en verweerder in hoger beroep"
 
 #: services/crisalid/relators.py:1021
 msgid "restager"
-msgstr ""
+msgstr "herregisseur"
 
 #: services/crisalid/relators.py:1022
 msgid "respondent"
-msgstr ""
+msgstr "verweerder"
 
 #: services/crisalid/relators.py:1023
 msgid "restorationist"
-msgstr ""
+msgstr "restaurateur"
 
 #: services/crisalid/relators.py:1024
 msgid "respondent-appellant"
-msgstr ""
+msgstr "verweerder en appellant"
 
 #: services/crisalid/relators.py:1025
 msgid "research team head"
-msgstr ""
+msgstr "leider van het onderzoeksteam"
 
 #: services/crisalid/relators.py:1026
 msgid "research team member"
-msgstr ""
+msgstr "lid van het onderzoeksteam"
 
 #: services/crisalid/relators.py:1027
 msgid "remix artist"
-msgstr ""
+msgstr "remixartiest"
 
 #: services/crisalid/relators.py:1028
 msgid "scientific advisor"
-msgstr ""
+msgstr "wetenschappelijk adviseur"
 
 #: services/crisalid/relators.py:1029
 msgid "scenarist"
-msgstr ""
+msgstr "scenarist"
 
 #: services/crisalid/relators.py:1030
 msgid "sculptor"
-msgstr ""
+msgstr "beeldhouwer"
 
 #: services/crisalid/relators.py:1031
 msgid "scribe"
-msgstr ""
+msgstr "schrijver"
 
 #: services/crisalid/relators.py:1032
 msgid "sound engineer"
-msgstr ""
+msgstr "geluidstechnicus"
 
 #: services/crisalid/relators.py:1033
 msgid "sound designer"
-msgstr ""
+msgstr "geluidsontwerper"
 
 #: services/crisalid/relators.py:1034
 msgid "secretary"
-msgstr ""
+msgstr "secretaris"
 
 #: services/crisalid/relators.py:1035
 msgid "special effects provider"
-msgstr ""
+msgstr "leverancier van speciale effecten"
 
 #: services/crisalid/relators.py:1036
 msgid "stage director"
-msgstr ""
+msgstr "toneelregisseur"
 
 #: services/crisalid/relators.py:1037
 msgid "signer"
-msgstr ""
+msgstr "ondertekenaar"
 
 #: services/crisalid/relators.py:1038
 msgid "supporting host"
-msgstr ""
+msgstr "medepresentator"
 
 #: services/crisalid/relators.py:1039
 msgid "seller"
-msgstr ""
+msgstr "verkoper"
 
 #: services/crisalid/relators.py:1040
 msgid "singer"
-msgstr ""
+msgstr "zanger"
 
 #: services/crisalid/relators.py:1041
 msgid "speaker"
-msgstr ""
+msgstr "spreker"
 
 #: services/crisalid/relators.py:1042
 msgid "sponsor"
-msgstr ""
+msgstr "sponsor"
 
 #: services/crisalid/relators.py:1043
 msgid "second party"
-msgstr ""
+msgstr "tweede partij"
 
 #: services/crisalid/relators.py:1044
 msgid "surveyor"
-msgstr ""
+msgstr "landmeter"
 
 #: services/crisalid/relators.py:1045
 msgid "set designer"
-msgstr ""
+msgstr "decorontwerper"
 
 #: services/crisalid/relators.py:1046
 msgid "setting"
-msgstr ""
+msgstr "setting"
 
 #: services/crisalid/relators.py:1047
 msgid "storyteller"
-msgstr ""
+msgstr "verhalenverteller"
 
 #: services/crisalid/relators.py:1048
 msgid "stage manager"
-msgstr ""
+msgstr "toneelmeester"
 
 #: services/crisalid/relators.py:1049
 msgid "standards body"
-msgstr ""
+msgstr "normalisatie-instelling"
 
 #: services/crisalid/relators.py:1050
 msgid "stereotyper"
-msgstr ""
+msgstr "stereotypeur"
 
 #: services/crisalid/relators.py:1051
 msgid "software developer"
-msgstr ""
+msgstr "softwareontwikkelaar"
 
 #: services/crisalid/relators.py:1052
 msgid "technical advisor"
-msgstr ""
+msgstr "technisch adviseur"
 
 #: services/crisalid/relators.py:1053
 msgid "television writer"
-msgstr ""
+msgstr "televisieschrijver"
 
 #: services/crisalid/relators.py:1054
 msgid "technical director"
-msgstr ""
+msgstr "technisch directeur"
 
 #: services/crisalid/relators.py:1055
 msgid "teacher"
-msgstr ""
+msgstr "docent"
 
 #: services/crisalid/relators.py:1056
 msgid "thesis advisor"
-msgstr ""
+msgstr "promotor"
 
 #: services/crisalid/relators.py:1057
 msgid "television director"
-msgstr ""
+msgstr "televisieregisseur"
 
 #: services/crisalid/relators.py:1058
 msgid "television guest"
-msgstr ""
+msgstr "televisiegast"
 
 #: services/crisalid/relators.py:1059
 msgid "television host"
-msgstr ""
+msgstr "televisiepresentator"
 
 #: services/crisalid/relators.py:1060
 msgid "television producer"
-msgstr ""
+msgstr "televisieproducent"
 
 #: services/crisalid/relators.py:1061
 msgid "transcriber"
-msgstr ""
+msgstr "transcribent"
 
 #: services/crisalid/relators.py:1062
 msgid "translator"
-msgstr ""
+msgstr "vertaler"
 
 #: services/crisalid/relators.py:1063
 msgid "type designer"
-msgstr ""
+msgstr "letterontwerper"
 
 #: services/crisalid/relators.py:1064
 msgid "typographer"
-msgstr ""
+msgstr "typograaf"
 
 #: services/crisalid/relators.py:1065
 msgid "university place"
-msgstr ""
+msgstr "plaats van de universiteit"
 
 #: services/crisalid/relators.py:1066
 msgid "voice actor"
-msgstr ""
+msgstr "stemacteur"
 
 #: services/crisalid/relators.py:1067
 msgid "videographer"
-msgstr ""
+msgstr "videograaf"
 
 #: services/crisalid/relators.py:1068
 msgid "visual effects provider"
-msgstr ""
+msgstr "leverancier van visuele effecten"
 
 #: services/crisalid/relators.py:1069
 msgid "vocalist"
-msgstr ""
+msgstr "vocalist"
 
 #: services/crisalid/relators.py:1070
 msgid "writer of added commentary"
-msgstr ""
+msgstr "schrijver van toegevoegd commentaar"
 
 #: services/crisalid/relators.py:1071
 msgid "writer of added lyrics"
-msgstr ""
+msgstr "schrijver van toegevoegde liedteksten"
 
 #: services/crisalid/relators.py:1072
 msgid "writer of accompanying material"
-msgstr ""
+msgstr "schrijver van begeleidend materiaal"
 
 #: services/crisalid/relators.py:1073
 msgid "writer of added text"
-msgstr ""
+msgstr "schrijver van toegevoegde tekst"
 
 #: services/crisalid/relators.py:1074
 msgid "writer of afterword"
-msgstr ""
+msgstr "schrijver van het nawoord"
 
 #: services/crisalid/relators.py:1075
 msgid "woodcutter"
-msgstr ""
+msgstr "houtsnijder"
 
 #: services/crisalid/relators.py:1076
 msgid "wood engraver"
-msgstr ""
+msgstr "houtgraveur"
 
 #: services/crisalid/relators.py:1077
 msgid "writer of film story"
-msgstr ""
+msgstr "schrijver van het filmverhaal"
 
 #: services/crisalid/relators.py:1078
 msgid "writer of intertitles"
-msgstr ""
+msgstr "schrijver van de tussentitels"
 
 #: services/crisalid/relators.py:1079
 msgid "writer of foreword"
-msgstr ""
+msgstr "schrijver van het voorwoord"
 
 #: services/crisalid/relators.py:1080
 msgid "writer of introduction"
@@ -3900,19 +4221,19 @@ msgstr "schrijver van de inleiding"
 
 #: services/crisalid/relators.py:1081
 msgid "witness"
-msgstr ""
+msgstr "getuige"
 
 #: services/crisalid/relators.py:1082
 msgid "writer of preface"
-msgstr ""
+msgstr "schrijver van de inleiding"
 
 #: services/crisalid/relators.py:1083
 msgid "writer of supplementary textual content"
-msgstr ""
+msgstr "schrijver van aanvullende tekstuele inhoud"
 
 #: services/crisalid/relators.py:1084
 msgid "writer of television story"
-msgstr ""
+msgstr "schrijver van het televisieverhaal"
 
 #: services/google/exceptions.py:7
 msgid "This email is already used by another group"
@@ -4415,16 +4736,13 @@ msgid "The given queryset does not match the related model"
 msgstr "De opgegeven queryset komt niet overeen met het gerelateerde model"
 
 #: services/openalex/exceptions.py:10
-#, fuzzy
-#| msgid "Wikipedia API error"
-msgid "openlaex API error"
-msgstr "Wikipedia API-fout"
+msgid "OpenAlex API error"
+msgstr "Fout in de OpenAlex-API"
 
 #: services/openalex/exceptions.py:15
-#, fuzzy, python-brace-format
-#| msgid "Wikipedia API returned {status_code}"
-msgid "openlaex API returned {status_code}"
-msgstr "Wikipedia API gaf {status_code} terug"
+#, python-brace-format
+msgid "OpenAlex API returned {status_code}"
+msgstr "De OpenAlex-API gaf {status_code} terug"
 
 #: services/wikipedia/exceptions.py:10
 msgid "Wikipedia API error"
@@ -4451,15 +4769,3 @@ msgstr "Auteursrecht"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Alle rechten voorbehouden."
-
-#~ msgid "Book Review"
-#~ msgstr "Boekbespreking"
-
-#~ msgid "Editorial"
-#~ msgstr "Redactioneel"
-
-#~ msgid "Peer review"
-#~ msgstr "Collegiale beoordeling"
-
-#~ msgid "Review Paper"
-#~ msgstr "Overzichtsartikel"

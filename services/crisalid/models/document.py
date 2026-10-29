@@ -153,6 +153,9 @@ class Document(
     identifiers = models.ManyToManyField(
         "crisalid.Identifier", related_name="documents"
     )
+    affiliations = models.ManyToManyField(
+        "crisalid.AuthorityOrganization", related_name="documents"
+    )
 
     domains = models.ManyToManyField(
         Tag, through=DocumentDomains, related_name="documents"
