@@ -93,7 +93,7 @@ class DocumentContributorFactory(factory.django.DjangoModelFactory):
 
 class JournalFactory(factory.django.DjangoModelFactory):
     uid = faker.sentences(1)
-    title = faker.sentence(1)
+    title = factory.Faker("company")
     acronym = [faker.sentence(1)]
 
     class Meta:
