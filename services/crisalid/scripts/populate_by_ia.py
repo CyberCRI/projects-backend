@@ -82,12 +82,9 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
                 if output.type == "message.output":
                     print(output.content)
                     content = json.loads(
-                        output.content.split("```")[1].removeprefix("json")
+                        output.content.split("```")[1].removeprefix("json"),
+                        strict=False,
                     )
-                    if isinstance(content, list):
-                        content = content[0]
-                    if not isinstance(content, dict):
-                        raise ValueError("invlaid type")
                     break
             else:
                 raise ValueError("empty conversation")
