@@ -152,11 +152,3 @@ Ensure that all URLs are valid and point to relevant sources.
 Ensure that all collected information refers to the correct researcher.
 
 The priority is data accuracy, source reliability, identity verification, and consistency of the final JSON output.
-
-
-
-- Full Name: Alex Chin
-- Provided Identifiers:
- idref: 26008199X
- orcid: 0000-0001-7741-5915
- id_hal_s: alex-chin
