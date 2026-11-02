@@ -9,7 +9,7 @@ from django.db.models.functions import Concat
 
 from apps.organizations.models import Organization
 from services.crisalid.models.award import Award, AwardContributor
-from services.crisalid.models.patent import Patent
+from services.crisalid.models.patent import Patent, PatentContributor
 from services.crisalid.models.researcher import Researcher
 from services.mistral.interface import MistralService
 
@@ -90,6 +90,8 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
             print(e)
             continue
 
+        content = content.get("researcher", {})
+
         if content.get("bibliometrics"):
             h_index = content["bibliometrics"].get("h_index", {}).get("value")
             i10_index = content["bibliometrics"].get("i10_index", {}).get("value")
@@ -104,15 +106,18 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
             researcher.save()
 
         for patent in content.get("patents", []):
-            Patent.objects.get_or_create(
-                researcher=researcher,
+            p, _ = Patent.objects.get_or_create(
                 name=patent["name"],
-                dfaults={
+                defaults={
                     "description": patent["description"],
                     "link": patent["link"],
-                    "data": format_date(patent["date"]),
+                    "date": format_date(patent["date"]),
                 },
             )
+            PatentContributor.objects.update_or_create(
+                patent=patent, researcher=researcher
+            )
+            print("create Patent ", p.name)
 
         for award_contributor in content.get("awardResearcher", []):
             if not award_contributor.get("award"):
