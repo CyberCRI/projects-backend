@@ -22,7 +22,12 @@ def format_date(date) -> datetime.date | None:
     if not date:
         return None
 
-    return datetime.datetime.strptime(date, "%Y-%m-%d").date()
+    for formater in ("%Y-%m-%d", "%Y-%m", "%Y"):
+        try:
+            return datetime.datetime.strptime(date, formater).date()
+        except Exception:
+            pass
+    return None
 
 
 def run(code: str, offset: int | None = None, limit: int | None = None):
