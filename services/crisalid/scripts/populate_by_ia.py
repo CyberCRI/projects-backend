@@ -62,21 +62,27 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
 {formated_identifiers}
 """
         messages = [
-            {"content": prompt, "role": "system"},
-            {"content": prompt_user, "role": "user"},
+            {"content": prompt + "\n" + prompt_user, "role": "user"},
         ]
 
+        print(prompt_user)
         try:
-            response = mistral.chat.complete(
-                model="mistral-small-2603",
-                messages=messages,
-                response_format={"type": "json_object"},
+            response = mistral.beta.conversations.start(
+                model="mistral-large-latest",
+                inputs=messages,
+                tools=[{"type": "web_search"}],
             )
+            for output in response.outputs:
+                if output.type == "message.output":
+                    content = json.loads(
+                        output.content.split("```")[1].removeprefix("json")
+                    )
+                    break
+            else:
+                raise ValueError("empty conversation")
         except Exception as e:
             print(e)
             continue
-
-        content = json.loads(response.choices[0].message.content)
 
         if content.get("bibliometrics"):
             h_index = content["bibliometrics"].get("h_index", {}).get("value")
@@ -84,16 +90,23 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
 
             researcher.h_index = h_index
             researcher.i10_index = i10_index
-            if any((h_index, i10_index)):
-                researcher.save()
-                print("save researcher")
+            researcher.save()
+
+        if content.get("researcherDescriptions"):
+            researcher.short_bio = content["researcherDescriptions"].get("short", "")
+            researcher.bio = content["researcherDescriptions"].get("long", "")
+            researcher.save()
 
         for patent in content.get("patents", []):
-            p = Patent(
-                **patent, data=format_date(patent["date"]), researcher=researcher
+            Patent.objects.get_or_create(
+                researcher=researcher,
+                name=patent["name"],
+                dfaults={
+                    "description": patent["description"],
+                    "link": patent["link"],
+                    "data": format_date(patent["date"]),
+                },
             )
-            p.save()
-            print("patent ", p.name)
 
         for award_contributor in content.get("awardResearcher", []):
             if not award_contributor.get("award"):
@@ -102,11 +115,13 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
                 name=award_contributor["award"]["name"],
                 defaults={"description": award_contributor["award"]["description"]},
             )
-            AwardContributor(
-                link=award_contributor["link"],
-                description=award_contributor["description"],
-                date=format_date(award_contributor["date"]),
+            AwardContributor.objects.get_or_create(
                 award=award,
                 researcher=researcher,
-            ).save()
+                defaults={
+                    "link": award_contributor["link"],
+                    "description": award_contributor["description"],
+                    "date": format_date(award_contributor["date"]),
+                },
+            )
             print("create Award", award.name)

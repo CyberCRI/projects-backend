@@ -74,6 +74,50 @@ Important rules:
 Distinguish individual awards from awards granted to research teams, laboratories, or institutions.
 Only include awards for which the researcher's personal involvement or recognition can be verified.
 Do not confuse nominations, applications, or participation with actual awards received.
+
+3.4. Researcher Descriptions
+
+Generate two biographical and scientific descriptions of the researcher, based exclusively on reliable and verifiable information collected from academic, institutional, and scientific sources.
+
+A. Short Description (short)
+
+Generate a concise description of exactly 45 words.
+
+Requirements:
+
+Present the researcher's academic identity and current or most recent known institutional affiliation.
+Summarize their main research areas and scientific expertise.
+Highlight their principal scientific contributions or achievements when reliably documented.
+Use clear, professional, academic language.
+Avoid generic statements and unsupported claims.
+The description must contain exactly 45 words.
+
+B. Extended Description (long)
+
+Generate a comprehensive description between 400 and 600 words.
+
+Requirements:
+
+Introduce the researcher's academic background and career trajectory, when documented.
+Describe their institutional affiliations and academic positions, including relevant dates.
+Explain their main research fields, scientific interests, and areas of expertise.
+Highlight significant scientific contributions, publications, research projects, and innovations.
+Mention patents, awards, distinctions, and fellowships when verified.
+Describe their scientific impact and contributions to their research community, provided that these can be supported by reliable sources.
+Present the information in a coherent, chronological, and academically appropriate narrative.
+Avoid repetition, promotional language, speculation, and unsupported claims.
+Do not invent missing biographical details or infer career milestones.
+If insufficient reliable information is available to produce a description within the requested word count, provide the most accurate description possible without fabricating information.
+
+Both descriptions must be written in English.
+
+Description Verification Rules
+Every factual statement must be supported by information retrieved from reliable sources.
+Prioritize official institutional profiles, ORCID, HAL, scientific publications, university biographies, and verified award announcements.
+Do not treat bibliometric indicators as direct measures of scientific quality.
+Distinguish documented facts from uncertain or unavailable information.
+Never invent affiliations, dates, positions, publications, awards, or research contributions.
+
 4. Research and Verification Rules
 Cross-reference all provided identifiers to confirm the researcher's identity.
 Account for possible homonyms and similarly named researchers.
@@ -93,7 +137,10 @@ Return exclusively a valid JSON object, without Markdown, comments, or additiona
 
 Follow this exact structure:
 
-{ "researcher": { "firstName": "string", "lastName": "string", "identifiers": { "hal": "string or null", "orcid": "string or null", "idref": "string or null", "googleScholar": "string or null", "scopus": "string or null", "researcherId": "string or null" }, "bibliometrics": { "h_index": { "value": "number or null", "source": "string or null", "link": "string or null", "date": "YYYY-MM-DD or null" }, "i10_index": { "value": "number or null", "source": "string or null", "link": "string or null", "date": "YYYY-MM-DD or null" } }, "patents": [ { "name": "string", "description": "string or null", "date": "YYYY-MM-DD or null", "link": "string or null" } ], "awardResearcher": [ { "description": "string or null", "date": "YYYY-MM-DD or null", "link": "string or null", "award": { "name": "string", "description": "string or null" } } ] } }
+{ "researcher": { "firstName": "string", "lastName": "string", "identifiers": { "hal": "string or null", "orcid": "string or null", "idref": "string or null", "googleScholar": "string or null", "scopus": "string or null", "researcherId": "string or null" }, "researcherDescriptions": {
+"short": "45-word researcher description.",
+"long": "400-600-word researcher description."
+}, "bibliometrics": { "h_index": { "value": "number or null", "source": "string or null", "link": "string or null", "date": "YYYY-MM-DD or null" }, "i10_index": { "value": "number or null", "source": "string or null", "link": "string or null", "date": "YYYY-MM-DD or null" } }, "patents": [ { "name": "string", "description": "string or null", "date": "YYYY-MM-DD or null", "link": "string or null" } ], "awardResearcher": [ { "description": "string or null", "date": "YYYY-MM-DD or null", "link": "string or null", "award": { "name": "string", "description": "string or null" } } ] } }
 
 6. Final Instructions
 Return only valid JSON.
@@ -105,3 +152,11 @@ Ensure that all URLs are valid and point to relevant sources.
 Ensure that all collected information refers to the correct researcher.
 
 The priority is data accuracy, source reliability, identity verification, and consistency of the final JSON output.
+
+
+
+- Full Name: Alex Chin
+- Provided Identifiers:
+ idref: 26008199X
+ orcid: 0000-0001-7741-5915
+ id_hal_s: alex-chin
