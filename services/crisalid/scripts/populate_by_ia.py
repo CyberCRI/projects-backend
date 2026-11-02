@@ -86,11 +86,14 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
             researcher.i10_index = i10_index
             if any((h_index, i10_index)):
                 researcher.save()
+                print("save researcher")
 
         for patent in content.get("patents", []):
-            Patent(
+            p = Patent(
                 **patent, data=format_date(patent["date"]), researcher=researcher
-            ).save()
+            )
+            p.save()
+            print("patent ", p.name)
 
         for award_contributor in content.get("awardResearcher", []):
             if not award_contributor.get("award"):
@@ -106,3 +109,4 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
                 award=award,
                 researcher=researcher,
             ).save()
+            print("create Award", award.name)
