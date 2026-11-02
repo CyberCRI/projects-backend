@@ -119,9 +119,7 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
                     "date": format_date(patent["date"]),
                 },
             )
-            PatentContributor.objects.update_or_create(
-                patent=patent, researcher=researcher
-            )
+            PatentContributor.objects.update_or_create(patent=p, researcher=researcher)
             print("create Patent ", p.name)
 
         for award_contributor in content.get("awardResearcher", []):
