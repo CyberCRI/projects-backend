@@ -98,6 +98,15 @@ class ResearcherSerializerLight(ResearcherSerializer):
         )
 
 
+class ResearcherSerializerSuperLight(ResearcherSerializerLight):
+    class Meta(ResearcherSerializerLight.Meta):
+        fields = (
+            "id",
+            "display_name",
+            "short_bio",
+        )
+
+
 class ResearcherDocumentsSerializer(ResearcherSerializer):
     class Meta(ResearcherSerializer.Meta):
         fields = ("id", "user", "display_name")
@@ -153,7 +162,7 @@ class CitationSerializer(serializers.ModelSerializer):
 
 @auto_translated
 class PatentSerializer(serializers.ModelSerializer):
-    researchers = ResearcherSerializerLight(many=True)
+    researchers = ResearcherSerializerSuperLight(many=True)
 
     class Meta:
         model = Patent
@@ -161,18 +170,28 @@ class PatentSerializer(serializers.ModelSerializer):
 
 
 @auto_translated
+class PatentSerializerLight(PatentSerializer):
+    class Meta(PatentSerializer.Meta):
+        fields = ("id", "name", "description", "date", "link")
+
+
+@auto_translated
 class AwardSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSerializerSuperLight(many=True)
+
     class Meta:
         model = Award
-        fields = (
-            "id",
-            "name",
-            "description",
-        )
+        fields = ("id", "name", "description", "researchers")
+
+
+@auto_translated
+class AwardSerializerLight(AwardSerializer):
+    class Meta(AwardSerializer.Meta):
+        fields = ("id", "name", "description")
 
 
 class AwardContributorSerializer(serializers.ModelSerializer):
-    award = AwardSerializer()
+    award = AwardSerializerLight()
 
     class Meta:
         model = AwardContributor

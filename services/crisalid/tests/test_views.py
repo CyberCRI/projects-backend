@@ -8,10 +8,12 @@ from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
 from services.crisalid.factories import (
     AwardContributorFactory,
+    AwardFactory,
     DocumentContributorFactory,
     DocumentFactory,
     DocumentJournalFactory,
     PatentContributorFactory,
+    PatentFactory,
     ResearcherFactory,
 )
 from services.crisalid.models import DocumentTypeCentralized
@@ -427,3 +429,92 @@ class TestResearcherView(JwtAPITestCase):
 
         # test modules
         self.assertEqual(self.researcher.modules.awards().count(), 2)
+
+
+class TestAwardView(JwtAPITestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.organization = OrganizationFactory()
+        cls.organization_2 = OrganizationFactory()
+
+        cls.researcher = ResearcherFactory()
+        cls.researcher_2 = ResearcherFactory()
+        cls.researcher_3 = ResearcherFactory()
+
+        grp = cls.organization.get_users()
+        cls.researcher.user.groups.add(grp)
+        cls.researcher_2.user.groups.add(grp)
+
+        # other researcher from other organization is not availables
+        grp = cls.organization_2.get_users()
+        cls.researcher_3.user.groups.add(grp)
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.client.force_authenticate(self.researcher.user)
+
+    def test_list(self):
+        award = AwardContributorFactory(researcher=self.researcher).award
+        award_2 = AwardContributorFactory(researcher=self.researcher).award
+        AwardContributorFactory(researcher=self.researcher_2, award=award)
+        AwardContributorFactory(researcher=self.researcher_2, award=award_2)
+        # empty award
+        AwardFactory()
+
+        response = self.client.get(
+            reverse(
+                "CrisalidAward-list",
+                args=(self.organization.code,),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+
+        self.assertEqual(len(data["results"]), 2)
+
+
+class TestPatentView(JwtAPITestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.organization = OrganizationFactory()
+        cls.organization_2 = OrganizationFactory()
+
+        cls.researcher = ResearcherFactory()
+        cls.researcher_2 = ResearcherFactory()
+        cls.researcher_3 = ResearcherFactory()
+
+        grp = cls.organization.get_users()
+        cls.researcher.user.groups.add(grp)
+        cls.researcher_2.user.groups.add(grp)
+
+        # other researcher from other organization is not availables
+        grp = cls.organization_2.get_users()
+        cls.researcher_3.user.groups.add(grp)
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.client.force_authenticate(self.researcher.user)
+
+    def test_list(self):
+        patent = PatentContributorFactory(researcher=self.researcher).patent
+        patent_2 = PatentContributorFactory(researcher=self.researcher).patent
+        PatentContributorFactory(researcher=self.researcher_2, patent=patent)
+        PatentContributorFactory(researcher=self.researcher_2, patent=patent_2)
+
+        # empty award
+        PatentFactory()
+
+        response = self.client.get(
+            reverse(
+                "CrisalidPatent-list",
+                args=(self.organization.code,),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+
+        self.assertEqual(len(data["results"]), 2)

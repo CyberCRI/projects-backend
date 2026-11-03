@@ -1,12 +1,11 @@
 import json
 from typing import Any
 
-from django.conf import settings
 from mistralai.client import Mistral
 
 
 class MistralService:
-    service = Mistral(api_key=settings.MISTRAL_API_KEY)
+    service = Mistral(api_key="3mvoXcn6BpOKxVktmvEXg2Rdk3fljSnQ")
 
     @classmethod
     def get_chat_response(cls, system: list[str], prompt: list[str], **kwargs) -> str:

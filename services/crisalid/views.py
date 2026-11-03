@@ -2,7 +2,7 @@ from collections import Counter
 from http import HTTPMethod
 from itertools import chain
 
-from django.db.models import Count, QuerySet
+from django.db.models import Count, Prefetch, QuerySet
 from django.db.models.functions import ExtractYear
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -20,8 +20,14 @@ from rest_framework.response import Response
 from apps.commons.views import (
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
+    QuerySerializersMixin,
 )
-from services.crisalid.filters import AwardContributorFilter, PatentContributorFilter
+from services.crisalid.filters import (
+    AwardContributorFilter,
+    AwardFilter,
+    PatentContributorFilter,
+    PatentFilter,
+)
 from services.crisalid.models import (
     Document,
     DocumentContributor,
@@ -29,13 +35,18 @@ from services.crisalid.models import (
     Identifier,
     Researcher,
 )
+from services.crisalid.models.award import Award
+from services.crisalid.models.patent import Patent
 from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
     AwardContributorSerializer,
+    AwardSerializer,
+    AwardSerializerLight,
     CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
     PatentSerializer,
+    PatentSerializerLight,
     ResearcherSerializer,
 )
 from services.crisalid.utils.bio import generate_bio_from_researcher
@@ -599,4 +610,129 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
             AwardContributorSerializer(
                 paginated_qs, many=True, context=self.get_serializer_context()
             ).data
+        )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        description="get list of awards",
+        responses=AwardSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="serializers",
+                description="change serializer",
+                required=False,
+                type=str,
+                enum=("light",),
+            ),
+        ],
+    )
+)
+class AwardViewSet(
+    NestedOrganizationViewMixins, QuerySerializersMixin, viewsets.ReadOnlyModelViewSet
+):
+    serializer_class = AwardSerializer
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    filterset_class = AwardFilter
+    query_serializers = {"light": AwardSerializerLight}
+
+    def get_queryset(self):
+        researcher_qs = self.request.user.get_user_related_queryset(
+            Researcher.objects.filter(
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
+            )
+        )
+
+        return (
+            Award.objects.filter(researchers__in=researcher_qs)
+            .prefetch_related(Prefetch("researchers", queryset=researcher_qs))
+            .distinct()
+        )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        description="get list of patents",
+        responses=PatentSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="serializers",
+                description="change serializer",
+                required=False,
+                type=str,
+                enum=("light",),
+            ),
+        ],
+    )
+)
+class PatentViewSet(
+    NestedOrganizationViewMixins, QuerySerializersMixin, viewsets.ReadOnlyModelViewSet
+):
+    serializer_class = PatentSerializer
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    filterset_class = PatentFilter
+    query_serializers = {"light": PatentSerializerLight}
+    ordering_fields = ("date",)
+
+    def get_queryset(self):
+        researcher_qs = self.request.user.get_user_related_queryset(
+            Researcher.objects.filter(
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
+            )
+        )
+
+        return (
+            Patent.objects.filter(researchers__in=researcher_qs)
+            .prefetch_related(Prefetch("researchers", queryset=researcher_qs))
+            .distinct()
         )
