@@ -28,6 +28,7 @@ from services.crisalid.utils.bio import (
     generate_bio_from_researcher,
     generate_domains_from_researcher,
 )
+from services.crisalid.utils.identifiers import release_instances
 from services.crisalid.utils.structures import sync_group_members, with_ancestors
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,23 @@ def get_crisalid_config(crisalid_config_id: int) -> CrisalidConfig:
     return CrisalidConfig.objects.select_related("organization").get(
         id=crisalid_config_id
     )
+
+
+def event_identifiers(fields: dict) -> list[dict]:
+    """identifiers of a person/structure event (ikg format)"""
+    return [
+        {"harvester": iden["type"].lower(), "value": iden["value"]}
+        for iden in fields["identifiers"]
+    ]
+
+
+def person_identifiers(fields: dict) -> list[dict]:
+    """identifiers of a person event, without privacy identifiers"""
+    return [
+        iden
+        for iden in event_identifiers(fields)
+        if iden["harvester"] not in Researcher.PRIVACY_HARVESTER
+    ]
 
 
 # TODO(remi): convert fields to graphql request
@@ -62,15 +80,6 @@ def create_researcher(crisalid_config_id: int, fields: dict):
 
     populate = PopulateResearcher(config)
     populate.single(data)
-
-
-def person_identifiers(fields: dict) -> list[dict]:
-    """identifiers of a person event (ikg format), without privacy identifiers"""
-    return [
-        {"harvester": iden["type"].lower(), "value": iden["value"]}
-        for iden in fields["identifiers"]
-        if iden["type"].lower() not in Researcher.PRIVACY_HARVESTER
-    ]
 
 
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.UNCHANGED)
@@ -100,8 +109,10 @@ def delete_researcher(crisalid_config_id: int, fields: dict):
     identifiers = person_identifiers(fields)
 
     # TODO(remi): check only one elements are deleted
-    pks = Researcher.objects.from_identifiers(identifiers).values_list("pk", flat=True)
-    # researchers are no longer members of their structures groups
+    pks = list(
+        Researcher.objects.from_identifiers(identifiers).values_list("pk", flat=True)
+    )
+    # structures groups to sync (all of them if researchers are deleted)
     structures = with_ancestors(
         Structure.objects.filter(
             pk__in=ResearcherStructure.objects.filter(researcher__in=pks).values(
@@ -109,7 +120,13 @@ def delete_researcher(crisalid_config_id: int, fields: dict):
             )
         )
     )
-    deleted, _ = Researcher.objects.filter(pk__in=pks).delete()
+    with transaction.atomic():
+        # researchers are no longer members of the organization structures
+        ResearcherStructure.objects.filter(
+            researcher__in=pks, structure__organization=config.organization
+        ).delete()
+        # researchers are deleted only when no other config references them
+        deleted = release_instances(Researcher.objects.filter(pk__in=pks), config)
     for structure in structures:
         sync_group_members(structure)
 
@@ -147,7 +164,8 @@ def delete_document(crisalid_config_id: int, fields: dict):
     ]
 
     pks = Document.objects.from_identifiers(identifiers).values_list("pk", flat=True)
-    deleted, _ = Document.objects.filter(pk__in=pks).delete()
+    # documents are deleted only when no other config references them
+    deleted = release_instances(Document.objects.filter(pk__in=pks), config)
     logger.info("deleted = %s", deleted)
 
 
@@ -159,12 +177,11 @@ def create_structure(crisalid_config_id: int, fields: dict):
     logger.info("receive %s for organization %s", fields, config.organization)
 
     service = CrisalidService(config)
-    uid = fields["uid"]
 
     # fetch data from apollo
-    data = service.structure(uid)
+    data = service.structure(fields["uid"])
     if not data:
-        logger.warning("no result fetching crisalid_uid=%s", uid)
+        logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
         return
 
     # structures and people related to this one already have their relations:
@@ -178,9 +195,12 @@ def delete_structure(crisalid_config_id: int, fields: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.info("receive %s for organization %s", fields, config.organization)
 
-    structure = Structure.objects.filter(
-        organization=config.organization, crisalid_uid=fields["uid"]
-    ).first()
+    # uids can be the same in two crisalid instances, structures are matched by identifiers
+    structure = (
+        Structure.objects.filter(organization=config.organization)
+        .from_identifiers(event_identifiers(fields))
+        .first()
+    )
     if structure is None:
         return
 

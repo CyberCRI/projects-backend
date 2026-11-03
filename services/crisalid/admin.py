@@ -39,14 +39,18 @@ from services.crisalid.utils.structures import (
 
 from .models import (
     AuthorityOrganization,
+    AuthorityOrganizationIdentifier,
     CrisalidConfig,
     Document,
     DocumentContributor,
-    Identifier,
+    DocumentIdentifier,
     Journal,
+    JournalIdentifier,
     Researcher,
+    ResearcherIdentifier,
     ResearcherStructure,
     Structure,
+    StructureIdentifier,
     StructureRelation,
 )
 
@@ -64,27 +68,13 @@ class IdentifierAdminMixin:
         return f"{', '.join(result)} ({len(result)})"
 
 
-@admin.register(Identifier)
-class IdentifierAdmin(admin.ModelAdmin):
-    list_display = ("harvester", "value", "get_researcher", "get_documents")
-    search_fields = ("harvester", "value")
-
-    def get_queryset(self, request):
-        return (
-            super()
-            .get_queryset(request)
-            .prefetch_related("researchers", "documents")
-            .annotate(documents_count=Count("documents", distinct=True))
-            .annotate(researchers_count=Count("researchers", distinct=True))
-        )
-
-    @admin.display(description="researchers assosiate", ordering="researchers_count")
-    def get_researcher(self, instance):
-        return instance.researchers_count
-
-    @admin.display(description="documents assosiate", ordering="documents_count")
-    def get_documents(self, instance):
-        return instance.documents_count
+def identifiers_inline(identifier_model):
+    """identifiers are owned by the object, edited in its admin"""
+    return type(
+        f"{identifier_model.__name__}AdminInline",
+        (admin.TabularInline,),
+        {"model": identifier_model, "extra": 0},
+    )
 
 
 @admin.register(Journal)
@@ -93,11 +83,22 @@ class JournalAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         "pk",
         "title",
         "acronym",
+        "get_identifiers",
     )
     search_fields = (
         "title",
         "acronym",
+        "identifiers__value",
     )
+    inlines = (identifiers_inline(JournalIdentifier),)
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related("identifiers")
+            .annotate(identifiers_count=Count("identifiers", distinct=True))
+        )
 
 
 class DocumentDomainAdminInline(admin.StackedInline):
@@ -135,6 +136,7 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Model
         "identifiers__harvester",
     )
     inlines = (
+        identifiers_inline(DocumentIdentifier),
         DocumentContributorAdminInline,
         DocumentJournalAdminInline,
         DocumentDomainAdminInline,
@@ -299,6 +301,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     autocomplete_fields = ("user",)
     actions = ("assign_user", "vectorize", "generate_bio_ia")
     inlines = (
+        identifiers_inline(ResearcherIdentifier),
         ResearcherDomainsAdminInline,
         ResearcherPatentInline,
         ResearcherAwardInline,
@@ -379,7 +382,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
                 continue
 
             for identifier in research.identifiers.all():
-                if identifier.harvester != Identifier.Harvester.EPPN.value:
+                if identifier.harvester != ResearcherIdentifier.Harvester.EPPN.value:
                     continue
 
                 user = None
@@ -483,7 +486,7 @@ class ResearcherStructureAdminInline(admin.TabularInline):
 
 
 @admin.register(Structure)
-class StructureAdmin(IdentifierAdminMixin, admin.ModelAdmin):
+class StructureAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
         "name",
         "acronym",
@@ -497,11 +500,14 @@ class StructureAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     search_fields = (
         "name",
         "acronym",
-        "crisalid_uid",
         "identifiers__value",
     )
     autocomplete_fields = ("organization", "people_group")
-    inlines = (StructureRelationAdminInline, ResearcherStructureAdminInline)
+    inlines = (
+        identifiers_inline(StructureIdentifier),
+        StructureRelationAdminInline,
+        ResearcherStructureAdminInline,
+    )
     actions = ("sync_groups",)
 
     @admin.action(description="sync people groups (creation, parents and members)")
@@ -530,7 +536,8 @@ class StructureAdmin(IdentifierAdminMixin, admin.ModelAdmin):
 class AuthorityOrganizationAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     list_display = ("name", "type", "get_identifiers")
     list_filter = ("type",)
-    search_fields = ("name", "crisalid_uid", "identifiers__value")
+    search_fields = ("name", "identifiers__value")
+    inlines = (identifiers_inline(AuthorityOrganizationIdentifier),)
 
     def get_queryset(self, request):
         return (

@@ -1,80 +1,152 @@
 from django.db import models
-from django.db.models.functions import Lower
+
+# identifiers types from crisalid
+# https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/models/identifier_types.py
 
 
-class Identifier(models.Model):
-    class Harvester(models.TextChoices):
-        """Harvester from crisalid (where the source comme from)
-        src: https://www.esup-portail.org/wiki/spaces/ESUPCRISalid/pages/1674084377/Normalisation+des+identifiants
-        """
+class OrganizationHarvester(models.TextChoices):
+    """OrganizationIdentifierType (structures and authority organizations)"""
 
-        ORCID = "orcid"
-        IDREF = "idref"
-        HAL = "hal"
-        IDHALS = "idhals"
-        IDHALI = "idhali"
-        SCOPUS = "scopus"
-        SCANR = "scanr"
-        OPENALEX = "openalex"
-        SCIENCEPLUS = "scienceplus"
-        SUDOC = "sudoc"
-        OPENEDITION = "openedition"
-        PERSEE = "persee"
-        LOCAL = "local"
-        EPPN = "eppn"
-        ROR = "ror"
-        NNS = "nns"
-        UAI = "uai"
-        SIREN = "siren"
-        SIRET = "siret"
-        GRID = "grid"
-        WIKIDATA = "wikidata"
-        FUNDREF = "fundref"
-        ISNI = "isni"
-        GOOGLESCHOLAR = "googlescholar"
-        VIAF = "viaf"
-        DOI = "doi"
-        ISSN = "issn"
-        ARXIV = "arxiv"
-        BIBCODE = "bibcode"
-        BIORXIV = "biorxiv"
-        CERN = "cern"
-        CHEMRXIV = "chemrxiv"
-        ENSAM = "ensam"
-        INERIS = "ineris"
-        INSPIRE = "inspire"
-        IRD = "ird"
-        IRSTEA = "irstea"
-        MEDITAGRI = "meditagri"
-        NNT = "nnt"
-        OKINA = "okina"
-        OATAO = "oatao"
-        PII = "pii"
-        PMID = "pmid"
-        PMCID = "pmcid"
-        PPN = "ppn"
-        PRODINRA = "prodinra"
-        SCIENCESPO = "sciencespo"
-        SWHID = "swhid"
-        URI = "uri"
-        WOS = "wos"
+    IDREF = "idref"
+    ROR = "ror"
+    NNS = "nns"
+    LOCAL = "local"
+    UAI = "uai"
+    SIREN = "siren"
+    SIRET = "siret"
+    WIKIDATA = "wikidata"
+    SCOPUS = "scopus"
+    HAL = "hal"
+    OPENALEX = "openalex"
+    ISNI = "isni"
+    VIAF = "viaf"
 
-    harvester = models.CharField(max_length=50, choices=Harvester.choices)
+
+class AbstractIdentifier(models.Model):
+    """identifier owned by a crisalid object (from crisalid "identifiers")
+
+    an identifier can be sent by several crisalid instances (configs): it is
+    deleted when no config references it anymore
+    """
+
+    harvester = models.CharField(max_length=50)
     value = models.CharField(max_length=255)
+    configs = models.ManyToManyField("crisalid.CrisalidConfig", blank=True)
 
     class Meta:
-        constraints = (
-            # we cant have the same harvester and value
-            models.UniqueConstraint(
-                Lower("harvester"),
-                Lower("value"),
-                name="unique_harvester",
-                condition=~models.Q(harvester="local"),
-            ),
-        )
+        abstract = True
 
     def __str__(self):
         return f"{self.harvester} :: {self.value}"
 
     def __repr__(self):
-        return f"<Identifier {str(self)} >"
+        return f"<{type(self).__name__} pk={self.pk} {str(self)}>"
+
+
+class ResearcherIdentifier(AbstractIdentifier):
+    class Harvester(models.TextChoices):
+        """PersonIdentifierType"""
+
+        ORCID = "orcid"
+        IDREF = "idref"
+        IDHALS = "idhals"
+        IDHALI = "idhali"
+        SCOPUS = "scopus"
+        LOCAL = "local"
+        EPPN = "eppn"
+
+    researcher = models.ForeignKey(
+        "crisalid.Researcher", on_delete=models.CASCADE, related_name="identifiers"
+    )
+    harvester = models.CharField(max_length=50, choices=Harvester.choices)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("researcher", "harvester", "value"),
+                name="unique_researcher_identifier",
+            ),
+        )
+
+
+class StructureIdentifier(AbstractIdentifier):
+    Harvester = OrganizationHarvester
+
+    structure = models.ForeignKey(
+        "crisalid.Structure", on_delete=models.CASCADE, related_name="identifiers"
+    )
+    harvester = models.CharField(max_length=50, choices=Harvester.choices)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("structure", "harvester", "value"),
+                name="unique_structure_identifier",
+            ),
+        )
+
+
+class AuthorityOrganizationIdentifier(AbstractIdentifier):
+    Harvester = OrganizationHarvester
+
+    authority_organization = models.ForeignKey(
+        "crisalid.AuthorityOrganization",
+        on_delete=models.CASCADE,
+        related_name="identifiers",
+    )
+    harvester = models.CharField(max_length=50, choices=Harvester.choices)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("authority_organization", "harvester", "value"),
+                name="unique_authority_organization_identifier",
+            ),
+        )
+
+
+class DocumentIdentifier(AbstractIdentifier):
+    class Harvester(models.TextChoices):
+        """documents are identified by their source records ("recorded_by")
+        https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/models/harvesters.py
+        """
+
+        HAL = "hal"
+        SCANR = "scanr"
+        IDREF = "idref"
+        OPENALEX = "openalex"
+        SCOPUS = "scopus"
+
+    document = models.ForeignKey(
+        "crisalid.Document", on_delete=models.CASCADE, related_name="identifiers"
+    )
+    harvester = models.CharField(max_length=50, choices=Harvester.choices)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("document", "harvester", "value"),
+                name="unique_document_identifier",
+            ),
+        )
+
+
+class JournalIdentifier(AbstractIdentifier):
+    class Harvester(models.TextChoices):
+        """JournalIdentifierType"""
+
+        DOI = "doi"
+        ISSN = "issn"
+
+    journal = models.ForeignKey(
+        "crisalid.Journal", on_delete=models.CASCADE, related_name="identifiers"
+    )
+    harvester = models.CharField(max_length=50, choices=Harvester.choices)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("journal", "harvester", "value"),
+                name="unique_journal_identifier",
+            ),
+        )

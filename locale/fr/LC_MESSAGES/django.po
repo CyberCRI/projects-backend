@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 10:47+0100\n"
+"POT-Creation-Date: 2026-11-03 17:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2700,192 +2700,192 @@ msgstr "Présentation"
 msgid "Unknown"
 msgstr "Inconnu"
 
-#: services/crisalid/models/organization.py:13
+#: services/crisalid/models/organization.py:14
 msgid "Organization"
 msgstr "Organisation"
 
-#: services/crisalid/models/organization.py:14
-#: services/crisalid/models/structure.py:52
+#: services/crisalid/models/organization.py:15
+#: services/crisalid/models/structure.py:61
 msgid "Institution"
 msgstr "Établissement"
 
-#: services/crisalid/models/organization.py:15
+#: services/crisalid/models/organization.py:16
 msgid "Institution group"
 msgstr "Regroupement d'établissements"
 
-#: services/crisalid/models/organization.py:16
+#: services/crisalid/models/organization.py:17
 msgid "Laboratory"
 msgstr "Laboratoire"
 
-#: services/crisalid/models/organization.py:17
+#: services/crisalid/models/organization.py:18
 msgid "Laboratory group"
 msgstr "Regroupement de laboratoires"
 
-#: services/crisalid/models/organization.py:18
+#: services/crisalid/models/organization.py:19
 msgid "Research team"
 msgstr "Équipe de recherche"
 
-#: services/crisalid/models/organization.py:19
+#: services/crisalid/models/organization.py:20
 msgid "Research team group"
 msgstr "Regroupement d'équipes de recherche"
 
-#: services/crisalid/models/structure.py:55
+#: services/crisalid/models/structure.py:64
 msgid "Institution subdivision"
 msgstr "Composante d'établissement"
 
-#: services/crisalid/models/structure.py:57
+#: services/crisalid/models/structure.py:66
 msgid "Doctoral school"
 msgstr "École doctorale"
 
-#: services/crisalid/models/structure.py:58
+#: services/crisalid/models/structure.py:67
 msgid "Unit"
 msgstr "Unité"
 
-#: services/crisalid/models/structure.py:59
+#: services/crisalid/models/structure.py:68
 msgid "Unit subdivision"
 msgstr "Sous-unité"
 
-#: services/crisalid/models/structure.py:60
+#: services/crisalid/models/structure.py:69
 msgid "Team"
 msgstr "Équipe"
 
-#: services/crisalid/models/structure.py:63
+#: services/crisalid/models/structure.py:72
 msgid "Research"
 msgstr "Recherche"
 
-#: services/crisalid/models/structure.py:64
+#: services/crisalid/models/structure.py:73
 msgid "Scientific services"
 msgstr "Services scientifiques"
 
-#: services/crisalid/models/structure.py:67
+#: services/crisalid/models/structure.py:76
 msgid "Administrative services"
 msgstr "Services administratifs"
 
-#: services/crisalid/models/structure.py:69
+#: services/crisalid/models/structure.py:78
 msgid "Teaching"
 msgstr "Enseignement"
 
-#: services/crisalid/models/structure.py:202
+#: services/crisalid/models/structure.py:210
 msgid "Professor"
 msgstr "Professeur"
 
-#: services/crisalid/models/structure.py:203
+#: services/crisalid/models/structure.py:211
 msgid "Director of studies"
 msgstr "Directeur d'études"
 
-#: services/crisalid/models/structure.py:204
+#: services/crisalid/models/structure.py:212
 msgid "Physicist"
 msgstr "Physicien"
 
-#: services/crisalid/models/structure.py:205
+#: services/crisalid/models/structure.py:213
 msgid "Astronomer"
 msgstr "Astronome"
 
-#: services/crisalid/models/structure.py:206
+#: services/crisalid/models/structure.py:214
 msgid "University professor - Hospital practitioner"
 msgstr "Professeurs des universités-Praticiens hospitaliers"
 
-#: services/crisalid/models/structure.py:207
+#: services/crisalid/models/structure.py:215
 msgid "Professor in institutions under other ministries"
 msgstr "Professeur des établissements dépendant d'autres ministères"
 
-#: services/crisalid/models/structure.py:208
+#: services/crisalid/models/structure.py:216
 msgid "Temporary teaching and research assistant"
 msgstr "Attaché temporaire d'enseignement et de recherche"
 
-#: services/crisalid/models/structure.py:209
+#: services/crisalid/models/structure.py:217
 msgid "Associate professor"
 msgstr "Maître de conférences"
 
-#: services/crisalid/models/structure.py:210
+#: services/crisalid/models/structure.py:218
 msgid "Assistant physicist"
 msgstr "Physicien adjoint"
 
-#: services/crisalid/models/structure.py:211
+#: services/crisalid/models/structure.py:219
 msgid "Assistant astronomer"
 msgstr "Astronome adjoint"
 
-#: services/crisalid/models/structure.py:212
+#: services/crisalid/models/structure.py:220
 msgid "Associate professor - Hospital practitioner"
 msgstr "Maître de conférences des universités-Praticiens hospitaliers"
 
-#: services/crisalid/models/structure.py:216
+#: services/crisalid/models/structure.py:224
 msgid "Associate or assistant professor in institutions under other ministries"
 msgstr ""
 "Maître de conférences ou Maître assistant des établissements dépendant "
 "d'autres ministères"
 
-#: services/crisalid/models/structure.py:219
+#: services/crisalid/models/structure.py:227
 msgid "Professor emeritus"
 msgstr "Professeur émérite"
 
-#: services/crisalid/models/structure.py:220
+#: services/crisalid/models/structure.py:228
 msgid "Associate professor emeritus"
 msgstr "Maître de conférences émérites"
 
-#: services/crisalid/models/structure.py:221
+#: services/crisalid/models/structure.py:229
 msgid "Clinical fellow"
 msgstr "Chef de clinique assistant"
 
-#: services/crisalid/models/structure.py:222
+#: services/crisalid/models/structure.py:230
 msgid "University hospital fellow"
 msgstr "Attaché hospitalier universitaire"
 
-#: services/crisalid/models/structure.py:223
+#: services/crisalid/models/structure.py:231
 msgid "University hospital practitioner"
 msgstr "Praticien hospitalier universitaire"
 
-#: services/crisalid/models/structure.py:224
+#: services/crisalid/models/structure.py:232
 msgid "Contract lecturer-researcher"
 msgstr "Enseignant-chercheur contractuel (dont contrats LRU)"
 
-#: services/crisalid/models/structure.py:225
+#: services/crisalid/models/structure.py:233
 msgid "Associate lecturer-researcher (part-time or full-time)"
 msgstr "Enseignant-chercheur associé (MC, PR à temps partiel ou temps plein)"
 
-#: services/crisalid/models/structure.py:226
-#: services/crisalid/models/structure.py:243
-#: services/crisalid/models/structure.py:276
+#: services/crisalid/models/structure.py:234
+#: services/crisalid/models/structure.py:251
+#: services/crisalid/models/structure.py:284
 msgid "Other status"
 msgstr "Autre statut"
 
-#: services/crisalid/models/structure.py:227
+#: services/crisalid/models/structure.py:235
 msgid "Junior professor chair"
 msgstr "Chaire de professeur junior"
 
-#: services/crisalid/models/structure.py:228
+#: services/crisalid/models/structure.py:236
 msgid "Research director and equivalent"
 msgstr "Directeur de recherche et assimilés"
 
-#: services/crisalid/models/structure.py:229
+#: services/crisalid/models/structure.py:237
 msgid "Research scientist and equivalent"
 msgstr "Chargé de recherche et assimilés"
 
-#: services/crisalid/models/structure.py:230
+#: services/crisalid/models/structure.py:238
 msgid "Library curator"
 msgstr "Conservateur des bibliothèques"
 
-#: services/crisalid/models/structure.py:231
+#: services/crisalid/models/structure.py:239
 msgid "Heritage curator"
 msgstr "Conservateur du patrimoine"
 
-#: services/crisalid/models/structure.py:232
+#: services/crisalid/models/structure.py:240
 msgid "Research director emeritus"
 msgstr "Directeur de recherche émérite"
 
-#: services/crisalid/models/structure.py:233
+#: services/crisalid/models/structure.py:241
 msgid "Young researcher contract (3/5-year fixed term, ATIP-Avenir)"
 msgstr "Contrat jeune chercheur (CDD 3 / 5 ans, ATIP-Avenir)"
 
-#: services/crisalid/models/structure.py:234
+#: services/crisalid/models/structure.py:242
 msgid "Contract researcher"
 msgstr "Chercheur contractuel"
 
-#: services/crisalid/models/structure.py:235
+#: services/crisalid/models/structure.py:243
 msgid "Postdoctoral researcher"
 msgstr "Post-doctorant"
 
-#: services/crisalid/models/structure.py:239
+#: services/crisalid/models/structure.py:247
 msgid ""
 "Foreign visitor: visiting professor or associate researcher, staying at "
 "least 3 months in the unit"
@@ -2893,121 +2893,121 @@ msgstr ""
 "Visiteur étranger : professeur invité et chercheur associé, ayant séjourné "
 "au moins 3 mois au sein de l'unité"
 
-#: services/crisalid/models/structure.py:242
+#: services/crisalid/models/structure.py:250
 msgid "Doctor of medicine, pharmacy, etc."
 msgstr "Docteur en médecine, pharmacie, etc."
 
-#: services/crisalid/models/structure.py:244
+#: services/crisalid/models/structure.py:252
 msgid "Agrégé teacher"
 msgstr "Professeur agrégé"
 
-#: services/crisalid/models/structure.py:245
+#: services/crisalid/models/structure.py:253
 msgid "Certified teacher"
 msgstr "Professeur certifié"
 
-#: services/crisalid/models/structure.py:246
+#: services/crisalid/models/structure.py:254
 msgid "Research engineer or equivalent"
 msgstr "Ingénieur de recherche ou assimilé"
 
-#: services/crisalid/models/structure.py:247
+#: services/crisalid/models/structure.py:255
 msgid "Study engineer or equivalent"
 msgstr "Ingénieur d'études ou assimilé"
 
-#: services/crisalid/models/structure.py:248
+#: services/crisalid/models/structure.py:256
 msgid "Assistant engineer or equivalent"
 msgstr "Assistant ingénieur ou assimilé"
 
-#: services/crisalid/models/structure.py:249
+#: services/crisalid/models/structure.py:257
 msgid "Research technician or equivalent"
 msgstr "Technicien de recherche ou assimilé"
 
-#: services/crisalid/models/structure.py:250
+#: services/crisalid/models/structure.py:258
 msgid "Research technical staff and administrative staff"
 msgstr ""
 "Adjoints et agents techniques de recherche, adjoints et agents administratifs"
 
-#: services/crisalid/models/structure.py:251
+#: services/crisalid/models/structure.py:259
 msgid "State librarian"
 msgstr "Bibliothécaire d'état"
 
-#: services/crisalid/models/structure.py:252
+#: services/crisalid/models/structure.py:260
 msgid "Specialised assistant librarian"
 msgstr "Bibliothécaire assistant spécialisé"
 
-#: services/crisalid/models/structure.py:253
+#: services/crisalid/models/structure.py:261
 msgid "Library assistant"
 msgstr "Assistant des bibliothèques"
 
-#: services/crisalid/models/structure.py:254
+#: services/crisalid/models/structure.py:262
 msgid "Library storekeeper"
 msgstr "Magasinier et magasinier principal des bibliothèques"
 
-#: services/crisalid/models/structure.py:255
+#: services/crisalid/models/structure.py:263
 msgid "Hospital practitioner"
 msgstr "Praticien hospitalier"
 
-#: services/crisalid/models/structure.py:256
+#: services/crisalid/models/structure.py:264
 msgid "Hospital administrative, technical, labour or service staff"
 msgstr ""
 "Adjoint administratif, technique, ouvrier, agent de service hospitaliers"
 
-#: services/crisalid/models/structure.py:260
+#: services/crisalid/models/structure.py:268
 msgid "Nursing assistant, childcare assistant, medical-psychological assistant"
 msgstr "Aide-soignant, auxiliaire de puériculture, aide médico-psychologique"
 
-#: services/crisalid/models/structure.py:263
+#: services/crisalid/models/structure.py:271
 msgid "Hospital secretary"
 msgstr "Secrétaire hospitalier"
 
-#: services/crisalid/models/structure.py:264
+#: services/crisalid/models/structure.py:272
 msgid "Hospital technician"
 msgstr "Technicien hospitalier"
 
-#: services/crisalid/models/structure.py:265
+#: services/crisalid/models/structure.py:273
 msgid "Nurse"
 msgstr "Infirmier"
 
-#: services/crisalid/models/structure.py:266
+#: services/crisalid/models/structure.py:274
 msgid "Midwife"
 msgstr "Sage-femme"
 
-#: services/crisalid/models/structure.py:267
+#: services/crisalid/models/structure.py:275
 msgid "Clinical research associate"
 msgstr "Attaché de recherche clinique"
 
-#: services/crisalid/models/structure.py:268
+#: services/crisalid/models/structure.py:276
 msgid "Healthcare manager"
 msgstr "Cadre de santé"
 
-#: services/crisalid/models/structure.py:269
+#: services/crisalid/models/structure.py:277
 msgid "Hospital engineer"
 msgstr "Ingénieur hospitalier"
 
-#: services/crisalid/models/structure.py:270
+#: services/crisalid/models/structure.py:278
 msgid "Project manager (hospital)"
 msgstr "Chef de projet (en milieu hospitalier)"
 
-#: services/crisalid/models/structure.py:271
+#: services/crisalid/models/structure.py:279
 msgid "Part-time associate staff"
 msgstr "Personnel associé à temps partiel"
 
-#: services/crisalid/models/structure.py:272
+#: services/crisalid/models/structure.py:280
 msgid "Fixed-term contract (unspecified category)"
 msgstr "Contrat à durée déterminée (catégorie non précisée)"
 
-#: services/crisalid/models/structure.py:273
+#: services/crisalid/models/structure.py:281
 msgid "Fixed-term contract (category A)"
 msgstr "Contrat à durée déterminée (catégorie A)"
 
-#: services/crisalid/models/structure.py:274
+#: services/crisalid/models/structure.py:282
 msgid "Fixed-term contract (category B)"
 msgstr "Contrat à durée déterminée (catégorie B)"
 
-#: services/crisalid/models/structure.py:275
+#: services/crisalid/models/structure.py:283
 msgid "Fixed-term contract (category C)"
 msgstr "Contrat à durée déterminée (catégorie C)"
 
-#: services/crisalid/models/structure.py:277
+#: services/crisalid/models/structure.py:285
 msgid "Intern (BTS, M1 or M2) present at least 3 months in the unit"
 msgstr "Stagiaire BTS, M1 ou M2 présent au moins 3 mois dans l'unité"
 

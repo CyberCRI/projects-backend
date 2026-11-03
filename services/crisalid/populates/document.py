@@ -4,9 +4,9 @@ from services.crisalid.models import (
     CrisalidConfig,
     Document,
     DocumentContributor,
+    DocumentIdentifier,
     DocumentJournal,
 )
-from services.crisalid.populates.identifier import PopulateIdentifier
 
 from .base import AbstractPopulate
 from .journal import PopulateJournal
@@ -22,15 +22,10 @@ class PopulateDocument(AbstractPopulate):
 
     def __init__(self, config: CrisalidConfig, cache=None):
         super().__init__(config, cache)
-        self.populate_identifiers = PopulateIdentifier(self.config, self.cache)
-        self.populate_researcher = PopulateResearcher(
-            self.config,
-            self.cache,
-            populate_identifiers=self.populate_identifiers,
-        )
+        self.populate_researcher = PopulateResearcher(self.config, self.cache)
         self.populate_journal = PopulateJournal(self.config, self.cache)
         self.populate_organization = PopulateAuthorityOrganization(
-            self.config, self.cache, populate_identifiers=self.populate_identifiers
+            self.config, self.cache
         )
 
     def sanitize_document_type(self, data: str | None):
@@ -116,8 +111,10 @@ class PopulateDocument(AbstractPopulate):
         )
 
     def node(self, data: dict) -> Document | None:
-        # identifiers (hal, openalex, idref ...ect)
-        documents_identifiers = self.populate_identifiers.multiple(data["recorded_by"])
+        # source records identifiers (hal, openalex, idref ...ect)
+        documents_identifiers = self.sanitize_identifiers(
+            DocumentIdentifier, data["recorded_by"]
+        )
 
         # no identifiers for this documents, we ignore it
         if not documents_identifiers:
@@ -133,7 +130,7 @@ class PopulateDocument(AbstractPopulate):
             publication_date=self.sanitize_date(data["publication_date"]),
             document_type=self.sanitize_document_type(data["document_type"]),
         )
-        self.cache.save_m2m(document, identifiers=documents_identifiers)
+        self.save_identifiers(document, documents_identifiers)
         return document
 
     def relations(self, document: Document, data: dict):

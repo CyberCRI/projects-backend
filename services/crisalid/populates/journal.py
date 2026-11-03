@@ -1,6 +1,7 @@
-from services.crisalid.models import Journal
+from services.crisalid.models import Journal, JournalIdentifier
 
 from .base import AbstractPopulate
+from .logger import logger
 
 
 class PopulateJournal(AbstractPopulate):
@@ -8,11 +9,18 @@ class PopulateJournal(AbstractPopulate):
 
     def node(self, data: dict) -> Journal | None:
         uid = self.sanitize_string(data.get("uid"))
-        if not uid:
+        identifiers = self.sanitize_identifiers(
+            JournalIdentifier, data.get("identifiers")
+        )
+        # uids can be the same in two crisalid instances, journals are matched by identifiers
+        if not identifiers:
+            logger.warning("Journal %r without identifiers", uid)
             return None
-        journal = self.cache.model(Journal, uid=uid)
+
+        journal = self.cache.from_identifiers(Journal, identifiers)
         titles = [title for title in data.get("titles") or [] if title]
         self.cache.save(
             journal, title=self.sanitize_string(titles[0] if titles else uid)
         )
+        self.save_identifiers(journal, identifiers)
         return journal

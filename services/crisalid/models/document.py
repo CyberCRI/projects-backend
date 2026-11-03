@@ -150,9 +150,6 @@ class Document(
         through="crisalid.DocumentContributor",
         related_name="documents",
     )
-    identifiers = models.ManyToManyField(
-        "crisalid.Identifier", related_name="documents"
-    )
     affiliations = models.ManyToManyField(
         "crisalid.AuthorityOrganization", related_name="documents"
     )

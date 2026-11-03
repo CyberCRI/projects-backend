@@ -1,5 +1,4 @@
-from services.crisalid.models import Structure, StructureRelation
-from services.crisalid.populates.identifier import PopulateIdentifier
+from services.crisalid.models import Structure, StructureIdentifier, StructureRelation
 from services.crisalid.utils.structures import sync_structures, with_ancestors
 
 from .base import AbstractPopulate
@@ -24,12 +23,6 @@ class PopulateStructure(AbstractPopulate):
     with relations to other structures (part_of / member_of)
     """
 
-    def __init__(self, *ar, populate_identifiers=None, **kw):
-        super().__init__(*ar, **kw)
-        self.populate_identifiers = populate_identifiers or PopulateIdentifier(
-            self.config, self.cache
-        )
-
     def sanitize_generic_type(self, value: str) -> str | None:
         value = self.sanitize_string(value).lower()
         if value not in Structure.GenericType:
@@ -45,16 +38,21 @@ class PopulateStructure(AbstractPopulate):
     def node(self, data: dict) -> Structure | None:
         uid = self.sanitize_string(data.get("uid"))
         generic_type = self.sanitize_generic_type(data.get("generic_type"))
-        if not all((uid, generic_type)):
+        identifiers = self.sanitize_identifiers(
+            StructureIdentifier, data.get("identifiers")
+        )
+        if not all((uid, generic_type, identifiers)):
             logger.error(
-                "Invalid Structure: uid=%s generic_type=%s",
+                "Invalid Structure: uid=%s generic_type=%s identifiers=%s",
                 repr(uid),
                 repr(data.get("generic_type")),
+                identifiers,
             )
             return None
 
-        structure = self.cache.model(
-            Structure, organization=self.config.organization, crisalid_uid=uid
+        # uids can be the same in two crisalid instances, structures are matched by identifiers
+        structure = self.cache.from_identifiers(
+            Structure, identifiers, organization=self.config.organization
         )
         self.cache.save(
             structure,
@@ -69,8 +67,7 @@ class PopulateStructure(AbstractPopulate):
             description=self.sanitize_languages(data.get("descriptions")),
             external=bool(data.get("external")),
         )
-        identifiers = self.populate_identifiers.multiple(data.get("identifiers", []))
-        self.cache.save_m2m(structure, identifiers=identifiers)
+        self.save_identifiers(structure, identifiers)
         return structure
 
     def relations(self, structure: Structure, data: dict) -> list[Structure]:

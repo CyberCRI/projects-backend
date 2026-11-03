@@ -35,8 +35,8 @@ from services.crisalid.models import (
     Document,
     DocumentContributor,
     DocumentTypeCentralized,
-    Identifier,
     Researcher,
+    ResearcherIdentifier,
     ResearcherStructure,
     Structure,
 )
@@ -381,7 +381,7 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
                 name="harvester",
                 description="harvester name",
                 required=True,
-                enum=Identifier.Harvester,
+                enum=ResearcherIdentifier.Harvester,
                 examples=[
                     OpenApiExample("eppn", value="eppn"),
                     OpenApiExample("idref", value="idref"),

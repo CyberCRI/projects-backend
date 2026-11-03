@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 10:47+0100\n"
+"POT-Creation-Date: 2026-11-03 17:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2678,190 +2678,190 @@ msgstr "Ettekanne"
 msgid "Unknown"
 msgstr "Teadmata"
 
-#: services/crisalid/models/organization.py:13
+#: services/crisalid/models/organization.py:14
 msgid "Organization"
 msgstr "Organisatsioon"
 
-#: services/crisalid/models/organization.py:14
-#: services/crisalid/models/structure.py:52
+#: services/crisalid/models/organization.py:15
+#: services/crisalid/models/structure.py:61
 msgid "Institution"
 msgstr "Asutus"
 
-#: services/crisalid/models/organization.py:15
+#: services/crisalid/models/organization.py:16
 msgid "Institution group"
 msgstr "Asutuste rühm"
 
-#: services/crisalid/models/organization.py:16
+#: services/crisalid/models/organization.py:17
 msgid "Laboratory"
 msgstr "Labor"
 
-#: services/crisalid/models/organization.py:17
+#: services/crisalid/models/organization.py:18
 msgid "Laboratory group"
 msgstr "Laborite rühm"
 
-#: services/crisalid/models/organization.py:18
+#: services/crisalid/models/organization.py:19
 msgid "Research team"
 msgstr "Uurimisrühm"
 
-#: services/crisalid/models/organization.py:19
+#: services/crisalid/models/organization.py:20
 msgid "Research team group"
 msgstr "Uurimisrühmade rühm"
 
-#: services/crisalid/models/structure.py:55
+#: services/crisalid/models/structure.py:64
 msgid "Institution subdivision"
 msgstr "Asutuse allüksus"
 
-#: services/crisalid/models/structure.py:57
+#: services/crisalid/models/structure.py:66
 msgid "Doctoral school"
 msgstr "Doktorikool"
 
-#: services/crisalid/models/structure.py:58
+#: services/crisalid/models/structure.py:67
 msgid "Unit"
 msgstr "Üksus"
 
-#: services/crisalid/models/structure.py:59
+#: services/crisalid/models/structure.py:68
 msgid "Unit subdivision"
 msgstr "Allüksus"
 
-#: services/crisalid/models/structure.py:60
+#: services/crisalid/models/structure.py:69
 msgid "Team"
 msgstr "Meeskond"
 
-#: services/crisalid/models/structure.py:63
+#: services/crisalid/models/structure.py:72
 msgid "Research"
 msgstr "Teadus"
 
-#: services/crisalid/models/structure.py:64
+#: services/crisalid/models/structure.py:73
 msgid "Scientific services"
 msgstr "Teadusteenused"
 
-#: services/crisalid/models/structure.py:67
+#: services/crisalid/models/structure.py:76
 msgid "Administrative services"
 msgstr "Haldusteenused"
 
-#: services/crisalid/models/structure.py:69
+#: services/crisalid/models/structure.py:78
 msgid "Teaching"
 msgstr "Õpetamine"
 
-#: services/crisalid/models/structure.py:202
+#: services/crisalid/models/structure.py:210
 msgid "Professor"
 msgstr "Professor"
 
-#: services/crisalid/models/structure.py:203
+#: services/crisalid/models/structure.py:211
 msgid "Director of studies"
 msgstr "Õppedirektor"
 
-#: services/crisalid/models/structure.py:204
+#: services/crisalid/models/structure.py:212
 msgid "Physicist"
 msgstr "Füüsik"
 
-#: services/crisalid/models/structure.py:205
+#: services/crisalid/models/structure.py:213
 msgid "Astronomer"
 msgstr "Astronoom"
 
-#: services/crisalid/models/structure.py:206
+#: services/crisalid/models/structure.py:214
 msgid "University professor - Hospital practitioner"
 msgstr "Ülikooli professor - Haiglaarst"
 
-#: services/crisalid/models/structure.py:207
+#: services/crisalid/models/structure.py:215
 msgid "Professor in institutions under other ministries"
 msgstr "Teiste ministeeriumide asutuste professor"
 
-#: services/crisalid/models/structure.py:208
+#: services/crisalid/models/structure.py:216
 msgid "Temporary teaching and research assistant"
 msgstr "Ajutine õppe- ja teadusassistent"
 
-#: services/crisalid/models/structure.py:209
+#: services/crisalid/models/structure.py:217
 msgid "Associate professor"
 msgstr "Dotsent"
 
-#: services/crisalid/models/structure.py:210
+#: services/crisalid/models/structure.py:218
 msgid "Assistant physicist"
 msgstr "Abifüüsik"
 
-#: services/crisalid/models/structure.py:211
+#: services/crisalid/models/structure.py:219
 msgid "Assistant astronomer"
 msgstr "Abiastronoom"
 
-#: services/crisalid/models/structure.py:212
+#: services/crisalid/models/structure.py:220
 msgid "Associate professor - Hospital practitioner"
 msgstr "Dotsent - Haiglaarst"
 
-#: services/crisalid/models/structure.py:216
+#: services/crisalid/models/structure.py:224
 msgid "Associate or assistant professor in institutions under other ministries"
 msgstr "Teiste ministeeriumide asutuste dotsent või lektor"
 
-#: services/crisalid/models/structure.py:219
+#: services/crisalid/models/structure.py:227
 msgid "Professor emeritus"
 msgstr "Emeriitprofessor"
 
-#: services/crisalid/models/structure.py:220
+#: services/crisalid/models/structure.py:228
 msgid "Associate professor emeritus"
 msgstr "Emeriitdotsent"
 
-#: services/crisalid/models/structure.py:221
+#: services/crisalid/models/structure.py:229
 msgid "Clinical fellow"
 msgstr "Kliiniline assistent"
 
-#: services/crisalid/models/structure.py:222
+#: services/crisalid/models/structure.py:230
 msgid "University hospital fellow"
 msgstr "Ülikoolihaigla assistent"
 
-#: services/crisalid/models/structure.py:223
+#: services/crisalid/models/structure.py:231
 msgid "University hospital practitioner"
 msgstr "Ülikoolihaigla arst"
 
-#: services/crisalid/models/structure.py:224
+#: services/crisalid/models/structure.py:232
 msgid "Contract lecturer-researcher"
 msgstr "Lepinguline õppejõud-teadur"
 
-#: services/crisalid/models/structure.py:225
+#: services/crisalid/models/structure.py:233
 msgid "Associate lecturer-researcher (part-time or full-time)"
 msgstr "Kaasatud õppejõud-teadur (osa- või täiskoormusega)"
 
-#: services/crisalid/models/structure.py:226
-#: services/crisalid/models/structure.py:243
-#: services/crisalid/models/structure.py:276
+#: services/crisalid/models/structure.py:234
+#: services/crisalid/models/structure.py:251
+#: services/crisalid/models/structure.py:284
 msgid "Other status"
 msgstr "Muu staatus"
 
-#: services/crisalid/models/structure.py:227
+#: services/crisalid/models/structure.py:235
 msgid "Junior professor chair"
 msgstr "Nooremprofessori ametikoht"
 
-#: services/crisalid/models/structure.py:228
+#: services/crisalid/models/structure.py:236
 msgid "Research director and equivalent"
 msgstr "Juhtivteadur ja samaväärsed"
 
-#: services/crisalid/models/structure.py:229
+#: services/crisalid/models/structure.py:237
 msgid "Research scientist and equivalent"
 msgstr "Teadur ja samaväärsed"
 
-#: services/crisalid/models/structure.py:230
+#: services/crisalid/models/structure.py:238
 msgid "Library curator"
 msgstr "Raamatukogu hoidja"
 
-#: services/crisalid/models/structure.py:231
+#: services/crisalid/models/structure.py:239
 msgid "Heritage curator"
 msgstr "Kultuuripärandi hoidja"
 
-#: services/crisalid/models/structure.py:232
+#: services/crisalid/models/structure.py:240
 msgid "Research director emeritus"
 msgstr "Emeriitjuhtivteadur"
 
-#: services/crisalid/models/structure.py:233
+#: services/crisalid/models/structure.py:241
 msgid "Young researcher contract (3/5-year fixed term, ATIP-Avenir)"
 msgstr "Noorteadlase leping (tähtajaline 3/5 aastat, ATIP-Avenir)"
 
-#: services/crisalid/models/structure.py:234
+#: services/crisalid/models/structure.py:242
 msgid "Contract researcher"
 msgstr "Lepinguline teadur"
 
-#: services/crisalid/models/structure.py:235
+#: services/crisalid/models/structure.py:243
 msgid "Postdoctoral researcher"
 msgstr "Järeldoktor"
 
-#: services/crisalid/models/structure.py:239
+#: services/crisalid/models/structure.py:247
 msgid ""
 "Foreign visitor: visiting professor or associate researcher, staying at "
 "least 3 months in the unit"
@@ -2869,119 +2869,119 @@ msgstr ""
 "Välismaalasest külaline: külalisprofessor või kaasteadur, vähemalt 3 kuud "
 "üksuses"
 
-#: services/crisalid/models/structure.py:242
+#: services/crisalid/models/structure.py:250
 msgid "Doctor of medicine, pharmacy, etc."
 msgstr "Meditsiini-, farmaatsia- jm doktor"
 
-#: services/crisalid/models/structure.py:244
+#: services/crisalid/models/structure.py:252
 msgid "Agrégé teacher"
 msgstr "Agrégé-õpetaja"
 
-#: services/crisalid/models/structure.py:245
+#: services/crisalid/models/structure.py:253
 msgid "Certified teacher"
 msgstr "Sertifitseeritud õpetaja"
 
-#: services/crisalid/models/structure.py:246
+#: services/crisalid/models/structure.py:254
 msgid "Research engineer or equivalent"
 msgstr "Teadusinsener või samaväärne"
 
-#: services/crisalid/models/structure.py:247
+#: services/crisalid/models/structure.py:255
 msgid "Study engineer or equivalent"
 msgstr "Uuringuinsener või samaväärne"
 
-#: services/crisalid/models/structure.py:248
+#: services/crisalid/models/structure.py:256
 msgid "Assistant engineer or equivalent"
 msgstr "Inseneri assistent või samaväärne"
 
-#: services/crisalid/models/structure.py:249
+#: services/crisalid/models/structure.py:257
 msgid "Research technician or equivalent"
 msgstr "Teadustehnik või samaväärne"
 
-#: services/crisalid/models/structure.py:250
+#: services/crisalid/models/structure.py:258
 msgid "Research technical staff and administrative staff"
 msgstr "Teaduse tehniline ja haldustöötaja"
 
-#: services/crisalid/models/structure.py:251
+#: services/crisalid/models/structure.py:259
 msgid "State librarian"
 msgstr "Riiklik raamatukoguhoidja"
 
-#: services/crisalid/models/structure.py:252
+#: services/crisalid/models/structure.py:260
 msgid "Specialised assistant librarian"
 msgstr "Spetsialiseerunud raamatukoguhoidja assistent"
 
-#: services/crisalid/models/structure.py:253
+#: services/crisalid/models/structure.py:261
 msgid "Library assistant"
 msgstr "Raamatukogu assistent"
 
-#: services/crisalid/models/structure.py:254
+#: services/crisalid/models/structure.py:262
 msgid "Library storekeeper"
 msgstr "Raamatukogu hoidlatöötaja"
 
-#: services/crisalid/models/structure.py:255
+#: services/crisalid/models/structure.py:263
 msgid "Hospital practitioner"
 msgstr "Haiglaarst"
 
-#: services/crisalid/models/structure.py:256
+#: services/crisalid/models/structure.py:264
 msgid "Hospital administrative, technical, labour or service staff"
 msgstr "Haigla haldus-, tehniline või teenindav personal"
 
-#: services/crisalid/models/structure.py:260
+#: services/crisalid/models/structure.py:268
 msgid "Nursing assistant, childcare assistant, medical-psychological assistant"
 msgstr "Hooldusabi, lapsehooldusabi, meditsiinilis-psühholoogiline abi"
 
-#: services/crisalid/models/structure.py:263
+#: services/crisalid/models/structure.py:271
 msgid "Hospital secretary"
 msgstr "Haigla sekretär"
 
-#: services/crisalid/models/structure.py:264
+#: services/crisalid/models/structure.py:272
 msgid "Hospital technician"
 msgstr "Haigla tehnik"
 
-#: services/crisalid/models/structure.py:265
+#: services/crisalid/models/structure.py:273
 msgid "Nurse"
 msgstr "Õde"
 
-#: services/crisalid/models/structure.py:266
+#: services/crisalid/models/structure.py:274
 msgid "Midwife"
 msgstr "Ämmaemand"
 
-#: services/crisalid/models/structure.py:267
+#: services/crisalid/models/structure.py:275
 msgid "Clinical research associate"
 msgstr "Kliiniliste uuringute koordinaator"
 
-#: services/crisalid/models/structure.py:268
+#: services/crisalid/models/structure.py:276
 msgid "Healthcare manager"
 msgstr "Tervishoiujuht"
 
-#: services/crisalid/models/structure.py:269
+#: services/crisalid/models/structure.py:277
 msgid "Hospital engineer"
 msgstr "Haigla insener"
 
-#: services/crisalid/models/structure.py:270
+#: services/crisalid/models/structure.py:278
 msgid "Project manager (hospital)"
 msgstr "Projektijuht (haigla)"
 
-#: services/crisalid/models/structure.py:271
+#: services/crisalid/models/structure.py:279
 msgid "Part-time associate staff"
 msgstr "Osalise tööajaga kaastöötaja"
 
-#: services/crisalid/models/structure.py:272
+#: services/crisalid/models/structure.py:280
 msgid "Fixed-term contract (unspecified category)"
 msgstr "Tähtajaline leping (kategooria täpsustamata)"
 
-#: services/crisalid/models/structure.py:273
+#: services/crisalid/models/structure.py:281
 msgid "Fixed-term contract (category A)"
 msgstr "Tähtajaline leping (kategooria A)"
 
-#: services/crisalid/models/structure.py:274
+#: services/crisalid/models/structure.py:282
 msgid "Fixed-term contract (category B)"
 msgstr "Tähtajaline leping (kategooria B)"
 
-#: services/crisalid/models/structure.py:275
+#: services/crisalid/models/structure.py:283
 msgid "Fixed-term contract (category C)"
 msgstr "Tähtajaline leping (kategooria C)"
 
-#: services/crisalid/models/structure.py:277
+#: services/crisalid/models/structure.py:285
 msgid "Intern (BTS, M1 or M2) present at least 3 months in the unit"
 msgstr "Praktikant (BTS, M1 või M2), vähemalt 3 kuud üksuses"
 

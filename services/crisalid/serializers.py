@@ -12,7 +12,6 @@ from services.crisalid.models import (
     Document,
     DocumentDomains,
     DocumentJournal,
-    Identifier,
     Journal,
     Patent,
     Researcher,
@@ -37,10 +36,11 @@ class ProjectUserMinimalSerializer(serializers.ModelSerializer):
         return str(instance)
 
 
-class IdentifierSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Identifier
-        exclude = ("id",)
+class IdentifierSerializer(serializers.Serializer):
+    """identifiers of any crisalid model (ResearcherIdentifier, DocumentIdentifier ...)"""
+
+    harvester = serializers.CharField(read_only=True)
+    value = serializers.CharField(read_only=True)
 
 
 class ResearcherDomainsSerializer(serializers.ModelSerializer):
@@ -302,7 +302,6 @@ class StructureLightSerializer(serializers.ModelSerializer):
         model = Structure
         fields = (
             "id",
-            "crisalid_uid",
             "name",
             "acronym",
             "generic_type",
@@ -323,7 +322,6 @@ class StructureSupervisionSerializer(serializers.ModelSerializer):
         model = Structure
         fields = (
             "id",
-            "crisalid_uid",
             "name",
             "acronym",
             "generic_type",
@@ -335,6 +333,7 @@ class StructureSupervisionSerializer(serializers.ModelSerializer):
         )
 
 
+@auto_translated
 class StructureSerializer(ModulesSerializers, serializers.ModelSerializer):
     people_group = StructurePeopleGroupSerializer(read_only=True)
 
@@ -342,7 +341,6 @@ class StructureSerializer(ModulesSerializers, serializers.ModelSerializer):
         model = Structure
         fields = (
             "id",
-            "crisalid_uid",
             "name",
             "acronym",
             "description",

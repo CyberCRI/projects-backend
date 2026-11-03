@@ -711,7 +711,7 @@ class StructureViewsTestCase(JwtAPITestCase):
 
         cls.biophysics = TagFactory(title="Biophysics")
         cls.optics = TagFactory(title="Optics")
-        curie = AuthorityOrganization.objects.create(crisalid_uid="curie", name="Curie")
+        curie = AuthorityOrganization.objects.create(name="Curie")
         cls.documents = []
         for i, domains in enumerate(([cls.biophysics, cls.optics], [cls.biophysics])):
             document = DocumentFactory(

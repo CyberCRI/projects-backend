@@ -12,8 +12,9 @@ from services.crisalid.factories import (
 )
 from services.crisalid.models import (
     Document,
-    Identifier,
+    DocumentIdentifier,
     Researcher,
+    ResearcherIdentifier,
     ResearcherStructure,
     Structure,
 )
@@ -33,6 +34,7 @@ from services.crisalid.tasks import (
 from services.crisalid.tests.test_populate import (
     edges,
     group_of,
+    local_uid,
     researcher_data,
     structure_data,
 )
@@ -123,7 +125,10 @@ class TestCrisalidTasks(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
+                {
+                    "value": "hals-truc",
+                    "harvester": ResearcherIdentifier.Harvester.IDHALS.value,
+                }
             ],
         }
 
@@ -142,7 +147,7 @@ class TestCrisalidTasks(test.TestCase):
         self.assertEqual(obj.identifiers.count(), 1)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
-        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+        self.assertEqual(iden.harvester, ResearcherIdentifier.Harvester.IDHALS.value)
 
     @patch("services.crisalid.interface.Client")
     def test_create_document_empty(self, client_gql):
@@ -194,7 +199,10 @@ class TestCrisalidTasks(test.TestCase):
                 }
             ],
             "recorded_by": [
-                {"harvester": Identifier.Harvester.HAL.value, "value": "hals-truc"}
+                {
+                    "harvester": DocumentIdentifier.Harvester.HAL.value,
+                    "value": "hals-truc",
+                }
             ],
         }
 
@@ -212,7 +220,7 @@ class TestCrisalidTasks(test.TestCase):
         self.assertEqual(obj.document_type, Document.DocumentType.UNKNOWN.value)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
-        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+        self.assertEqual(iden.harvester, DocumentIdentifier.Harvester.HAL.value)
 
     @patch("services.crisalid.tasks.CrisalidService")
     def test_child_creates_missing_parent(self, service):
@@ -220,8 +228,8 @@ class TestCrisalidTasks(test.TestCase):
         PopulateStructure(self.config).multiple(
             [structure_data("local-LAB", part_of=edges("local-FAC"))]
         )
-        lab = Structure.objects.get(crisalid_uid="local-LAB")
-        self.assertEqual([s.crisalid_uid for s in lab.parents()], ["local-FAC"])
+        lab = Structure.objects.get(identifiers__value="local-LAB")
+        self.assertEqual([local_uid(s) for s in lab.parents()], ["local-FAC"])
         self.assertEqual(group_of("local-FAC").parent, self.root)
 
         # parent event: parent is updated, child relation is kept
@@ -231,9 +239,9 @@ class TestCrisalidTasks(test.TestCase):
         create_structure(self.config.pk, {"uid": "local-FAC"})
 
         self.assertEqual(
-            Structure.objects.get(crisalid_uid="local-FAC").description, "faculty"
+            Structure.objects.get(identifiers__value="local-FAC").description, "faculty"
         )
-        self.assertEqual([s.crisalid_uid for s in lab.parents()], ["local-FAC"])
+        self.assertEqual([local_uid(s) for s in lab.parents()], ["local-FAC"])
 
     def test_delete_structure_deletes_group(self):
         PopulateStructure(self.config).multiple(
@@ -249,9 +257,18 @@ class TestCrisalidTasks(test.TestCase):
         self.assertIn(researcher.user, fac_group.members.all())
         lab_group = group_of("local-LAB")
 
-        delete_structure(self.config.pk, {"uid": "local-LAB"})
+        # ikg payload format
+        delete_structure(
+            self.config.pk,
+            {
+                "uid": "local-LAB",
+                "identifiers": [{"type": "local", "value": "local-LAB"}],
+            },
+        )
 
-        self.assertFalse(Structure.objects.filter(crisalid_uid="local-LAB").exists())
+        self.assertFalse(
+            Structure.objects.filter(identifiers__value="local-LAB").exists()
+        )
         self.assertFalse(PeopleGroup.objects.filter(pk=lab_group.pk).exists())
         # laboratory members are no longer members of the faculty
         self.assertNotIn(researcher.user, fac_group.members.all())
@@ -266,7 +283,7 @@ class TestCrisalidTasks(test.TestCase):
         # ikg payload format
         delete_researcher(
             self.config.pk,
-            {"identifiers": [{"type": "hal", "value": "hal-marty@example.com"}]},
+            {"identifiers": [{"type": "idhals", "value": "hal-marty@example.com"}]},
         )
 
         self.assertFalse(ResearcherStructure.objects.exists())
@@ -296,7 +313,7 @@ class TestUnchangedPersonEvent(test.TestCase):
             "uid": "marty@example.com",
             "identifiers": [
                 {"type": "eppn", "value": "marty@example.com"},
-                {"type": "hal", "value": "hal-marty@example.com"},
+                {"type": "idhals", "value": "hal-marty@example.com"},
             ],
             "memberships": memberships,
             "employments": employments
@@ -342,6 +359,68 @@ class TestUnchangedPersonEvent(test.TestCase):
     @patch("services.crisalid.tasks.CrisalidService")
     def test_unknown_researcher(self, service):
         fields = self.fields([])
-        fields["identifiers"] = [{"type": "hal", "value": "hal-unknown"}]
+        fields["identifiers"] = [{"type": "idhals", "value": "hal-unknown"}]
         update_researcher_structures(self.config.pk, fields)
         service().profile.assert_not_called()
+
+
+class TestIdentifiersConfigs(test.TestCase):
+    """identifiers are shared by configs: objects are deleted with their last config"""
+
+    def setUp(self):
+        super().setUp()
+        self.config = CrisalidConfigFactory()
+        self.other_config = CrisalidConfigFactory()
+
+    def populate(self, config, data=None):
+        return PopulateResearcher(config).single(
+            data or researcher_data("marty@example.com")
+        )
+
+    def delete_fields(self):
+        return {"identifiers": [{"type": "idhals", "value": "hal-marty@example.com"}]}
+
+    def test_populate_links_configs(self):
+        researcher = self.populate(self.config)
+        self.populate(self.other_config)
+
+        self.assertEqual(Researcher.objects.count(), 1)
+        for identifier in researcher.identifiers.all():
+            self.assertSetEqual(
+                set(identifier.configs.all()), {self.config, self.other_config}
+            )
+
+    def test_populate_removed_identifier(self):
+        orcid = {"value": "000-666", "harvester": "orcid"}
+        data = researcher_data("marty@example.com")
+        data["identifiers"].append(orcid)
+        researcher = self.populate(self.config, data)
+        self.populate(self.other_config)
+
+        # idhals no longer sent by config
+        data = researcher_data("marty@example.com")
+        data["identifiers"] = [data["identifiers"][0], orcid]
+        self.populate(self.config, data)
+
+        idhals = researcher.identifiers.get(harvester="idhals")
+        self.assertSetEqual(set(idhals.configs.all()), {self.other_config})
+        orcid = researcher.identifiers.get(harvester="orcid")
+        self.assertSetEqual(set(orcid.configs.all()), {self.config})
+
+        # orcid is no longer sent by any config
+        self.populate(self.config)
+        self.assertFalse(researcher.identifiers.filter(harvester="orcid").exists())
+
+    def test_delete_researcher_other_config(self):
+        researcher = self.populate(self.config)
+        self.populate(self.other_config)
+
+        delete_researcher(self.config.pk, self.delete_fields())
+
+        self.assertTrue(Researcher.objects.filter(pk=researcher.pk).exists())
+        for identifier in researcher.identifiers.all():
+            self.assertSetEqual(set(identifier.configs.all()), {self.other_config})
+
+        delete_researcher(self.other_config.pk, self.delete_fields())
+        self.assertFalse(Researcher.objects.filter(pk=researcher.pk).exists())
+        self.assertFalse(ResearcherIdentifier.objects.exists())

@@ -7,6 +7,8 @@ from apps.commons.mixins import (
     OrganizationRelated,
     TimestampedModelMixin,
 )
+from services.crisalid.manager import CrisalidQuerySet
+from services.translator.mixins import HasAutoTranslatedFields
 
 
 class CrisalidPeriodModel(models.Model):
@@ -38,10 +40,17 @@ class CrisalidPeriodModel(models.Model):
         )
 
 
-class Structure(HasRelatedModules, OrganizationRelated, TimestampedModelMixin):
+class Structure(
+    HasRelatedModules,
+    OrganizationRelated,
+    TimestampedModelMixin,
+    HasAutoTranslatedFields,
+):
     """
     Represents a research structure (or 'OrganizationUnit') in the Crisalid system.
     """
+
+    auto_translated_fields = ["description"]
 
     class GenericType(models.TextChoices):
         """
@@ -73,7 +82,6 @@ class Structure(HasRelatedModules, OrganizationRelated, TimestampedModelMixin):
         on_delete=models.CASCADE,
         related_name="crisalid_structures",
     )
-    crisalid_uid = models.CharField(max_length=255)
     generic_type = models.CharField(max_length=50, choices=GenericType.choices)
     # national type from crisalid (UMR, FAC, ED ...)
     national_type = models.CharField(max_length=50, blank=True)
@@ -86,9 +94,6 @@ class Structure(HasRelatedModules, OrganizationRelated, TimestampedModelMixin):
     acronym = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     external = models.BooleanField(default=False)
-    identifiers = models.ManyToManyField(
-        "crisalid.Identifier", related_name="structures"
-    )
     related_structures = models.ManyToManyField(
         "self",
         through="crisalid.StructureRelation",
@@ -109,16 +114,13 @@ class Structure(HasRelatedModules, OrganizationRelated, TimestampedModelMixin):
         related_name="structure",
     )
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["organization", "crisalid_uid"],
-                name="unique_structure_crisalid_uid",
-            )
-        ]
+    objects = CrisalidQuerySet.as_manager()
 
     def __str__(self):
         return self.name
+
+    def __repr__(self):
+        return f"<Structure pk={self.pk} organization={self.organization.code} {self.acronym!r}>"
 
     def get_related_organizations(self):
         return [self.organization]
@@ -185,6 +187,12 @@ class StructureRelation(CrisalidPeriodModel):
 
     def __str__(self):
         return f"{self.structure} -{self.relation_type}-> {self.related_structure}"
+
+    def __repr__(self):
+        return (
+            f"<StructureRelation structure={self.structure_id} "
+            f"{self.relation_type} related_structure={self.related_structure_id}>"
+        )
 
 
 class ResearcherStructure(CrisalidPeriodModel):
@@ -285,3 +293,9 @@ class ResearcherStructure(CrisalidPeriodModel):
 
     def __str__(self):
         return f"{self.researcher} -{self.relation_type}-> {self.structure}"
+
+    def __repr__(self):
+        return (
+            f"<ResearcherStructure researcher={self.researcher_id} "
+            f"{self.relation_type} structure={self.structure_id}>"
+        )

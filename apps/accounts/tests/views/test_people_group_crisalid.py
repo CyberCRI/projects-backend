@@ -226,9 +226,6 @@ class CrisalidPeopleGroupMembersTestCase(CrisalidPeopleGroupTestCase):
         )
         content = response.json()
         self.assertEqual(content["structure"]["id"], self.structure.id)
-        self.assertEqual(
-            content["structure"]["crisalid_uid"], self.structure.crisalid_uid
-        )
         # crisalid modules are in structure modules, not in group modules
         self.assertNotIn("sub_structures", content["modules"])
 

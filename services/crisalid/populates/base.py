@@ -4,7 +4,8 @@ from typing import TypeVar
 
 from django.db import models, transaction
 
-from services.crisalid.models import CrisalidConfig
+from services.crisalid.models import AbstractIdentifier, CrisalidConfig
+from services.crisalid.utils.identifiers import link_identifiers, release_identifiers
 
 from .caches import BaseCache, LiveCache
 from .logger import logger
@@ -61,6 +62,54 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
 
         logger.warning("Invalid date format %s", value)
         return None
+
+    def sanitize_identifiers(
+        self, identifier_model: type[AbstractIdentifier], datas: list[dict] | None
+    ) -> list[dict]:
+        """identifiers ({"harvester", "value"}) with a harvester known by the identifier model"""
+        identifiers = {}
+        for data in datas or []:
+            harvester = self.sanitize_string(data.get("harvester")).lower()
+            value = self.sanitize_string(data.get("value"))
+            if harvester not in identifier_model.Harvester or not value:
+                logger.warning(
+                    "Invalid %s: harvester=%r value=%r",
+                    identifier_model.__name__,
+                    harvester,
+                    value,
+                )
+                continue
+            identifiers[(harvester, value)] = {"harvester": harvester, "value": value}
+        return list(identifiers.values())
+
+    def save_identifiers(self, instance: models.Model, identifiers: list[dict]):
+        """identifiers are owned by the instance and linked to the configs sending them:
+        - missing ones are created, existing ones are linked to this config
+        - the ones no longer sent by this config are unlinked from it
+          (and deleted if no config is left)
+        """
+        manager = instance.identifiers
+        expected = {(i["harvester"], i["value"]) for i in identifiers}
+        existing = {(i.harvester, i.value): i.pk for i in manager.all()}
+        with transaction.atomic():
+            release_identifiers(
+                manager.exclude(
+                    pk__in=[pk for key, pk in existing.items() if key in expected]
+                ),
+                self.config,
+            )
+            created = manager.model.objects.bulk_create(
+                manager.model(
+                    **{manager.field.name: instance}, harvester=harvester, value=value
+                )
+                for harvester, value in expected - existing.keys()
+            )
+            link_identifiers(
+                manager.model,
+                [pk for key, pk in existing.items() if key in expected]
+                + [identifier.pk for identifier in created],
+                self.config,
+            )
 
     def replace_relations(self, queryset: models.QuerySet, relations: list):
         """the graph is the source of truth: relations are deleted and recreated"""

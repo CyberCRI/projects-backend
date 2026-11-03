@@ -1,11 +1,10 @@
 from apps.accounts.models import PrivacySettings, ProjectUser
 from services.crisalid.models import (
-    Identifier,
     Researcher,
+    ResearcherIdentifier,
     ResearcherStructure,
     Structure,
 )
-from services.crisalid.populates.identifier import PopulateIdentifier
 from services.crisalid.utils.structures import sync_structures, with_ancestors
 
 from .base import AbstractPopulate
@@ -22,14 +21,9 @@ class PopulateResearcher(AbstractPopulate):
     with relations to structures (memberships / employments)
     """
 
-    def __init__(self, *ar, populate_identifiers=None, **kw):
+    def __init__(self, *ar, **kw):
         super().__init__(*ar, **kw)
-        self.populate_identifiers = populate_identifiers or PopulateIdentifier(
-            self.config, self.cache
-        )
-        self.populate_structure = PopulateStructure(
-            self.config, self.cache, populate_identifiers=self.populate_identifiers
-        )
+        self.populate_structure = PopulateStructure(self.config, self.cache)
 
     def get_names(self, data):
         given_name = family_name = ""
@@ -66,7 +60,7 @@ class PopulateResearcher(AbstractPopulate):
     def check_mapping_user(
         self,
         researcher: Researcher,
-        identifiers: list[Identifier],
+        identifiers: list[dict],
         given_name: str,
         family_name: str,
     ) -> ProjectUser | None:
@@ -76,20 +70,22 @@ class PopulateResearcher(AbstractPopulate):
             return self.update_user(researcher.user)
 
         for iden in identifiers:
-            if iden.harvester != Identifier.Harvester.EPPN:
+            if iden["harvester"] != ResearcherIdentifier.Harvester.EPPN:
                 continue
 
-            return self.create_user(iden.value, given_name, family_name)
+            return self.create_user(iden["value"], given_name, family_name)
         return None
 
     def node(self, data: dict) -> Researcher | None:
-        researcher_identifiers = self.populate_identifiers.multiple(data["identifiers"])
+        researcher_identifiers = self.sanitize_identifiers(
+            ResearcherIdentifier, data["identifiers"]
+        )
 
         # remove local/eppn identifiers to match only hal/eppn/orcid ..ect
         researcher_identifiers_without_local = [
             identifier
             for identifier in researcher_identifiers
-            if identifier.harvester not in Researcher.PRIVACY_HARVESTER
+            if identifier["harvester"] not in Researcher.PRIVACY_HARVESTER
         ]
 
         # researcher withtout any identifiers no need to be created
@@ -111,7 +107,7 @@ class PopulateResearcher(AbstractPopulate):
             family_name=family_name,
             user=user,
         )
-        self.cache.save_m2m(researcher, identifiers=researcher_identifiers)
+        self.save_identifiers(researcher, researcher_identifiers)
         return researcher
 
     def relations(self, researcher: Researcher, data: dict):

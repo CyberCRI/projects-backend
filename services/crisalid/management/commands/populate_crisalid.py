@@ -1,7 +1,6 @@
 import math
 
 from django.core.management.base import BaseCommand
-from django.db.models import Q
 
 from apps.accounts.models import PeopleGroup
 from services.crisalid.interface import CrisalidService
@@ -10,7 +9,6 @@ from services.crisalid.models import (
     CrisalidConfig,
     Document,
     DocumentContributor,
-    Identifier,
     Journal,
     Researcher,
     Structure,
@@ -75,13 +73,6 @@ class Command(BaseCommand):
         )
         structures = Structure.objects.filter(organization=organization)
         organizations = AuthorityOrganization.objects.filter(documents__in=documents)
-        identifiers = Identifier.objects.filter(
-            Q(documents__in=documents)
-            | Q(researchers__in=researchers)
-            | Q(structures__in=structures)
-            | Q(authority_organizations__in=organizations)
-        )
-
         # reverse order of the import (dependent objects first)
         querysets = []
         if command in ("all", "document"):
@@ -109,9 +100,6 @@ class Command(BaseCommand):
 
         if command in ("all", "organization"):
             querysets.append(organizations)
-
-        if command in ("all",):
-            querysets.append(identifiers)
 
         # filters use relations removed by previous deletions: get all pks first
         to_delete = [

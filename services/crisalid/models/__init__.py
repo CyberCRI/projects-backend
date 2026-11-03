@@ -8,7 +8,14 @@ from .document import (
     DocumentTypeCentralized,
 )
 from .funding import Funding
-from .identifier import Identifier
+from .identifier import (
+    AbstractIdentifier,
+    AuthorityOrganizationIdentifier,
+    DocumentIdentifier,
+    JournalIdentifier,
+    ResearcherIdentifier,
+    StructureIdentifier,
+)
 from .journal import Journal
 from .organization import AuthorityOrganization
 from .patent import Patent, PatentContributor
@@ -23,7 +30,12 @@ from .teaching import Teaching, TeachingDomain
 
 __all__ = [
     "AuthorityOrganization",
-    "Identifier",
+    "AbstractIdentifier",
+    "AuthorityOrganizationIdentifier",
+    "DocumentIdentifier",
+    "JournalIdentifier",
+    "ResearcherIdentifier",
+    "StructureIdentifier",
     "CrisalidConfig",
     "CrisalidPeriodModel",
     "Document",
