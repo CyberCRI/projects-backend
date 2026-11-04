@@ -13,8 +13,8 @@ class Funding(HasAutoTranslatedFields, ProjectRelated, models.Model):
     description = models.TextField(blank=True, null=True)
 
     class Currency(models.TextChoices):
-        EUR = "EUR"
-        USD = "USD"
+        EUR = "Eur"
+        USD = "Usd"
 
     prices = models.PositiveBigIntegerField()
     currency = models.CharField(default=Currency.EUR, choices=Currency.choices)

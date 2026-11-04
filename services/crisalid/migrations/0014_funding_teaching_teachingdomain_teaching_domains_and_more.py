@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 (
                     "currency",
                     models.CharField(
-                        choices=[("EUR", "EUR"), ("USD", "USD")], default="EUR"
+                        choices=[('EUR', 'Eur'), ('USD', 'Usd')], default="EUR"
                     ),
                 ),
                 ("start_date", models.DateField(blank=True, null=True)),

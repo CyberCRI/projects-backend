@@ -826,7 +826,7 @@ class FundingViewSet(
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = FundingFilter
     query_serializers = {"light": FundingLightSerializer}
-    ordering_fields = ("pk",)
+    ordering_fields = ("prices",)
 
     def get_queryset(self):
         researcher_qs = self.request.user.get_user_related_queryset(
@@ -865,7 +865,6 @@ class TeachingViewSet(
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = TeachingFilter
     query_serializers = {"light": TeachingLightSerializer}
-    ordering_fields = ("pk",)
 
     def get_queryset(self):
         researcher_qs = self.request.user.get_user_related_queryset(
