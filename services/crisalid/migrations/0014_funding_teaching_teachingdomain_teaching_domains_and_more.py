@@ -44,6 +44,7 @@ class Migration(migrations.Migration):
                         null=True,
                         on_delete=django.db.models.deletion.SET_NULL,
                         to="projects.project",
+                        related_name="fundings"
                     ),
                 ),
                 (
@@ -141,6 +142,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         to="crisalid.researcher",
+                        related_name="teachings"
                     ),
                 ),
                 (

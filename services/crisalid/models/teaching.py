@@ -56,7 +56,9 @@ class Teaching(HasAutoTranslatedFields, models.Model):
         Tag, through=TeachingDomain, related_name="teachings"
     )
 
-    researcher = models.ForeignKey("crisalid.Researcher", on_delete=models.CASCADE)
+    researcher = models.ForeignKey(
+        "crisalid.Researcher", on_delete=models.CASCADE, related_name="teachings"
+    )
 
     def __str__(self) -> str:
         return f"{self.name} level={self.level}"

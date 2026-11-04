@@ -22,7 +22,10 @@ class Funding(HasAutoTranslatedFields, ProjectRelated, models.Model):
     end_date = models.DateField(null=True, blank=True)
 
     project = models.ForeignKey(
-        "projects.Project", null=True, on_delete=models.SET_NULL
+        "projects.Project",
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="fundings",
     )
 
     researchers = models.ManyToManyField("crisalid.Researcher", related_name="fundings")
