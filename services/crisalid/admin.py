@@ -17,6 +17,7 @@ from django.views.generic import TemplateView
 
 from apps.accounts.models import ProjectUser
 from apps.commons.admin import ExtraAdminMixins, TranslateObjectAdminMixin
+from apps.organizations.models import Organization
 from services.crisalid.models.award import Award, AwardContributor
 from services.crisalid.models.document import DocumentDomains, DocumentJournal
 from services.crisalid.models.patent import Patent, PatentContributor
@@ -230,6 +231,38 @@ class ResearcherAwardInline(admin.StackedInline):
     extra = 0
 
 
+class LinkedUser(admin.SimpleListFilter):
+    title = "linked user"
+    parameter_name = "linked_user"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("Yes", "with user linked"),
+            ("No", "without user linked"),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "Yes":
+            return queryset.filter(user__isnull=True)
+        if self.value() == "No":
+            return queryset.filter(user__isnull=False)
+        return queryset
+
+
+class OrganizationObject(admin.SimpleListFilter):
+    title = "organization"
+    parameter_name = "organization"
+
+    def lookups(self, request, model_admin):
+        return list(Organization.objects.all().values_list("code", "name"))
+
+    def queryset(self, request, queryset):
+        organization = Organization.objects.filter(code=self.value()).first()
+        if organization:
+            return queryset.filter(user__groups__organizations__in=(organization,))
+        return queryset
+
+
 @admin.register(Researcher)
 class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
@@ -246,6 +279,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         "identifiers__value",
         "identifiers__harvester",
     )
+    list_filter = (LinkedUser, OrganizationObject)
     autocomplete_fields = ("user",)
     actions = ("assign_user", "vectorize", "generate_bio_ia")
     inlines = (
