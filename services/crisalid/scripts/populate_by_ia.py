@@ -154,13 +154,13 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
 
         for funding in content.get("funding", []):
             fund, _ = Funding.objects.update_or_create(
-                link=funding["link"],
+                name=funding["name"],
                 defaults={
+                    "description": funding["description"],
                     "prices": funding["prices"],
                     "currency": funding["currency"],
                     "start_date": format_date(funding["start_date"]),
                     "end_date": format_date(funding["end_date"]),
-                    "level": funding["level"],
                 },
             )
             fund.researchers.add(researcher)

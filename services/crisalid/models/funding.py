@@ -16,8 +16,10 @@ class Funding(HasAutoTranslatedFields, ProjectRelated, models.Model):
         EUR = "EUR"
         USD = "USD"
 
-    prices = models.PositiveBigIntegerField()
-    currency = models.CharField(default=Currency.EUR, choices=Currency.choices)
+    prices = models.PositiveBigIntegerField(blank=True, null=True)
+    currency = models.CharField(
+        default=None, choices=Currency.choices, blank=True, null=True
+    )
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
