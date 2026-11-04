@@ -9,8 +9,10 @@ from django.db.models.functions import Concat
 
 from apps.organizations.models import Organization
 from services.crisalid.models.award import Award, AwardContributor
+from services.crisalid.models.funding import Funding
 from services.crisalid.models.patent import Patent, PatentContributor
 from services.crisalid.models.researcher import Researcher
+from services.crisalid.models.teaching import Teaching
 from services.mistral.interface import MistralService
 
 prompt = (
@@ -136,3 +138,30 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
                 },
             )
             print("create Award", award.name)
+
+        for teaching in content.get("teaching", []):
+            teaching, _ = Teaching.objects.update_or_create(
+                link=teaching["link"],
+                researcher=researcher,
+                defaults={
+                    "name": teaching["name"],
+                    "description": teaching["description"],
+                    "spec": teaching["spec"],
+                    "level": teaching["level"],
+                },
+            )
+            print("create funding ", teaching.name)
+
+        for funding in content.get("funding", []):
+            fund, _ = Funding.objects.update_or_create(
+                link=funding["link"],
+                defaults={
+                    "prices": funding["prices"],
+                    "currency": funding["currency"],
+                    "start_date": format_date(funding["start_date"]),
+                    "end_date": format_date(funding["end_date"]),
+                    "level": funding["level"],
+                },
+            )
+            fund.researchers.add(researcher)
+            print("create funding ", fund.name)
