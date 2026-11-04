@@ -7,10 +7,12 @@ from .document import (
     DocumentJournal,
     DocumentTypeCentralized,
 )
+from .funding import Funding
 from .indentifier import Identifier
 from .journal import Journal
 from .patent import Patent, PatentContributor
 from .researcher import Researcher, ResearcherDomains
+from .teaching import Teaching, TeachingDomain
 
 __all__ = [
     "Identifier",
@@ -27,4 +29,7 @@ __all__ = [
     "PatentContributor",
     "Award",
     "AwardContributor",
+    "Teaching",
+    "TeachingDomain",
+    "Funding",
 ]

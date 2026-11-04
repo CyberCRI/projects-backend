@@ -17,6 +17,8 @@ from services.crisalid.models import (
     ResearcherDomains,
 )
 from services.crisalid.models.award import AwardContributor
+from services.crisalid.models.funding import Funding
+from services.crisalid.models.teaching import Teaching, TeachingDomain
 from services.translator.serializers import auto_translated
 
 
@@ -196,3 +198,88 @@ class AwardContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = AwardContributor
         fields = ("id", "award", "date", "link")
+
+
+@auto_translated
+class FundingSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSerializerSuperLight(many=True)
+
+    class Meta:
+        model = Funding
+        fields = (
+            "id",
+            "name",
+            "description",
+            "prices",
+            "currency",
+            "start_date",
+            "end_date",
+            "project_id",
+            "researchers",
+        )
+
+
+@auto_translated
+class FundingLightSerializer(FundingSerializer):
+    class Meta(FundingSerializer.Meta):
+        model = Funding
+        fields = (
+            "id",
+            "name",
+            "description",
+            "prices",
+            "currency",
+            "start_date",
+            "end_date",
+            "project_id",
+        )
+
+
+class TeachingDomainSerializer(serializers.ModelSerializer):
+    domain = TagSerializer()
+
+    class Meta:
+        model = TeachingDomain
+        fields = (
+            "domain",
+            "level",
+        )
+
+
+@auto_translated
+class TeachingSerializer(serializers.ModelSerializer):
+    researcher = ResearcherSerializerSuperLight()
+    domains = TeachingDomainSerializer(many=True)
+
+    class Meta:
+        model = Teaching
+        fields = (
+            "id",
+            "name",
+            "description",
+            "name",
+            "description",
+            "spec",
+            "level",
+            "link",
+            "researcher",
+            "domains",
+        )
+
+
+@auto_translated
+class TeachingLightSerializer(TeachingSerializer):
+    class Meta(TeachingSerializer.Meta):
+        model = Teaching
+        fields = (
+            "id",
+            "name",
+            "description",
+            "name",
+            "description",
+            "spec",
+            "level",
+            "link",
+            "researcher",
+            "domains",
+        )

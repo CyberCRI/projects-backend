@@ -25,8 +25,10 @@ from apps.commons.views import (
 from services.crisalid.filters import (
     AwardContributorFilter,
     AwardFilter,
+    FundingFilter,
     PatentContributorFilter,
     PatentFilter,
+    TeachingFilter,
 )
 from services.crisalid.models import (
     Document,
@@ -36,7 +38,9 @@ from services.crisalid.models import (
     Researcher,
 )
 from services.crisalid.models.award import Award
+from services.crisalid.models.funding import Funding
 from services.crisalid.models.patent import Patent
+from services.crisalid.models.teaching import Teaching
 from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
     AwardContributorSerializer,
@@ -45,9 +49,13 @@ from services.crisalid.serializers import (
     CitationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
+    FundingLightSerializer,
+    FundingSerializer,
     PatentSerializer,
     PatentSerializerLight,
     ResearcherSerializer,
+    TeachingLightSerializer,
+    TeachingSerializer,
 )
 from services.crisalid.utils.bio import generate_bio_from_researcher
 from services.crisalid.utils.views import NestedResearcherViewMixins
@@ -469,6 +477,14 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
             ),
         ],
     ),
+    fundings=extend_schema(
+        description="return fundings of researcher",
+        responses=FundingLightSerializer(many=True),
+    ),
+    teachings=extend_schema(
+        description="return teachings of researcher",
+        responses=TeachingLightSerializer(many=True),
+    ),
 )
 class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
@@ -612,6 +628,56 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
             ).data
         )
 
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="fundings")
+    def fundings(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        awards_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).fundings()
+
+        filterset = FundingFilter(
+            data=request.query_params,
+            queryset=awards_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        awards_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(awards_qs)
+
+        return self.get_paginated_response(
+            FundingLightSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="teachings")
+    def teachings(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        awards_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).teachings()
+
+        filterset = TeachingFilter(
+            data=request.query_params,
+            queryset=awards_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        awards_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(awards_qs)
+
+        return self.get_paginated_response(
+            TeachingLightSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -736,3 +802,77 @@ class PatentViewSet(
             .prefetch_related(Prefetch("researchers", queryset=researcher_qs))
             .distinct()
         )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        description="get list of fundings",
+        responses=FundingSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="serializers",
+                description="change serializer",
+                required=False,
+                type=str,
+                enum=("light",),
+            ),
+        ],
+    )
+)
+class FundingViewSet(
+    NestedOrganizationViewMixins, QuerySerializersMixin, viewsets.ReadOnlyModelViewSet
+):
+    serializer_class = FundingSerializer
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    filterset_class = FundingFilter
+    query_serializers = {"light": FundingLightSerializer}
+    ordering_fields = ("pk",)
+
+    def get_queryset(self):
+        researcher_qs = self.request.user.get_user_related_queryset(
+            Researcher.objects.filter(
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
+            )
+        )
+
+        return (
+            Funding.objects.filter(researchers__in=researcher_qs)
+            .prefetch_related(Prefetch("researchers", queryset=researcher_qs))
+            .distinct()
+        )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        description="get list of teachings",
+        responses=FundingSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="serializers",
+                description="change serializer",
+                required=False,
+                type=str,
+                enum=("light",),
+            ),
+        ],
+    )
+)
+class TeachingViewSet(
+    NestedOrganizationViewMixins, QuerySerializersMixin, viewsets.ReadOnlyModelViewSet
+):
+    serializer_class = TeachingSerializer
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    filterset_class = TeachingFilter
+    query_serializers = {"light": TeachingLightSerializer}
+    ordering_fields = ("pk",)
+
+    def get_queryset(self):
+        researcher_qs = self.request.user.get_user_related_queryset(
+            Researcher.objects.filter(
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
+            )
+        )
+
+        return Teaching.objects.filter(researcher__in=researcher_qs).distinct()

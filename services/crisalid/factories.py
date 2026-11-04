@@ -1,3 +1,5 @@
+import random
+
 import factory
 from factory.fuzzy import FuzzyChoice
 from faker import Faker
@@ -7,8 +9,10 @@ from apps.organizations.factories import OrganizationFactory
 from services.crisalid import relators
 from services.crisalid.models.award import Award
 from services.crisalid.models.document import DocumentJournal
+from services.crisalid.models.funding import Funding
 from services.crisalid.models.journal import Journal
 from services.crisalid.models.patent import Patent, PatentContributor
+from services.crisalid.models.teaching import Teaching
 
 from .models import (
     AwardContributor,
@@ -135,6 +139,30 @@ class AwardFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Award
+
+
+class TeachingFactory(factory.django.DjangoModelFactory):
+    name = faker.sentences(2)
+    description = faker.text()
+    spec = faker.sentences(2)
+    level = faker.sentences(2)
+    link = faker.url()
+    researcher = factory.LazyFunction(lambda: ResearcherFactory())
+
+    class Meta:
+        model = Teaching
+
+
+class FundingFactory(factory.django.DjangoModelFactory):
+    name = faker.sentences(2)
+    description = faker.text()
+    prices = random.randint(1, 1_000_000_000)
+    currency = Funding.Currency.EURO.value
+    start_date = faker.date()
+    end_date = start_date = faker.time_delta()
+
+    class Meta:
+        model = Funding
 
 
 class AwardContributorFactory(factory.django.DjangoModelFactory):

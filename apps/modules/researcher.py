@@ -11,7 +11,9 @@ from services.crisalid.models import (
     ResearcherDomains,
 )
 from services.crisalid.models.award import AwardContributor
+from services.crisalid.models.funding import Funding
 from services.crisalid.models.patent import Patent
+from services.crisalid.models.teaching import Teaching
 
 
 @register_module(Researcher)
@@ -76,3 +78,9 @@ class ResearcherModules(AbstractModules):
 
     def awards(self) -> BaseManager[AwardContributor]:
         return self.instance.awards_conributor.all()
+
+    def teachings(self) -> BaseManager[Teaching]:
+        return self.instance.teachings.all()
+
+    def fundings(self) -> BaseManager[Funding]:
+        return self.instance.fundings.all()

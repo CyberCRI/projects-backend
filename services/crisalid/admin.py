@@ -20,8 +20,10 @@ from apps.commons.admin import ExtraAdminMixins, TranslateObjectAdminMixin
 from apps.organizations.models import Organization
 from services.crisalid.models.award import Award, AwardContributor
 from services.crisalid.models.document import DocumentDomains, DocumentJournal
+from services.crisalid.models.funding import Funding
 from services.crisalid.models.patent import Patent, PatentContributor
 from services.crisalid.models.researcher import ResearcherDomains
+from services.crisalid.models.teaching import Teaching
 from services.crisalid.tasks import (
     load_apollo_data,
     update_researcher_bio_ia,
@@ -231,6 +233,11 @@ class ResearcherAwardInline(admin.StackedInline):
     extra = 0
 
 
+class TeachingInline(admin.StackedInline):
+    model = Teaching
+    extra = 0
+
+
 class LinkedUser(admin.SimpleListFilter):
     title = "linked user"
     parameter_name = "linked_user"
@@ -286,6 +293,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         ResearcherDomainsAdminInline,
         ResearcherPatentInline,
         ResearcherAwardInline,
+        TeachingInline,
     )
 
     def get_queryset(self, request):
@@ -334,7 +342,6 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
 
     @admin.action(description="re-generate researcher bio from ia")
     def generate_bio_ia(self, request, queryset):
-
         total = queryset.count()
         all_taks = group(update_researcher_bio_ia.s(r.pk) for r in queryset)
         all_taks.apply_async()
@@ -412,6 +419,39 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         if obj.user:
             url = reverse("admin:accounts_projectuser_change", args=[obj.user.id])
             return format_html('<a href="{}">{}</a>', url, str(obj.user))
+        return None
+
+
+@admin.register(Funding)
+class FundingAdmin(admin.ModelAdmin):
+    list_display = ("pk", "name", "get_project", "get_researchers")
+    search_fields = (
+        "name",
+        "description",
+        "project__name",
+        "project__description",
+    )
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("project")
+            .annotate(annotate_researchers=Count("researchers"))
+        )
+
+    @admin.display(
+        description="numbers of researchers", ordering="annotate_researchers"
+    )
+    def get_researchers(self, instance):
+        return instance.annotate_researchers
+
+    @admin.display(description="project")
+    def get_project(self, obj):
+        # add user link to admin
+        if obj.project:
+            url = reverse("admin:projects_project_change", args=[obj.project.id])
+            return format_html('<a href="{}">{}</a>', url, str(obj.project.name))
         return None
 
 

@@ -10,11 +10,13 @@ from services.crisalid.views import (
     AwardViewSet,
     ConferenceViewSet,
     DocumentViewSet,
+    FundingViewSet,
     GroupConferenceViewSet,
     GroupPublicationViewSet,
     PatentViewSet,
     PublicationViewSet,
     ResearcherViewSet,
+    TeachingViewSet,
 )
 
 researcher_router = DefaultRouter()
@@ -34,6 +36,12 @@ organization_router_register(
     researcher_router, r"patent", PatentViewSet, basename="CrisalidPatent"
 )
 
+organization_router_register(
+    researcher_router, r"teaching", TeachingViewSet, basename="CrisalidTeaching"
+)
+organization_router_register(
+    researcher_router, r"funding", FundingViewSet, basename="CrisalidFunding"
+)
 
 organization_researcher_router_register(
     researcher_router,
