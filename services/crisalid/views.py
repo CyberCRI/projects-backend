@@ -57,14 +57,14 @@ from services.crisalid.serializers import (
     FundingSerializer,
     PatentSerializer,
     PatentSerializerLight,
-    ResearcherSerializer,
-    TeachingLightSerializer,
-    TeachingSerializer,
     ResearchDomainSerializer,
+    ResearcherSerializer,
     StructureLightSerializer,
     StructureResearcherSerializer,
     StructureSerializer,
     StructureSupervisionSerializer,
+    TeachingLightSerializer,
+    TeachingSerializer,
 )
 from services.crisalid.utils.bio import generate_bio_from_researcher
 from services.crisalid.utils.views import NestedResearcherViewMixins

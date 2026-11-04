@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('accounts', '0006_alter_projectuser_managers'),
-        ('crisalid', '0011_award_awardcontributor_researcher_awards'),
+        ('crisalid', '0014_funding_teaching_teachingdomain_teaching_domains_and_more'),
         ('organizations', '0008_organization_enable_ia'),
     ]
 
