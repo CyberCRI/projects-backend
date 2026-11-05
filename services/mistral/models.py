@@ -615,10 +615,14 @@ You are a research assistant specialized in creating researcher biographies. Bas
         return super().get_summary(system)
 
     def set_embedding(self, *args, **kwargs) -> "ResearcherEmbedding":
-        prompt = [
-            self.item.bio,
-            "domains :" + ", ".join(self.item.domains.values_list("name", flat=True)),
-        ]
+        domains = ""
+        for title, description in self.item.domains.values_list("title", "description"):
+            domains += f"{title}"
+            if description:
+                domains += f": {description}"
+            domains += "\n"
+
+        prompt = [self.item.bio, f"domains : {domains}"]
         prompt_hashcode = self.hash_prompt(prompt)
         if self.prompt_hashcode != prompt_hashcode:
             prompt = "\n\n".join(prompt)
