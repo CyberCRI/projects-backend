@@ -30,5 +30,8 @@ class AwardContributor(models.Model):
     date = models.DateField(null=True, blank=True)
     link = models.URLField(null=True, blank=True)
 
+    class Meta:
+        ordering = ("-date",)
+
     def __repr__(self):
         return f"<AwardContributor pk={self.pk} researcher={self.researcher_id} award={self.award_id}>"

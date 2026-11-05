@@ -13,6 +13,9 @@ class Patent(HasAutoTranslatedFields, models.Model):
     date = models.DateField(null=True, blank=True)
     link = models.URLField(null=True, blank=True)
 
+    class Meta:
+        ordering = ("-date",)
+
     def __str__(self):
         return self.name
 
@@ -29,6 +32,9 @@ class PatentContributor(models.Model):
     patent = models.ForeignKey(Patent, on_delete=models.CASCADE)
 
     # TODO(remi): add researcher role in this patent ?
+
+    class Meta:
+        ordering = ("-patent__date",)
 
     def __repr__(self):
         return f"<PatentContributor pk={self.pk} researcher={self.researcher_id} award={self.patent}>"

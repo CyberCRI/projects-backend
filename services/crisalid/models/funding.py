@@ -32,6 +32,9 @@ class Funding(HasAutoTranslatedFields, ProjectRelated, models.Model):
 
     researchers = models.ManyToManyField("crisalid.Researcher", related_name="fundings")
 
+    class Meta:
+        ordering = ("-end_date", "-start_date")
+
     def __str__(self) -> str:
         return f"{self.name} prices={self.prices}"
 
