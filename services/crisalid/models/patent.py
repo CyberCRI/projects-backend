@@ -1,9 +1,11 @@
 from django.db import models
 
+from apps.commons.mixins import OrganizationRelated
+from apps.organizations.models import Organization
 from services.translator.mixins import HasAutoTranslatedFields
 
 
-class Patent(HasAutoTranslatedFields, models.Model):
+class Patent(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     """parent representions (WIP)"""
 
     auto_translated_fields = ["name", "description"]
@@ -21,6 +23,10 @@ class Patent(HasAutoTranslatedFields, models.Model):
 
     def __repr__(self):
         return f"<Patent pk={self.pk} {self.name!r}>"
+
+    def get_related_organizations(self) -> list[Organization]:
+        # Award is for any organizations, so return all
+        return list(Organization.objects.all())
 
 
 class PatentContributor(models.Model):

@@ -1,6 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from apps.commons.mixins import OrganizationRelated
 from apps.skills.models import Tag
 from services.translator.mixins import HasAutoTranslatedFields
 
@@ -39,7 +40,7 @@ class TeachingDomain(models.Model):
         return f"<TeachingDomains pk={self.pk} {str(self)} >"
 
 
-class Teaching(HasAutoTranslatedFields, models.Model):
+class Teaching(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     """models to represent teaching course by researcher"""
 
     auto_translated_fields = ["name", "description", "spec"]
@@ -65,3 +66,6 @@ class Teaching(HasAutoTranslatedFields, models.Model):
 
     def __repr__(self):
         return f"<Teaching pk={self.pk} researcher={self.researcher_id} {str(self)} >"
+
+    def get_related_organizations(self):
+        return self.researcher.get_related_organizations()

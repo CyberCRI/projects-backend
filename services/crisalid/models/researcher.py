@@ -5,6 +5,7 @@ from apps.commons.mixins import (
     HasEmbedding,
     HasOwner,
     HasRelatedModules,
+    OrganizationRelated,
     TimestampedModelMixin,
 )
 from apps.skills.models import Tag
@@ -48,6 +49,7 @@ class ResearcherDomains(TimestampedModelMixin, models.Model):
 class Researcher(
     HasRelatedModules,
     HasEmbedding,
+    OrganizationRelated,
     HasOwner,
     TimestampedModelMixin,
     HasAutoTranslatedFields,
@@ -108,3 +110,6 @@ class Researcher(
 
     def get_owner(self):
         return self.user
+
+    def get_related_organizations(self):
+        return self.user.get_related_organizations()
