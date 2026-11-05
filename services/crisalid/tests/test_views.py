@@ -19,10 +19,10 @@ from services.crisalid.factories import (
     PatentContributorFactory,
     PatentFactory,
     ResearcherFactory,
-    TeachingFactory,
     ResearcherStructureFactory,
     StructureFactory,
     StructureRelationFactory,
+    TeachingFactory,
 )
 from services.crisalid.models import (
     AuthorityOrganization,
@@ -677,6 +677,8 @@ class TestTeachingView(JwtAPITestCase):
             set((teaching.pk, teaching_2.pk, teaching_3.pk)),
             set((el["id"] for el in data["results"])),
         )
+
+
 class StructureViewsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
