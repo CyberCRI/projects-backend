@@ -12,9 +12,11 @@ from services.crisalid.factories import (
     DocumentContributorFactory,
     DocumentFactory,
     DocumentJournalFactory,
+    FundingFactory,
     PatentContributorFactory,
     PatentFactory,
     ResearcherFactory,
+    TeachingFactory,
 )
 from services.crisalid.models import DocumentTypeCentralized
 from services.crisalid.models.researcher import Researcher
@@ -430,6 +432,53 @@ class TestResearcherView(JwtAPITestCase):
         # test modules
         self.assertEqual(self.researcher.modules.awards().count(), 2)
 
+    def test_get_fundings(self):
+        funding = FundingFactory()
+        funding.researchers.add(self.researcher)
+        funding_2 = FundingFactory()
+        funding_2.researchers.set([self.researcher, self.researcher_2])
+        funding_3 = FundingFactory()
+        funding_3.researchers.add(self.researcher_2)
+
+        response = self.client.get(
+            reverse(
+                "Researcher-fundings",
+                args=(self.organization.code, self.researcher.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((funding.pk, funding_2.pk)),
+            set((el["id"] for el in data["results"])),
+        )
+
+        # test modules
+        self.assertEqual(self.researcher.modules.fundings().count(), 2)
+
+    def test_get_teachings(self):
+        teaching = TeachingFactory(researcher=self.researcher)
+        teaching_2 = TeachingFactory(researcher=self.researcher)
+        TeachingFactory(researcher=self.researcher_2)
+
+        response = self.client.get(
+            reverse(
+                "Researcher-teachings",
+                args=(self.organization.code, self.researcher.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((teaching.pk, teaching_2.pk)),
+            set((el["id"] for el in data["results"])),
+        )
+
+        # test modules
+        self.assertEqual(self.researcher.modules.teachings().count(), 2)
+
 
 class TestAwardView(JwtAPITestCase):
     @classmethod
@@ -518,3 +567,98 @@ class TestPatentView(JwtAPITestCase):
         data = response.json()
 
         self.assertEqual(len(data["results"]), 2)
+
+
+class TestFundingView(JwtAPITestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.organization = OrganizationFactory()
+        cls.organization_2 = OrganizationFactory()
+
+        cls.researcher = ResearcherFactory()
+        cls.researcher_2 = ResearcherFactory()
+        cls.researcher_3 = ResearcherFactory()
+
+        grp = cls.organization.get_users()
+        cls.researcher.user.groups.add(grp)
+        cls.researcher_2.user.groups.add(grp)
+
+        # other researcher from other organization is not availables
+        grp = cls.organization_2.get_users()
+        cls.researcher_3.user.groups.add(grp)
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.client.force_authenticate(self.researcher.user)
+
+    def test_list(self):
+        funding = FundingFactory()
+        funding.researchers.add(self.researcher)
+        funding_2 = FundingFactory()
+        funding_2.researchers.set([self.researcher, self.researcher_2])
+        funding_3 = FundingFactory()
+        funding_3.researchers.add(self.researcher_2)
+
+        # user other orga
+        funding_4 = FundingFactory()
+        funding_4.researchers.add(self.researcher_3)
+
+        response = self.client.get(
+            reverse(
+                "CrisalidFunding-list",
+                args=(self.organization.code,),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((funding.pk, funding_2.pk, funding_3.pk)),
+            set((el["id"] for el in data["results"])),
+        )
+
+
+class TestTeachingView(JwtAPITestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.organization = OrganizationFactory()
+        cls.organization_2 = OrganizationFactory()
+
+        cls.researcher = ResearcherFactory()
+        cls.researcher_2 = ResearcherFactory()
+        cls.researcher_3 = ResearcherFactory()
+
+        grp = cls.organization.get_users()
+        cls.researcher.user.groups.add(grp)
+        cls.researcher_2.user.groups.add(grp)
+
+        # other researcher from other organization is not availables
+        grp = cls.organization_2.get_users()
+        cls.researcher_3.user.groups.add(grp)
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.client.force_authenticate(self.researcher.user)
+
+    def test_list(self):
+        teaching = TeachingFactory(researcher=self.researcher)
+        teaching_2 = TeachingFactory(researcher=self.researcher)
+        teaching_3 = TeachingFactory(researcher=self.researcher_2)
+        # user other orga
+        TeachingFactory(researcher=self.researcher_3)
+
+        response = self.client.get(
+            reverse(
+                "CrisalidTeaching-list",
+                args=(self.organization.code,),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((teaching.pk, teaching_2.pk, teaching_3.pk)),
+            set((el["id"] for el in data["results"])),
+        )

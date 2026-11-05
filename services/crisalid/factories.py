@@ -158,8 +158,8 @@ class FundingFactory(factory.django.DjangoModelFactory):
     description = faker.text()
     prices = random.randint(1, 1_000_000_000)
     currency = Funding.Currency.EUR.value
-    start_date = faker.date()
-    end_date = start_date = faker.time_delta()
+    start_date = faker.date_time()
+    end_date = start_date - faker.time_delta()
 
     class Meta:
         model = Funding

@@ -150,7 +150,7 @@ def run(code: str, offset: int | None = None, limit: int | None = None):
                     "level": teaching["level"],
                 },
             )
-            print("create funding ", teaching.name)
+            print("create teaching ", teaching.name)
 
         for funding in content.get("funding", []):
             fund, _ = Funding.objects.update_or_create(
