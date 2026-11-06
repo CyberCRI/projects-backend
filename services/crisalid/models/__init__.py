@@ -8,21 +8,43 @@ from .document import (
     DocumentTypeCentralized,
 )
 from .funding import Funding
-from .indentifier import Identifier
+from .identifier import (
+    AbstractIdentifier,
+    AuthorityOrganizationIdentifier,
+    DocumentIdentifier,
+    JournalIdentifier,
+    ResearcherIdentifier,
+    StructureIdentifier,
+)
 from .journal import Journal
+from .organization import AuthorityOrganization
 from .patent import Patent, PatentContributor
 from .researcher import Researcher, ResearcherDomains
+from .structure import (
+    CrisalidPeriodModel,
+    ResearcherStructure,
+    Structure,
+    StructureRelation,
+)
 from .teaching import Teaching, TeachingDomain
 
 __all__ = [
-    "Identifier",
+    "AuthorityOrganization",
+    "AbstractIdentifier",
+    "AuthorityOrganizationIdentifier",
+    "DocumentIdentifier",
+    "JournalIdentifier",
+    "ResearcherIdentifier",
+    "StructureIdentifier",
     "CrisalidConfig",
+    "CrisalidPeriodModel",
     "Document",
     "DocumentContributor",
     "DocumentDomains",
     "DocumentTypeCentralized",
     "Researcher",
     "ResearcherDomains",
+    "ResearcherStructure",
     "DocumentJournal",
     "Journal",
     "Patent",
@@ -32,4 +54,6 @@ __all__ = [
     "Teaching",
     "TeachingDomain",
     "Funding",
+    "Structure",
+    "StructureRelation",
 ]

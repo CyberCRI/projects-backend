@@ -21,7 +21,7 @@ from apps.accounts.models import (
 from apps.files.models import Image, people_group_images_directory_path
 from apps.organizations.models import Organization
 from apps.skills.models import Tag, TagClassification
-from services.crisalid.models import Identifier, Researcher
+from services.crisalid.models import Researcher, ResearcherIdentifier
 
 # for truncate ico
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -73,9 +73,7 @@ def populate_member(member: dict, organization: Organization) -> ProjectUser:
     if not member["identifiers"]:
         return None
 
-    identifiers = [
-        Identifier.objects.get_or_create(**val)[0] for val in member["identifiers"]
-    ]
+    identifiers = member["identifiers"]
 
     researcher = None
     with suppress(Researcher.DoesNotExist):
@@ -118,7 +116,8 @@ def populate_member(member: dict, organization: Organization) -> ProjectUser:
     else:
         researcher.save()
 
-    researcher.identifiers.add(*identifiers)
+    for identifier in identifiers:
+        ResearcherIdentifier.objects.get_or_create(researcher=researcher, **identifier)
     return researcher.user
 
 

@@ -1,21 +1,24 @@
 from rest_framework import serializers
 
-from apps.accounts.models import ProjectUser
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.commons.fields import PrivacySettingProtectedMethodField
 from apps.commons.serializers import PrivacySerializer
 from apps.files.serializers import ImageSerializer
 from apps.modules.serializers import ModulesSerializers
+from apps.skills.models import Tag
 from apps.skills.serializers import TagSerializer
 from services.crisalid.models import (
+    AuthorityOrganization,
     Award,
     Document,
     DocumentDomains,
     DocumentJournal,
-    Identifier,
     Journal,
     Patent,
     Researcher,
     ResearcherDomains,
+    ResearcherStructure,
+    Structure,
 )
 from services.crisalid.models.award import AwardContributor
 from services.crisalid.models.funding import Funding
@@ -35,10 +38,11 @@ class ProjectUserMinimalSerializer(serializers.ModelSerializer):
         return str(instance)
 
 
-class IdentifierSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Identifier
-        exclude = ("id",)
+class IdentifierSerializer(serializers.Serializer):
+    """identifiers of any crisalid model (ResearcherIdentifier, DocumentIdentifier ...)"""
+
+    harvester = serializers.CharField(read_only=True)
+    value = serializers.CharField(read_only=True)
 
 
 class ResearcherDomainsSerializer(serializers.ModelSerializer):
@@ -285,3 +289,112 @@ class TeachingLightSerializer(TeachingSerializer):
             "researcher",
             "domains",
         )
+
+
+class StructurePeopleGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeopleGroup
+        fields = ("id", "slug", "name")
+
+
+class StructureLightSerializer(serializers.ModelSerializer):
+    people_group = StructurePeopleGroupSerializer(read_only=True)
+
+    class Meta:
+        model = Structure
+        fields = (
+            "id",
+            "name",
+            "acronym",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+        )
+
+
+class StructureSupervisionSerializer(serializers.ModelSerializer):
+    """supervising/supervised structure, with the supervision position (annotated in structure modules)"""
+
+    people_group = StructurePeopleGroupSerializer(read_only=True)
+    position = serializers.CharField(read_only=True, allow_null=True)
+
+    class Meta:
+        model = Structure
+        fields = (
+            "id",
+            "name",
+            "acronym",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+            "position",
+        )
+
+
+@auto_translated
+class StructureSerializer(ModulesSerializers, serializers.ModelSerializer):
+    people_group = StructurePeopleGroupSerializer(read_only=True)
+
+    class Meta:
+        model = Structure
+        fields = (
+            "id",
+            "name",
+            "acronym",
+            "description",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+            "modules",
+        )
+
+
+class ResearchDomainSerializer(serializers.ModelSerializer):
+    documents_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Tag
+        fields = (
+            "id",
+            "type",
+            "secondary_type",
+            "title",
+            "description",
+            "documents_count",
+        )
+
+
+class CollaborationSerializer(serializers.ModelSerializer):
+    identifiers = IdentifierSerializer(many=True, read_only=True)
+    documents_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = AuthorityOrganization
+        fields = ("id", "name", "type", "identifiers", "documents_count")
+
+
+class StructureResearcherSerializer(serializers.ModelSerializer):
+    """researcher of a structure, with its position (annotated in structure modules)"""
+
+    user = ProjectUserMinimalSerializer(read_only=True)
+    position_code = serializers.CharField(read_only=True, allow_null=True)
+    position = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Researcher
+        fields = ("id", "display_name", "user", "position_code", "position")
+
+    def get_position(self, instance: Researcher) -> str | None:
+        code = getattr(instance, "position_code", None)
+        if not code:
+            return None
+        if code in ResearcherStructure.PositionCode:
+            return str(ResearcherStructure.PositionCode(code).label)
+        # unknown code from crisalid
+        return code

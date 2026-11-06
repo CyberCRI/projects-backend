@@ -1,19 +1,35 @@
+#import "nodes/person.graphql"
+#import "nodes/structure.graphql"
+
 query PopulateFromCrisalid($limit: Int, $offset: Int, $where: PersonWhere) {
+  peopleAggregate(where: $where) {
+    count
+  }
   people(limit: $limit, offset: $offset, where: $where) {
-    display_name
-    names {
-      first_names {
-        language
-        value
-      }
-      last_names {
-        language
-        value
+    ...PersonNode
+    membershipsConnection {
+      edges {
+        properties {
+          position_code
+          start_date
+          end_date
+        }
+        node {
+          ...StructureNode
+        }
       }
     }
-    identifiers {
-      harvester: type
-      value
+    employmentsConnection {
+      edges {
+        properties {
+          position_code
+          start_date
+          end_date
+        }
+        node {
+          ...StructureNode
+        }
+      }
     }
   }
 }

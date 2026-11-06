@@ -19,32 +19,32 @@ from .models import (
     CrisalidConfig,
     Document,
     DocumentContributor,
-    Identifier,
     Researcher,
+    ResearcherStructure,
+    Structure,
+    StructureRelation,
 )
 
 faker = Faker()
 
 
-class IdentifierFactory(factory.django.DjangoModelFactory):
-    harvester = Identifier.Harvester.EPPN
+def identifier_value(harvester: str) -> str:
+    if harvester == "eppn":
+        return faker.unique.email()
+    return faker.unique.uuid4()
 
-    class Meta:
-        model = Identifier
 
-    @factory.lazy_attribute
-    def value(self):
-        default = {
-            Identifier.Harvester.IDREF: faker.unique.uuid4(),
-            Identifier.Harvester.SCOPUS: faker.unique.uuid4(),
-            Identifier.Harvester.ORCID: faker.unique.uuid4(),
-            Identifier.Harvester.LOCAL: faker.unique.uuid4(),
-            Identifier.Harvester.EPPN: faker.unique.email(),
-            Identifier.Harvester.PMID: faker.unique.url(),
-        }
-        if self.harvester in default:
-            return default[self.harvester]
-        return faker.unique.url()
+def create_identifiers(instance):
+    """one identifier of each harvester for the instance"""
+    manager = instance.identifiers
+    manager.model.objects.bulk_create(
+        manager.model(
+            **{manager.field.name: instance},
+            harvester=harvester.value,
+            value=identifier_value(harvester.value),
+        )
+        for harvester in manager.model.Harvester
+    )
 
 
 class ResearcherFactory(factory.django.DjangoModelFactory):
@@ -59,10 +59,7 @@ class ResearcherFactory(factory.django.DjangoModelFactory):
     def identifiers(self, create, extracted, **kwargs):
         if not create:
             return
-        self.identifiers.set(
-            IdentifierFactory(harvester=harvester.value)
-            for harvester in Identifier.Harvester
-        )
+        create_identifiers(self)
 
 
 class DocumentFactory(factory.django.DjangoModelFactory):
@@ -80,10 +77,7 @@ class DocumentFactory(factory.django.DjangoModelFactory):
     def identifiers(self, create, extracted, **kwargs):
         if not create:
             return
-        self.identifiers.set(
-            IdentifierFactory(harvester=harvester.value)
-            for harvester in Identifier.Harvester
-        )
+        create_identifiers(self)
 
 
 class DocumentContributorFactory(factory.django.DjangoModelFactory):
@@ -96,7 +90,6 @@ class DocumentContributorFactory(factory.django.DjangoModelFactory):
 
 
 class JournalFactory(factory.django.DjangoModelFactory):
-    uid = faker.sentences(1)
     title = factory.Faker("company")
     acronym = [faker.sentence(1)]
 
@@ -174,6 +167,35 @@ class AwardContributorFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = AwardContributor
+
+
+class StructureFactory(factory.django.DjangoModelFactory):
+    organization = factory.LazyFunction(lambda: OrganizationFactory())
+    generic_type = Structure.GenericType.UNIT
+    name = factory.Faker("company")
+
+    class Meta:
+        model = Structure
+
+
+class StructureRelationFactory(factory.django.DjangoModelFactory):
+    structure = factory.SubFactory(StructureFactory)
+    related_structure = factory.SubFactory(
+        StructureFactory, organization=factory.SelfAttribute("..structure.organization")
+    )
+    relation_type = StructureRelation.RelationType.PART_OF
+
+    class Meta:
+        model = StructureRelation
+
+
+class ResearcherStructureFactory(factory.django.DjangoModelFactory):
+    researcher = factory.SubFactory(ResearcherFactory)
+    structure = factory.SubFactory(StructureFactory)
+    relation_type = ResearcherStructure.RelationType.MEMBERSHIP
+
+    class Meta:
+        model = ResearcherStructure
 
 
 class CrisalidConfigFactory(factory.django.DjangoModelFactory):

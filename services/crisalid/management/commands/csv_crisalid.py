@@ -4,7 +4,7 @@ import pathlib
 from django.core.management.base import BaseCommand
 
 from apps.organizations.models import Organization
-from services.crisalid.models import CrisalidConfig, Identifier, Researcher
+from services.crisalid.models import CrisalidConfig, Researcher, ResearcherIdentifier
 
 
 class Command(BaseCommand):
@@ -68,12 +68,12 @@ class Command(BaseCommand):
                 for identifier in researcher.identifiers.all()
             }
 
-            local = identifiers.get(Identifier.Harvester.LOCAL.value, "")
+            local = identifiers.get(ResearcherIdentifier.Harvester.LOCAL.value, "")
             if generate_local:
                 local = f"U_{local_idx}"
                 local_idx += 1
 
-            eppn = identifiers.get(Identifier.Harvester.EPPN.value, "")
+            eppn = identifiers.get(ResearcherIdentifier.Harvester.EPPN.value, "")
             if not eppn and researcher.user:
                 eppn = researcher.user.email
 
@@ -90,15 +90,15 @@ class Command(BaseCommand):
                     # eppn
                     eppn,
                     # idhal_s,
-                    identifiers.get(Identifier.Harvester.IDHALS.value, ""),
+                    identifiers.get(ResearcherIdentifier.Harvester.IDHALS.value, ""),
                     # idhal_i,
-                    identifiers.get(Identifier.Harvester.IDHALI.value, ""),
+                    identifiers.get(ResearcherIdentifier.Harvester.IDHALI.value, ""),
                     # orcid
-                    identifiers.get(Identifier.Harvester.ORCID.value, ""),
+                    identifiers.get(ResearcherIdentifier.Harvester.ORCID.value, ""),
                     # idref
-                    identifiers.get(Identifier.Harvester.IDREF.value, ""),
+                    identifiers.get(ResearcherIdentifier.Harvester.IDREF.value, ""),
                     # scopus_eid
-                    identifiers.get(Identifier.Harvester.SCOPUS.value, ""),
+                    identifiers.get(ResearcherIdentifier.Harvester.SCOPUS.value, ""),
                     # institution_identifier
                     "",
                     # institution_id_nomenclature

@@ -11,7 +11,7 @@ from apps.commons.mixins import (
 from apps.skills.models import Tag
 from services.crisalid.manager import CrisalidQuerySet
 from services.crisalid.models.award import Award, AwardContributor
-from services.crisalid.models.indentifier import Identifier
+from services.crisalid.models.identifier import ResearcherIdentifier
 from services.crisalid.models.patent import Patent, PatentContributor
 from services.translator.mixins import HasAutoTranslatedFields
 
@@ -57,9 +57,8 @@ class Researcher(
     """Link to a crisalid"""
 
     PRIVACY_HARVESTER = (
-        Identifier.Harvester.EPPN,
-        Identifier.Harvester.PPN,
-        Identifier.Harvester.LOCAL,
+        ResearcherIdentifier.Harvester.EPPN,
+        ResearcherIdentifier.Harvester.LOCAL,
     )
     auto_translated_fields = ["html:bio", "html:short_bio"]
 
@@ -72,10 +71,6 @@ class Researcher(
     )
     given_name = models.CharField(max_length=255, blank=True)
     family_name = models.CharField(max_length=255, blank=True)
-    identifiers = models.ManyToManyField(
-        "crisalid.Identifier", related_name="researchers"
-    )
-
     domains = models.ManyToManyField(
         Tag, through=ResearcherDomains, related_name="researchers"
     )
