@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.accounts.models import ProjectUser
 from apps.commons.fields import PrivacySettingProtectedMethodField
 from apps.commons.serializers import PrivacySerializer
+from apps.files.serializers import ImageSerializer
 from apps.modules.serializers import ModulesSerializers
 from apps.skills.serializers import TagSerializer
 from services.crisalid.models import (
@@ -24,10 +25,11 @@ from services.translator.serializers import auto_translated
 
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):
     display_name = serializers.SerializerMethodField()
+    profile_picture = ImageSerializer()
 
     class Meta:
         model = ProjectUser
-        fields = ("id", "display_name", "slug")
+        fields = ("id", "display_name", "slug", "profile_picture")
 
     def get_display_name(self, instance: ProjectUser) -> str:
         return str(instance)
