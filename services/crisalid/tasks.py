@@ -242,9 +242,9 @@ def load_apollo_data(crisalid_config_id: int, content: dict):
     cache = LiveCache()
     # same order as the initial import
     populates = (
-        ("authorityOrganizations", PopulateAuthorityOrganization(config, cache=cache)),
+        ("organizations", PopulateAuthorityOrganization(config, cache=cache)),
         ("journals", PopulateJournal(config, cache=cache)),
-        ("organizationUnits", PopulateStructure(config, cache=cache)),
+        ("structures", PopulateStructure(config, cache=cache)),
         ("people", PopulateResearcher(config, cache=cache)),
         ("documents", PopulateDocument(config, cache=cache)),
     )

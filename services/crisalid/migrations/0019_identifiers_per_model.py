@@ -53,7 +53,7 @@ def link_existing_identifiers(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('crisalid', '0017_crisalidconfig_structures_groups_root_and_more'),
+        ('crisalid', '0018_crisalidconfig_structures_groups_root_and_more'),
     ]
 
     operations = [
