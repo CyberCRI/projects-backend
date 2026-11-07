@@ -687,6 +687,28 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
             ).data
         )
 
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="structures")
+    def structures(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        awards_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).structures()
+
+        # TODO: add filters queryset
+        filterset = awards_qs
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        awards_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(awards_qs)
+
+        return self.get_paginated_response(
+            StructureLightSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
 
 @extend_schema_view(
     list=extend_schema(

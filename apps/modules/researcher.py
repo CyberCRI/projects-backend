@@ -13,6 +13,7 @@ from services.crisalid.models import (
 from services.crisalid.models.award import AwardContributor
 from services.crisalid.models.funding import Funding
 from services.crisalid.models.patent import Patent
+from services.crisalid.models.structure import ResearcherStructure
 from services.crisalid.models.teaching import Teaching
 
 
@@ -84,3 +85,11 @@ class ResearcherModules(AbstractModules):
 
     def fundings(self) -> BaseManager[Funding]:
         return self.instance.fundings.all()
+
+    def structures(self) -> BaseManager[ResearcherStructure]:
+        ResearcherStructure.objects.filter(
+            ResearcherStructure.active_query(), researcher=self.instance
+        )
+        return self.instance.structures.filter(
+            ResearcherStructure.active_query("researcherstructure__"),
+        )
