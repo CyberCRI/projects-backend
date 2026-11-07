@@ -9,6 +9,7 @@ from services.crisalid.models import (
     DocumentTypeCentralized,
     Researcher,
     ResearcherDomains,
+    structure,
 )
 from services.crisalid.models.award import AwardContributor
 from services.crisalid.models.funding import Funding
@@ -86,10 +87,7 @@ class ResearcherModules(AbstractModules):
     def fundings(self) -> BaseManager[Funding]:
         return self.instance.fundings.all()
 
-    def structures(self) -> BaseManager[ResearcherStructure]:
-        ResearcherStructure.objects.filter(
-            ResearcherStructure.active_query(), researcher=self.instance
-        )
+    def structures(self) -> BaseManager[structure]:
         return self.instance.structures.filter(
             ResearcherStructure.active_query("researcherstructure__"),
         )
