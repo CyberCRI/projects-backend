@@ -188,6 +188,7 @@ class Organization(
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     permissions_up_to_date = models.BooleanField(default=False)
+    enable_ia = models.BooleanField(default=False)
 
     class Meta:
         subscopes = (

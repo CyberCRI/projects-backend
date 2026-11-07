@@ -1,0 +1,27 @@
+fragment StructureNode on OrganizationUnit {
+  uid
+  external
+  generic_type
+  national_type
+  types
+  long_labels {
+    language
+    value
+  }
+  short_labels {
+    language
+    value
+  }
+  local_types {
+    language
+    value
+  }
+  descriptions {
+    language
+    value
+  }
+  identifiers {
+    harvester: type
+    value
+  }
+}

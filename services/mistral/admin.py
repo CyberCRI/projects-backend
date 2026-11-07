@@ -9,12 +9,14 @@ from django.utils.safestring import mark_safe
 from apps.accounts.models import ProjectUser
 from apps.projects.models import Project
 from services.crisalid.models import Document
+from services.crisalid.models.researcher import Researcher
 
 from .models import (
     DocumentEmbedding,
     Embedding,
     EmbeddingError,
     ProjectEmbedding,
+    ResearcherEmbedding,
     UserEmbedding,
 )
 
@@ -72,10 +74,19 @@ class DocumentEmbeddingAdmin(EmbeddingAdmin):
     item_admin_page = "admin:crisalid_document_change"
     search_fields = ("item__document_type", "item__title")
 
+    def display_item_link(self, item: Document) -> str:
+        return str(item)
+
+
+@admin.register(ResearcherEmbedding)
+class ResearcherEmbeddingAdmin(EmbeddingAdmin):
+    item_admin_page = "admin:crisalid_researcher_change"
+    search_fields = ("item__given_name", "item__family_name", "item__bio")
+
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request)
 
-    def display_item_link(self, item: Document) -> str:
+    def display_item_link(self, item: Researcher) -> str:
         return str(item)
 
 

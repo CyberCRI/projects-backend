@@ -2,7 +2,7 @@ from collections import Counter
 from http import HTTPMethod
 from itertools import chain
 
-from django.db.models import Count, QuerySet
+from django.db.models import Count, Prefetch, QuerySet
 from django.db.models.functions import ExtractYear
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,24 +14,59 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
+from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 
 from apps.commons.views import (
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
+    QuerySerializersMixin,
+)
+from services.crisalid.filters import (
+    AwardContributorFilter,
+    AwardFilter,
+    FundingFilter,
+    PatentContributorFilter,
+    PatentFilter,
+    TeachingFilter,
 )
 from services.crisalid.models import (
     Document,
     DocumentContributor,
     DocumentTypeCentralized,
-    Identifier,
     Researcher,
+    ResearcherIdentifier,
+    ResearcherStructure,
+    Structure,
 )
+from services.crisalid.models.award import Award
+from services.crisalid.models.funding import Funding
+from services.crisalid.models.patent import Patent
+from services.crisalid.models.teaching import Teaching
 from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
+    AwardContributorSerializer,
+    AwardSerializer,
+    AwardSerializerLight,
+    CitationSerializer,
+    CollaborationSerializer,
     DocumentAnalyticsSerializer,
     DocumentSerializer,
+    FundingLightSerializer,
+    FundingSerializer,
+    PatentSerializer,
+    PatentSerializerLight,
+    ResearchDomainSerializer,
     ResearcherSerializer,
+    StructureLightSerializer,
+    StructureResearcherSerializer,
+    StructureSerializer,
+    StructureSupervisionSerializer,
+    TeachingLightSerializer,
+    TeachingSerializer,
 )
+from services.crisalid.utils.bio import generate_bio_from_researcher
 from services.crisalid.utils.views import NestedResearcherViewMixins
 
 OPENAPI_PARAMTERS_DOCUMENTS = [
@@ -205,6 +240,19 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
             ).data
         )
 
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *ar, **kw):
+        """get all journals linked to a publications/conférence"""
+
+        document: Document = self.get_object()
+        journals_qs = document.modules_by_user(request.user).citations()
+        queryset_page = self.paginate_queryset(journals_qs)
+        data = CitationSerializer(
+            queryset_page, many=True, context=self.get_serializer_context()
+        )
+
+        return self.get_paginated_response(data.data)
+
 
 class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
     """general viewset documents"""
@@ -333,7 +381,7 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
                 name="harvester",
                 description="harvester name",
                 required=True,
-                enum=Identifier.Harvester,
+                enum=ResearcherIdentifier.Harvester,
                 examples=[
                     OpenApiExample("eppn", value="eppn"),
                     OpenApiExample("idref", value="idref"),
@@ -353,6 +401,98 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
                 ],
             ),
         ],
+    ),
+    affiliated=extend_schema(
+        description="return affiliated list of researchers.",
+        responses=ResearcherSerializer(many=True),
+    ),
+    similars=extend_schema(
+        description="return similars list of researchers.",
+        responses=ResearcherSerializer(many=True),
+    ),
+    bio_ia=extend_schema(
+        description="return description generate by ia.",
+        parameters=[
+            OpenApiParameter(
+                name="minial",
+                description="return a short description",
+                required=False,
+                type=bool,
+            )
+        ],
+        responses=str,
+    ),
+    citations=extend_schema(
+        description="return all journal citations where researcher is cited.",
+        responses=CitationSerializer(many=True),
+    ),
+    patents=extend_schema(
+        description="return patents of researcher",
+        responses=PatentSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+        ],
+    ),
+    awards=extend_schema(
+        description="return awards of researcher",
+        responses=AwardContributorSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+        ],
+    ),
+    fundings=extend_schema(
+        description="return fundings of researcher",
+        responses=FundingLightSerializer(many=True),
+    ),
+    teachings=extend_schema(
+        description="return teachings of researcher",
+        responses=TeachingLightSerializer(many=True),
     ),
 )
 class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
@@ -396,3 +536,469 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
                     final[identifier["value"]] = user
 
         return self.get_paginated_response(final)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="affiliated")
+    def affiliated(self, request, *args, **kwargs):
+        """Method to return affiliated researchers"""
+        researcher = self.get_object()
+
+        qs = researcher.modules_by_user(request.user, self.organization).affiliated()
+        data = self.get_serializer_class()(
+            self.paginate_queryset(qs), context=self.get_serializer_context(), many=True
+        ).data
+
+        return self.get_paginated_response(data)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="similars")
+    def similars(self, request, *args, **kwargs):
+        """Method to return similars researchers"""
+        researcher = self.get_object()
+
+        qs = researcher.modules_by_user(request.user, self.organization).similars()
+        data = self.get_serializer_class()(
+            self.paginate_queryset(qs), context=self.get_serializer_context(), many=True
+        ).data
+
+        return self.get_paginated_response(data)
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="bio-ia")
+    def bio_ia(self, request, *args, **kwargs):
+        """Method to return new generate bio ia from researcher"""
+        researcher = self.get_object()
+        bio = generate_bio_from_researcher(
+            researcher,
+            minimal=request.query_params.get("minial", "").lower() == "true",
+        )
+
+        return Response(
+            data=bio,
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        citations_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).citations()
+
+        paginated_qs = self.paginate_queryset(citations_qs)
+
+        return self.get_paginated_response(
+            CitationSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="patents")
+    def patents(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        patents_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).patents()
+
+        filterset = PatentContributorFilter(
+            data=request.query_params,
+            queryset=patents_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        patents_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(patents_qs)
+
+        return self.get_paginated_response(
+            PatentSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="awards")
+    def awards(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        awards_qs = researcher.modules_by_user(request.user, self.organization).awards()
+
+        filterset = AwardContributorFilter(
+            data=request.query_params,
+            queryset=awards_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        awards_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(awards_qs)
+
+        return self.get_paginated_response(
+            AwardContributorSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="fundings")
+    def fundings(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        awards_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).fundings()
+
+        filterset = FundingFilter(
+            data=request.query_params,
+            queryset=awards_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        awards_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(awards_qs)
+
+        return self.get_paginated_response(
+            FundingLightSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="teachings")
+    def teachings(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        awards_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).teachings()
+
+        filterset = TeachingFilter(
+            data=request.query_params,
+            queryset=awards_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        awards_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(awards_qs)
+
+        return self.get_paginated_response(
+            TeachingLightSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="structures")
+    def structures(self, request, *args, **kwargs):
+        researcher = self.get_object()
+        awards_qs = researcher.modules_by_user(
+            request.user, self.organization
+        ).structures()
+
+        # TODO: add filters queryset
+        filterset = awards_qs
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        awards_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
+
+        paginated_qs = self.paginate_queryset(awards_qs)
+
+        return self.get_paginated_response(
+            StructureLightSerializer(
+                paginated_qs, many=True, context=self.get_serializer_context()
+            ).data
+        )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        description="get list of awards",
+        responses=AwardSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from awards",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="serializers",
+                description="change serializer",
+                required=False,
+                type=str,
+                enum=("light",),
+            ),
+        ],
+    )
+)
+class AwardViewSet(
+    NestedOrganizationViewMixins, QuerySerializersMixin, viewsets.ReadOnlyModelViewSet
+):
+    serializer_class = AwardSerializer
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    filterset_class = AwardFilter
+    query_serializers = {"light": AwardSerializerLight}
+
+    def get_queryset(self):
+        researcher_qs = self.request.user.get_user_related_queryset(
+            Researcher.objects.filter(
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
+            )
+        )
+
+        return (
+            Award.objects.filter(researchers__in=researcher_qs)
+            .prefetch_related(Prefetch("researchers", queryset=researcher_qs))
+            .distinct()
+        )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        description="get list of patents",
+        responses=PatentSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="search name of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="description",
+                description="search description of patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_after",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="date_before",
+                description="date from patent",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="serializers",
+                description="change serializer",
+                required=False,
+                type=str,
+                enum=("light",),
+            ),
+        ],
+    )
+)
+class PatentViewSet(
+    NestedOrganizationViewMixins, QuerySerializersMixin, viewsets.ReadOnlyModelViewSet
+):
+    serializer_class = PatentSerializer
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    filterset_class = PatentFilter
+    query_serializers = {"light": PatentSerializerLight}
+    ordering_fields = ("date",)
+
+    def get_queryset(self):
+        researcher_qs = self.request.user.get_user_related_queryset(
+            Researcher.objects.filter(
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
+            )
+        )
+
+        return (
+            Patent.objects.filter(researchers__in=researcher_qs)
+            .prefetch_related(Prefetch("researchers", queryset=researcher_qs))
+            .distinct()
+        )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        description="get list of fundings",
+        responses=FundingSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="serializers",
+                description="change serializer",
+                required=False,
+                type=str,
+                enum=("light",),
+            ),
+        ],
+    )
+)
+class FundingViewSet(
+    NestedOrganizationViewMixins, QuerySerializersMixin, viewsets.ReadOnlyModelViewSet
+):
+    serializer_class = FundingSerializer
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    filterset_class = FundingFilter
+    query_serializers = {"light": FundingLightSerializer}
+    ordering_fields = ("prices",)
+
+    def get_queryset(self):
+        researcher_qs = self.request.user.get_user_related_queryset(
+            Researcher.objects.filter(
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
+            )
+        )
+
+        return (
+            Funding.objects.filter(researchers__in=researcher_qs)
+            .prefetch_related(Prefetch("researchers", queryset=researcher_qs))
+            .distinct()
+        )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        description="get list of teachings",
+        responses=FundingSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="serializers",
+                description="change serializer",
+                required=False,
+                type=str,
+                enum=("light",),
+            ),
+        ],
+    )
+)
+class TeachingViewSet(
+    NestedOrganizationViewMixins, QuerySerializersMixin, viewsets.ReadOnlyModelViewSet
+):
+    serializer_class = TeachingSerializer
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    filterset_class = TeachingFilter
+    query_serializers = {"light": TeachingLightSerializer}
+
+    def get_queryset(self):
+        researcher_qs = self.request.user.get_user_related_queryset(
+            Researcher.objects.filter(
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
+            )
+        )
+
+        return Teaching.objects.filter(researcher__in=researcher_qs).distinct()
+
+
+class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
+    """crisalid structures (laboratories, teams ...) of the organization"""
+
+    serializer_class = StructureSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ("id", "people_group", "generic_type")
+
+    def get_queryset(self) -> QuerySet[Structure]:
+        return self.request.user.get_people_group_related_queryset(
+            Structure.objects.filter(organization=self.organization).select_related(
+                "people_group"
+            )
+        )
+
+    def _paginated_module(
+        self, module: str, serializer_class: type[BaseSerializer], **kwargs
+    ) -> Response:
+        structure = self.get_object()
+        qs = getattr(
+            structure.modules_by_user(self.request.user, self.organization), module
+        )(**kwargs)
+        return self.get_paginated_response(
+            serializer_class(
+                self.paginate_queryset(qs),
+                many=True,
+                context=self.get_serializer_context(),
+            ).data
+        )
+
+    @extend_schema(responses=StructureLightSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="children")
+    def children(self, request, *args, **kwargs):
+        """Method to return the sub-structures of the structure"""
+        return self._paginated_module("sub_structures", StructureLightSerializer)
+
+    @extend_schema(responses=StructureLightSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="parents")
+    def parents(self, request, *args, **kwargs):
+        """Method to return the parent structures of the structure"""
+        return self._paginated_module("parent_structures", StructureLightSerializer)
+
+    @extend_schema(responses=StructureSupervisionSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="supervising-structures")
+    def supervising_structures(self, request, *args, **kwargs):
+        """Method to return the structures supervising the structure"""
+        return self._paginated_module(
+            "supervising_structures", StructureSupervisionSerializer
+        )
+
+    @extend_schema(responses=StructureSupervisionSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="supervised-structures")
+    def supervised_structures(self, request, *args, **kwargs):
+        """Method to return the structures supervised by the structure"""
+        return self._paginated_module(
+            "supervised_structures", StructureSupervisionSerializer
+        )
+
+    @extend_schema(
+        responses=StructureResearcherSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="relation_type",
+                description="type of the relation to the structure",
+                required=False,
+                enum=ResearcherStructure.RelationType,
+            )
+        ],
+    )
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="researchers")
+    def researchers(self, request, *args, **kwargs):
+        """Method to return researchers of the structure (and sub-structures) with their position"""
+        return self._paginated_module(
+            "researchers",
+            StructureResearcherSerializer,
+            relation_type=request.query_params.get("relation_type"),
+        )
+
+    @extend_schema(responses=ResearchDomainSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="research-domains")
+    def research_domains(self, request, *args, **kwargs):
+        """Method to return research domains of the structure documents"""
+        return self._paginated_module("research_domains", ResearchDomainSerializer)
+
+    @extend_schema(responses=CollaborationSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="collaborations")
+    def collaborations(self, request, *args, **kwargs):
+        """Method to return organizations affiliated to the structure documents"""
+        return self._paginated_module("collaborations", CollaborationSerializer)
+
+    @extend_schema(responses=CitationSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
+    def citations(self, request, *args, **kwargs):
+        """Method to return journals where the structure documents are published"""
+        return self._paginated_module("citations", CitationSerializer)

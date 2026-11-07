@@ -1,0 +1,10 @@
+#import "nodes/journal.graphql"
+
+query PopulateFromCrisalid($limit: Int, $offset: Int, $where: JournalWhere) {
+  journalsAggregate(where: $where) {
+    count
+  }
+  journals(limit: $limit, offset: $offset, where: $where) {
+    ...JournalNode
+  }
+}
