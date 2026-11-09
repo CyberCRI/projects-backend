@@ -603,7 +603,6 @@ class PeopleGroupViewSet(
                 | HasBasePermission(codename, "accounts")
                 | HasOrganizationPermission(codename)
                 | HasPeopleGroupPermission(codename),
-                IsNotCrisalidStructure,
             ]
         return super().get_permissions()
 
@@ -826,7 +825,6 @@ class PeopleGroupViewSet(
             HasBasePermission("change_peoplegroup", "accounts")
             | HasOrganizationPermission("change_peoplegroup")
             | HasPeopleGroupPermission("change_peoplegroup"),
-            IsNotCrisalidStructure,
         ],
     )
     @transaction.atomic
@@ -853,7 +851,6 @@ class PeopleGroupViewSet(
             HasBasePermission("change_peoplegroup", "accounts")
             | HasOrganizationPermission("change_peoplegroup")
             | HasPeopleGroupPermission("change_peoplegroup"),
-            IsNotCrisalidStructure,
         ],
     )
     def remove_featured_project(self, request, *args, **kwargs):

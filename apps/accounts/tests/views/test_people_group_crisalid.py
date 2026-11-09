@@ -7,7 +7,6 @@ from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
-from apps.projects.factories import ProjectFactory
 from services.crisalid.factories import StructureFactory
 from services.crisalid.utils.structures import sync_structures
 
@@ -27,45 +26,6 @@ class CrisalidPeopleGroupTestCase(JwtAPITestCase):
 
 
 class ProtectedCrisalidPeopleGroupTestCase(CrisalidPeopleGroupTestCase):
-    @parameterized.expand(
-        [
-            (TestRoles.SUPERADMIN, status.HTTP_403_FORBIDDEN),
-            (TestRoles.ORG_ADMIN, status.HTTP_403_FORBIDDEN),
-            (TestRoles.GROUP_MANAGER, status.HTTP_403_FORBIDDEN),
-        ]
-    )
-    def test_update_crisalid_people_group(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.people_group])
-        self.client.force_authenticate(user)
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-detail",
-                args=(self.organization.code, self.people_group.pk),
-            ),
-            {"description": faker.text()},
-        )
-        self.assertEqual(response.status_code, expected_code)
-        if expected_code == status.HTTP_403_FORBIDDEN:
-            self.assertApiPermissionError(response, "This group is managed by Crisalid")
-
-    @parameterized.expand(
-        [
-            (TestRoles.SUPERADMIN, status.HTTP_403_FORBIDDEN),
-            (TestRoles.ORG_ADMIN, status.HTTP_403_FORBIDDEN),
-            (TestRoles.GROUP_MANAGER, status.HTTP_403_FORBIDDEN),
-        ]
-    )
-    def test_delete_crisalid_people_group(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.people_group])
-        self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                "PeopleGroup-detail",
-                args=(self.organization.code, self.people_group.pk),
-            )
-        )
-        self.assertEqual(response.status_code, expected_code)
-
     @parameterized.expand(
         [
             (TestRoles.SUPERADMIN, status.HTTP_403_FORBIDDEN),
@@ -104,26 +64,6 @@ class ProtectedCrisalidPeopleGroupTestCase(CrisalidPeopleGroupTestCase):
                 args=(self.organization.code, self.people_group.pk),
             ),
             {"users": [member.id]},
-        )
-        self.assertEqual(response.status_code, expected_code)
-
-    @parameterized.expand(
-        [
-            (TestRoles.SUPERADMIN, status.HTTP_403_FORBIDDEN),
-            (TestRoles.ORG_ADMIN, status.HTTP_403_FORBIDDEN),
-            (TestRoles.GROUP_MANAGER, status.HTTP_403_FORBIDDEN),
-        ]
-    )
-    def test_add_featured_project_crisalid_people_group(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.people_group])
-        self.client.force_authenticate(user)
-        project = ProjectFactory(organizations=[self.organization])
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-featured-project",
-                args=(self.organization.code, self.people_group.pk),
-            ),
-            {"featured_projects": [project.pk]},
         )
         self.assertEqual(response.status_code, expected_code)
 
