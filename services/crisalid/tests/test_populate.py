@@ -725,7 +725,8 @@ class TestPopulateStructure(test.TestCase):
         self.assertEqual(member_of.position, "main_supervision")
 
         # each structure has a group, all groups in root group (no hierarchy)
-        self.assertEqual(group_of("local-LAB").name, "long local-LAB")
+        self.assertEqual(group_of("local-LAB").name, "local-LAB")
+        self.assertEqual(group_of("local-LAB").short_description, "long local-LAB")
         for uid in ("local-LAB", "local-FAC", "local-INSERM"):
             self.assertEqual(group_of(uid).parent, self.root)
         self.assertEqual([local_uid(s) for s in lab.parents()], ["local-FAC"])
@@ -760,7 +761,8 @@ class TestPopulateStructure(test.TestCase):
         self.assertEqual(structure.name, "new name")
         self.assertEqual(structure.description, "new description")
         # group is only initialized from the structure
-        self.assertEqual(group_of("local-LAB").name, "long local-LAB")
+        self.assertEqual(group_of("local-LAB").name, "local-LAB")
+        self.assertEqual(group_of("local-LAB").short_description, "long local-LAB")
         self.assertFalse(StructureRelation.objects.exists())
 
     def test_structures_groups_root(self):

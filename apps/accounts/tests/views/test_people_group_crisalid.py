@@ -132,7 +132,7 @@ class CrisalidUpdatePeopleGroupTestCase(CrisalidPeopleGroupTestCase):
             )
             # name, description and parent are managed by crisalid
             self.people_group.refresh_from_db()
-            self.assertEqual(self.people_group.name, self.structure.name)
+            self.assertEqual(self.people_group.name, self.structure.acronym)
             self.assertEqual(self.people_group.description, self.structure.description)
             self.assertEqual(self.people_group.parent, self.root)
 

@@ -176,7 +176,12 @@ class PeopleGroupDocument(TranslatedDocument):
         return self.prepare_auto_translated_field(instance, "name")
 
     def prepare_content(self, instance: PeopleGroup) -> str:
-        return self.prepare_auto_translated_field(instance, "description", html=True)
+        return "\n".join(
+            [
+                self.prepare_auto_translated_field(instance, "short_description"),
+                self.prepare_auto_translated_field(instance, "description", html=True),
+            ]
+        )
 
     def prepare_members(self, instance: PeopleGroup) -> str:
         return " ".join(

@@ -30,7 +30,8 @@ def ensure_people_group(structure: Structure) -> PeopleGroup:
     if people_group is None:
         with transaction.atomic():
             people_group = PeopleGroup.objects.create(
-                name=structure.name,
+                name=structure.acronym or structure.name,
+                short_description=structure.name if structure.acronym else "",
                 description=structure.description,
                 organization=structure.organization,
                 parent=structures_root(structure.organization),

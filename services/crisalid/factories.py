@@ -173,6 +173,7 @@ class StructureFactory(factory.django.DjangoModelFactory):
     organization = factory.LazyFunction(lambda: OrganizationFactory())
     generic_type = Structure.GenericType.UNIT
     name = factory.Faker("company")
+    acronym = factory.Sequence(lambda n: f"LAB{n}")
 
     class Meta:
         model = Structure
