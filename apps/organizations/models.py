@@ -13,6 +13,7 @@ from apps.commons.mixins import (
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
+    HasRelatedModules,
     OrganizationRelated,
     TimestampedModelMixin,
 )
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
 
 
 class Organization(
+    HasRelatedModules,
     HasAutoTranslatedFields,
     HasPermissionsSetup,
     OrganizationRelated,

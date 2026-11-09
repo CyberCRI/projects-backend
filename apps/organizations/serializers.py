@@ -22,6 +22,7 @@ from apps.commons.serializers import (
 )
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
+from apps.modules.serializers import ModulesSerializers
 from apps.projects.models import Project, ProjectTab
 from apps.skills.models import TagClassification
 from apps.skills.serializers import (
@@ -207,6 +208,7 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 @auto_translated
 class OrganizationSerializer(
+    ModulesSerializers,
     StringsImagesSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
@@ -306,6 +308,7 @@ class OrganizationSerializer(
             "logo_image_id",
             "team",
         ]
+        modules_keys = ()
 
     def validate_parent_code(self, value: Organization) -> Organization:
         if not self.instance:

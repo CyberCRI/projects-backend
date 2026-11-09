@@ -10,6 +10,7 @@ from apps.commons.mixins import OrganizationRelated
 from apps.feedbacks.models import Comment, Follow, Review
 from apps.files.models import AttachmentFile, AttachmentLink
 from apps.files.serializers import ImageSerializer
+from apps.modules.serializers import ModulesSerializers
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import (
@@ -26,7 +27,7 @@ from services.crisalid.models import Document, DocumentTypeCentralized
 from services.translator.serializers import external_auto_translated
 
 
-class StatsOrganizationSerializer(serializers.ModelSerializer):
+class StatsOrganizationSerializer(ModulesSerializers, serializers.ModelSerializer):
     logo_image = ImageSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     project_count = serializers.IntegerField()
@@ -46,6 +47,7 @@ class StatsOrganizationSerializer(serializers.ModelSerializer):
             "tags",
             "project_count",
         ]
+        modules_keys = ()
 
 
 class ProjectBySDG(serializers.Serializer):
@@ -203,7 +205,7 @@ class OrganizationRelatedLastDateField(
         return super().to_representation(date) if date else None
 
 
-class GlobalAnalyticsSerializer(serializers.ModelSerializer):
+class GlobalAnalyticsSerializer(ModulesSerializers, serializers.ModelSerializer):
     url = serializers.CharField(source="website_url", read_only=True)
     last_update = OrganizationRelatedLastDateField(
         "updated_at", Project, News, PeopleGroup, Event, Instruction
@@ -294,3 +296,4 @@ class GlobalAnalyticsSerializer(serializers.ModelSerializer):
             "project_files",
             "project_links",
         ]
+        modules_keys = ()
