@@ -100,7 +100,7 @@ class ResearcherModules(AbstractModules):
                 .select_related("strcture")
             )
             .annotate(
-                priority_position_code=Case(priority_position_code, default=9999999)
+                priority_position_code=Case(*priority_position_code, default=9999999)
             )
             .order_by("priority_position_code")
         )
