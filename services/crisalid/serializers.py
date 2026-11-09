@@ -338,6 +338,8 @@ class StructureLightSerializer(StructureSerializer):
 class StructureSupervisionSerializer(StructureSerializer):
     """supervising/supervised structure, with the supervision position (annotated in structure modules)"""
 
+    position = serializers.CharField(read_only=True, allow_null=True)
+
     class Meta(StructureSerializer.Meta):
         fields = (
             "id",
