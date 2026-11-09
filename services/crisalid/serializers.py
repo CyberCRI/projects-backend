@@ -297,44 +297,6 @@ class StructurePeopleGroupSerializer(serializers.ModelSerializer):
         fields = ("id", "slug", "name")
 
 
-class StructureLightSerializer(serializers.ModelSerializer):
-    people_group = StructurePeopleGroupSerializer(read_only=True)
-
-    class Meta:
-        model = Structure
-        fields = (
-            "id",
-            "name",
-            "acronym",
-            "generic_type",
-            "national_type",
-            "main_mission",
-            "external",
-            "people_group",
-        )
-
-
-class StructureSupervisionSerializer(serializers.ModelSerializer):
-    """supervising/supervised structure, with the supervision position (annotated in structure modules)"""
-
-    people_group = StructurePeopleGroupSerializer(read_only=True)
-    position = serializers.CharField(read_only=True, allow_null=True)
-
-    class Meta:
-        model = Structure
-        fields = (
-            "id",
-            "name",
-            "acronym",
-            "generic_type",
-            "national_type",
-            "main_mission",
-            "external",
-            "people_group",
-            "position",
-        )
-
-
 @auto_translated
 class StructureSerializer(ModulesSerializers, serializers.ModelSerializer):
     people_group = StructurePeopleGroupSerializer(read_only=True)
@@ -352,6 +314,41 @@ class StructureSerializer(ModulesSerializers, serializers.ModelSerializer):
             "external",
             "people_group",
             "modules",
+        )
+
+
+@auto_translated
+class StructureLightSerializer(StructureSerializer):
+    class Meta(StructureSerializer.Meta):
+        fields = (
+            "id",
+            "name",
+            "acronym",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+            "modules",
+        )
+        modules_keys = ()
+
+
+@auto_translated
+class StructureSupervisionSerializer(StructureSerializer):
+    """supervising/supervised structure, with the supervision position (annotated in structure modules)"""
+
+    class Meta(StructureSerializer.Meta):
+        fields = (
+            "id",
+            "name",
+            "acronym",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
+            "people_group",
+            "position",
         )
 
 
@@ -414,6 +411,7 @@ class ResearcherStructureSerializer(serializers.ModelSerializer):
             "id",
             "structure",
             "relation_type",
+            "position",
             "position_code",
         )
 
