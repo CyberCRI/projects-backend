@@ -59,6 +59,7 @@ from services.crisalid.serializers import (
     PatentSerializerLight,
     ResearchDomainSerializer,
     ResearcherSerializer,
+    ResearcherStructureSerializer,
     StructureLightSerializer,
     StructureResearcherSerializer,
     StructureSerializer,
@@ -704,7 +705,7 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         paginated_qs = self.paginate_queryset(awards_qs)
 
         return self.get_paginated_response(
-            StructureLightSerializer(
+            ResearcherStructureSerializer(
                 paginated_qs, many=True, context=self.get_serializer_context()
             ).data
         )

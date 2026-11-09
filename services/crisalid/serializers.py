@@ -398,3 +398,30 @@ class StructureResearcherSerializer(serializers.ModelSerializer):
             return str(ResearcherStructure.PositionCode(code).label)
         # unknown code from crisalid
         return code
+
+
+class ResearcherStructureSerializer(serializers.ModelSerializer):
+    """researcher of a structure, with its position (annotated in structure modules)"""
+
+    position_code = serializers.CharField(read_only=True, allow_null=True)
+    position = serializers.SerializerMethodField()
+
+    structure = StructureLightSerializer()
+
+    class Meta:
+        model = ResearcherStructure
+        fields = (
+            "id",
+            "structure",
+            "relation_type",
+            "position_code",
+        )
+
+    def get_position(self, instance: Researcher) -> str | None:
+        code = getattr(instance, "position_code", None)
+        if not code:
+            return None
+        if code in ResearcherStructure.PositionCode:
+            return str(ResearcherStructure.PositionCode(code).label)
+        # unknown code from crisalid
+        return code

@@ -1,4 +1,4 @@
-from django.db.models import Count, Q
+from django.db.models import Case, Count, Q, When
 from django.db.models.manager import BaseManager
 
 from apps.modules.base import AbstractModules, ignore_method, register_module
@@ -9,7 +9,6 @@ from services.crisalid.models import (
     DocumentTypeCentralized,
     Researcher,
     ResearcherDomains,
-    structure,
 )
 from services.crisalid.models.award import AwardContributor
 from services.crisalid.models.funding import Funding
@@ -87,7 +86,21 @@ class ResearcherModules(AbstractModules):
     def fundings(self) -> BaseManager[Funding]:
         return self.instance.fundings.all()
 
-    def structures(self) -> BaseManager[structure]:
-        return self.instance.structures.filter(
-            ResearcherStructure.active_query("researcherstructure__"),
+    def structures(self) -> BaseManager[ResearcherStructure]:
+        priority_position_code = []
+        for idx, (_, value) in enumerate(ResearcherStructure.PositionCode.choices):
+            priority_position_code.append(When(position_code=value, then=idx))
+
+        return (
+            (
+                ResearcherStructure.objects.filter(researcher=self.instance)
+                .filter(
+                    ResearcherStructure.active_query(),
+                )
+                .select_related("strcture")
+            )
+            .annotate(
+                priority_position_code=Case(priority_position_code, default=9999999)
+            )
+            .order_by("priority_position_code")
         )
