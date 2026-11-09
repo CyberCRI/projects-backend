@@ -91,14 +91,15 @@ class ResearcherModules(AbstractModules):
         for idx, (_, value) in enumerate(ResearcherStructure.PositionCode.choices):
             priority_position_code.append(When(position_code=value, then=idx))
 
+        qs = ResearcherStructure.objects.filter(researcher=self.instance)
+        if self.organization:
+            qs = qs.filter(organization=self.organization)
+
         return (
-            (
-                ResearcherStructure.objects.filter(researcher=self.instance)
-                .filter(
-                    ResearcherStructure.active_query(),
-                )
-                .select_related("strcture")
+            qs.filter(
+                ResearcherStructure.active_query(),
             )
+            .select_related("strcture")
             .annotate(
                 priority_position_code=Case(*priority_position_code, default=9999999)
             )
