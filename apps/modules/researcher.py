@@ -93,7 +93,7 @@ class ResearcherModules(AbstractModules):
 
         qs = ResearcherStructure.objects.filter(researcher=self.instance)
         if self.organization:
-            qs = qs.filter(organization=self.organization)
+            qs = qs.filter(structure__organization=self.organization)
 
         return (
             qs.filter(
