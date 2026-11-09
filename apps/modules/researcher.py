@@ -99,7 +99,7 @@ class ResearcherModules(AbstractModules):
             qs.filter(
                 ResearcherStructure.active_query(),
             )
-            .select_related("strcture")
+            .select_related("structure")
             .annotate(
                 priority_position_code=Case(*priority_position_code, default=9999999)
             )
