@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 17:49+0100\n"
+"POT-Creation-Date: 2026-11-10 10:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,19 +43,15 @@ msgid "You cannot add projects that you do not have access to"
 msgstr "Vous ne pouvez pas ajouter des projets auxquels vous n'avez pas accès"
 
 #: apps/accounts/exceptions.py:54
-msgid "This group is managed by Crisalid"
-msgstr "Ce groupe est géré par Crisalid"
-
-#: apps/accounts/exceptions.py:60
 msgid "You do not have the permission to assign this role"
 msgstr "Vous n'avez pas la permission d'assigner ce rôle"
 
-#: apps/accounts/exceptions.py:65
+#: apps/accounts/exceptions.py:59
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
 msgstr "Vous n'avez pas la permission d'assigner ce rôle : {role}"
 
-#: apps/accounts/exceptions.py:80
+#: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -63,59 +59,55 @@ msgstr ""
 "Le paramètre email_type est manquant. Les choix sont : admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/exceptions.py:87
+#: apps/accounts/exceptions.py:81
 msgid "Permission not found"
 msgstr "La permission n'a pas été trouvée"
 
-#: apps/accounts/exceptions.py:93
+#: apps/accounts/exceptions.py:87
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Une erreur est survenue lors de la synchronisation avec Keycloak"
 
-#: apps/accounts/exceptions.py:98
+#: apps/accounts/exceptions.py:92
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr ""
 "Une erreur est survenue lors de la synchronisation avec Keycloak : {message}"
 
-#: apps/accounts/exceptions.py:110
+#: apps/accounts/exceptions.py:104
 msgid "An error occurred while syncing with Google"
 msgstr "Une erreur est survenue lors de la synchronisation avec Google"
 
-#: apps/accounts/exceptions.py:115
+#: apps/accounts/exceptions.py:109
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
 "Une erreur est survenue lors de la synchronisation avec Google : {message}"
 
-#: apps/accounts/exceptions.py:130
+#: apps/accounts/exceptions.py:124
 msgid "The organization of a group cannot be changed"
 msgstr "L'organisation d'un groupe ne peut pas être modifiée"
 
-#: apps/accounts/exceptions.py:136
+#: apps/accounts/exceptions.py:130
 msgid "The root group cannot have a parent group"
 msgstr "Le groupe racine ne peut pas avoir de groupe parent"
 
-#: apps/accounts/exceptions.py:142
+#: apps/accounts/exceptions.py:136
 msgid "A non-root group must have a parent group"
 msgstr "Un groupe doit avoir un groupe parent"
 
-#: apps/accounts/exceptions.py:148
+#: apps/accounts/exceptions.py:142
 msgid "The parent group must belong to the same organization"
 msgstr "Le groupe parent doit appartenir à la même organisation"
 
-#: apps/accounts/exceptions.py:154
-msgid "This group is not linked to a Crisalid structure"
-msgstr "Ce groupe n'est pas lié à une structure Crisalid"
-
-#: apps/accounts/exceptions.py:160
+#: apps/accounts/exceptions.py:148
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Vous essayez de créer une boucle dans la hiérarchie des groupes"
 
-#: apps/accounts/exceptions.py:166
+#: apps/accounts/exceptions.py:154
 msgid "You cannot assign this role to a user"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 
-#: apps/accounts/exceptions.py:171
+#: apps/accounts/exceptions.py:159
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
@@ -4762,3 +4754,9 @@ msgstr "Droit d'auteur"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Tous droits réservés."
+
+#~ msgid "This group is managed by Crisalid"
+#~ msgstr "Ce groupe est géré par Crisalid"
+
+#~ msgid "This group is not linked to a Crisalid structure"
+#~ msgstr "Ce groupe n'est pas lié à une structure Crisalid"

@@ -34,7 +34,6 @@ from services.crisalid.serializers import (
 from services.translator.serializers import auto_translated
 
 from .exceptions import (
-    CrisalidStructureGroupError,
     FeaturedProjectPermissionDeniedError,
     GroupHierarchyLoopError,
     GroupOrganizationChangeError,
@@ -235,9 +234,6 @@ class UserSerializer(
             isinstance(instance, Project) and group.people_groups.exists()
         ):
             raise UserRoleAssignmentError(group.name)
-        # members of groups linked to crisalid structures are managed by crisalid
-        if isinstance(instance, PeopleGroup) and hasattr(instance, "structure"):
-            raise CrisalidStructureGroupError
         content_type = ContentType.objects.get_for_model(instance)
         if not any(
             [

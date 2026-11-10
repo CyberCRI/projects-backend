@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 17:49+0100\n"
+"POT-Creation-Date: 2026-11-10 10:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,19 +43,15 @@ msgid "You cannot add projects that you do not have access to"
 msgstr "Je kunt geen projecten toevoegen waartoe je geen toegang hebt"
 
 #: apps/accounts/exceptions.py:54
-msgid "This group is managed by Crisalid"
-msgstr "Deze groep wordt beheerd door Crisalid"
-
-#: apps/accounts/exceptions.py:60
 msgid "You do not have the permission to assign this role"
 msgstr "Je hebt geen toestemming om deze rol toe te wijzen"
 
-#: apps/accounts/exceptions.py:65
+#: apps/accounts/exceptions.py:59
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
 msgstr "Je hebt geen toestemming om deze rol toe te wijzen: {role}"
 
-#: apps/accounts/exceptions.py:80
+#: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -63,59 +59,55 @@ msgstr ""
 "De zoekparameter 'email_type' ontbreekt. Keuzes zijn: admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/exceptions.py:87
+#: apps/accounts/exceptions.py:81
 msgid "Permission not found"
 msgstr "Toestemming niet gevonden"
 
-#: apps/accounts/exceptions.py:93
+#: apps/accounts/exceptions.py:87
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Er is een fout opgetreden tijdens het synchroniseren met Keycloak"
 
-#: apps/accounts/exceptions.py:98
+#: apps/accounts/exceptions.py:92
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr ""
 "Er is een fout opgetreden tijdens het synchroniseren met Keycloak: {message}"
 
-#: apps/accounts/exceptions.py:110
+#: apps/accounts/exceptions.py:104
 msgid "An error occurred while syncing with Google"
 msgstr "Er is een fout opgetreden tijdens het synchroniseren met Google"
 
-#: apps/accounts/exceptions.py:115
+#: apps/accounts/exceptions.py:109
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
 "Er is een fout opgetreden tijdens het synchroniseren met Google: {message}"
 
-#: apps/accounts/exceptions.py:130
+#: apps/accounts/exceptions.py:124
 msgid "The organization of a group cannot be changed"
 msgstr "De organisatie van een groep kan niet worden gewijzigd"
 
-#: apps/accounts/exceptions.py:136
+#: apps/accounts/exceptions.py:130
 msgid "The root group cannot have a parent group"
 msgstr "De hoofdgroep kan geen oudergroep hebben"
 
-#: apps/accounts/exceptions.py:142
+#: apps/accounts/exceptions.py:136
 msgid "A non-root group must have a parent group"
 msgstr "Een niet-hoofdgroep moet een oudergroep hebben"
 
-#: apps/accounts/exceptions.py:148
+#: apps/accounts/exceptions.py:142
 msgid "The parent group must belong to the same organization"
 msgstr "De oudergroep moet tot dezelfde organisatie behoren"
 
-#: apps/accounts/exceptions.py:154
-msgid "This group is not linked to a Crisalid structure"
-msgstr "Deze groep is niet gekoppeld aan een Crisalid-structuur"
-
-#: apps/accounts/exceptions.py:160
+#: apps/accounts/exceptions.py:148
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Je probeert een lus te creëren in de hiërarchie van de groep"
 
-#: apps/accounts/exceptions.py:166
+#: apps/accounts/exceptions.py:154
 msgid "You cannot assign this role to a user"
 msgstr "Je kunt deze rol niet toewijzen aan een gebruiker"
 
-#: apps/accounts/exceptions.py:171
+#: apps/accounts/exceptions.py:159
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Je kunt deze rol niet toewijzen aan een gebruiker: {role}"
@@ -4769,3 +4761,9 @@ msgstr "Auteursrecht"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Alle rechten voorbehouden."
+
+#~ msgid "This group is managed by Crisalid"
+#~ msgstr "Deze groep wordt beheerd door Crisalid"
+
+#~ msgid "This group is not linked to a Crisalid structure"
+#~ msgstr "Deze groep is niet gekoppeld aan een Crisalid-structuur"

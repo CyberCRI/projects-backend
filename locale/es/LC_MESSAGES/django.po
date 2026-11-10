@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 17:49+0100\n"
+"POT-Creation-Date: 2026-11-10 10:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,19 +43,15 @@ msgid "You cannot add projects that you do not have access to"
 msgstr "No puedes añadir proyectos a los que no tienes acceso"
 
 #: apps/accounts/exceptions.py:54
-msgid "This group is managed by Crisalid"
-msgstr "Este grupo está gestionado por Crisalid"
-
-#: apps/accounts/exceptions.py:60
 msgid "You do not have the permission to assign this role"
 msgstr "No tienes permiso para asignar este rol"
 
-#: apps/accounts/exceptions.py:65
+#: apps/accounts/exceptions.py:59
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
 msgstr "No tienes permiso para asignar este rol: {role}"
 
-#: apps/accounts/exceptions.py:80
+#: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -63,57 +59,53 @@ msgstr ""
 "Falta el parámetro de consulta email_type. Las opciones son: admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/exceptions.py:87
+#: apps/accounts/exceptions.py:81
 msgid "Permission not found"
 msgstr "Permiso no encontrado"
 
-#: apps/accounts/exceptions.py:93
+#: apps/accounts/exceptions.py:87
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Ocurrió un error al sincronizar con Keycloak"
 
-#: apps/accounts/exceptions.py:98
+#: apps/accounts/exceptions.py:92
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr "Ocurrió un error al sincronizar con Keycloak: {message}"
 
-#: apps/accounts/exceptions.py:110
+#: apps/accounts/exceptions.py:104
 msgid "An error occurred while syncing with Google"
 msgstr "Ocurrió un error al sincronizar con Google"
 
-#: apps/accounts/exceptions.py:115
+#: apps/accounts/exceptions.py:109
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr "Ocurrió un error al sincronizar con Google: {message}"
 
-#: apps/accounts/exceptions.py:130
+#: apps/accounts/exceptions.py:124
 msgid "The organization of a group cannot be changed"
 msgstr "La organización de un grupo no se puede cambiar"
 
-#: apps/accounts/exceptions.py:136
+#: apps/accounts/exceptions.py:130
 msgid "The root group cannot have a parent group"
 msgstr "El grupo raíz no puede tener un grupo padre"
 
-#: apps/accounts/exceptions.py:142
+#: apps/accounts/exceptions.py:136
 msgid "A non-root group must have a parent group"
 msgstr "Un grupo no raíz debe tener un grupo padre"
 
-#: apps/accounts/exceptions.py:148
+#: apps/accounts/exceptions.py:142
 msgid "The parent group must belong to the same organization"
 msgstr "El grupo padre debe pertenecer a la misma organización"
 
-#: apps/accounts/exceptions.py:154
-msgid "This group is not linked to a Crisalid structure"
-msgstr "Este grupo no está vinculado a una estructura de Crisalid"
-
-#: apps/accounts/exceptions.py:160
+#: apps/accounts/exceptions.py:148
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Estás intentando crear un bucle en la jerarquía del grupo"
 
-#: apps/accounts/exceptions.py:166
+#: apps/accounts/exceptions.py:154
 msgid "You cannot assign this role to a user"
 msgstr "No puedes asignar este rol a un usuario"
 
-#: apps/accounts/exceptions.py:171
+#: apps/accounts/exceptions.py:159
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No puedes asignar este rol a un usuario: {role}"
@@ -4754,3 +4746,9 @@ msgstr "Derechos de autor"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
+
+#~ msgid "This group is managed by Crisalid"
+#~ msgstr "Este grupo está gestionado por Crisalid"
+
+#~ msgid "This group is not linked to a Crisalid structure"
+#~ msgstr "Este grupo no está vinculado a una estructura de Crisalid"

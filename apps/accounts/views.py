@@ -72,7 +72,6 @@ from services.keycloak.interface import KeycloakService
 
 from .exceptions import (
     EmailTypeMissingError,
-    NotCrisalidStructureGroupError,
     PermissionNotFoundError,
 )
 from .filters import PeopleGroupFilter, UserFilter
@@ -87,7 +86,6 @@ from .parsers import UserMultipartParser
 from .permissions import (
     HasBasePermission,
     HasPeopleGroupPermission,
-    IsNotCrisalidStructure,
 )
 from .serializers import (
     AccessTokenSerializer,
@@ -95,7 +93,6 @@ from .serializers import (
     EmptyPayloadResponseSerializer,
     PeopleGroupAddFeaturedProjectsSerializer,
     PeopleGroupAddTeamMembersSerializer,
-    PeopleGroupCrisalidUpdateSerializer,
     PeopleGroupHierarchySerializer,
     PeopleGroupLightSerializer,
     PeopleGroupLocationSerializer,
@@ -670,40 +667,6 @@ class PeopleGroupViewSet(
         self.google_sync(instance, self.request.data)
 
     @extend_schema(
-        request=PeopleGroupCrisalidUpdateSerializer,
-        responses=PeopleGroupSerializer,
-    )
-    @action(
-        detail=True,
-        methods=["PATCH"],
-        url_path="crisalid",
-        permission_classes=[
-            IsAuthenticated,
-            HasBasePermission("change_peoplegroup", "accounts")
-            | HasOrganizationPermission("change_peoplegroup")
-            | HasPeopleGroupPermission("change_peoplegroup"),
-        ],
-    )
-    def crisalid_update(self, request, *args, **kwargs):
-        """Update parent and descriptive fields of a group linked to a crisalid structure"""
-        people_group = self.get_object()
-        if not hasattr(people_group, "structure"):
-            raise NotCrisalidStructureGroupError
-        serializer = PeopleGroupCrisalidUpdateSerializer(
-            people_group,
-            data=request.data,
-            partial=True,
-            context=self.get_serializer_context(),
-        )
-        serializer.is_valid(raise_exception=True)
-        people_group = serializer.save()
-        return Response(
-            PeopleGroupSerializer(
-                people_group, context=self.get_serializer_context()
-            ).data
-        )
-
-    @extend_schema(
         request=PeopleGroupAddTeamMembersSerializer,
         responses=PeopleGroupSerializer,
     )
@@ -716,7 +679,6 @@ class PeopleGroupViewSet(
             HasBasePermission("change_peoplegroup", "accounts")
             | HasOrganizationPermission("change_peoplegroup")
             | HasPeopleGroupPermission("change_peoplegroup"),
-            IsNotCrisalidStructure,
         ],
     )
     def add_member(self, request, *args, **kwargs):
@@ -749,7 +711,6 @@ class PeopleGroupViewSet(
             HasBasePermission("change_peoplegroup", "accounts")
             | HasOrganizationPermission("change_peoplegroup")
             | HasPeopleGroupPermission("change_peoplegroup"),
-            IsNotCrisalidStructure,
         ],
     )
     def remove_member(self, request, *args, **kwargs):

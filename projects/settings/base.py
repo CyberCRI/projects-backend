@@ -382,6 +382,9 @@ OIDC_OP_JWKS_ENDPOINT = (
 
 LOGIN_REDIRECT_URL = "/admin"
 LOGOUT_REDIRECT_URL = "/admin"
+# When the silent token refresh (SessionRefresh middleware, prompt=none) fails,
+# mozilla-django-oidc logs the user out and redirects here (default "/" -> swagger).
+LOGIN_REDIRECT_URL_FAILURE = "/admin/"
 
 OIDC_RP_SCOPES = "openid profile email"
 LOGIN_URL = "oidc_authentication_init"
