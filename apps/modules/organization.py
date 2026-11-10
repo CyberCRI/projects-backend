@@ -29,11 +29,11 @@ class OrganizationModules(AbstractModules):
 
     def groups(self) -> BaseManager[PeopleGroup]:
         return self.user.get_people_group_queryset().filter(
-            organizations__in=(self.instance,)
+            organization__in=(self.instance,)
         )
 
     def announcements(self) -> BaseManager[Announcement]:
-        return Announcement.objects.filter(projects__in=self.projects)
+        return Announcement.objects.filter(project__in=self.projects())
 
     def events(self) -> BaseManager[Event]:
         return Event.objects.filter(organization=self.instance)
@@ -51,7 +51,7 @@ class OrganizationModules(AbstractModules):
         return ProjectUser.objects.filter(groups__organizations__in=(self.instance,))
 
     def researchers(self) -> BaseManager[Researcher]:
-        return Researcher.objects.filter(user__in=self.users)
+        return Researcher.objects.filter(user__in=self.users())
 
     def files(self) -> BaseManager[AttachmentFile]:
         return self.instance.attachment_files.all()
