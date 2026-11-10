@@ -93,7 +93,6 @@ class Organization(
 
     organization_query_string: str = ""
     auto_translated_fields: list[str] = [
-        "name",
         "dashboard_title",
         "dashboard_subtitle",
         "html:description",

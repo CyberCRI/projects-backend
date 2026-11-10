@@ -888,29 +888,6 @@ class PeopleGroupSerializer(
         ]
 
 
-class PeopleGroupCrisalidUpdateSerializer(
-    StringsImagesSerializer, serializers.ModelSerializer
-):
-    """Update of a group linked to a crisalid structure,
-    other fields (name, description, parent, members) are managed by crisalid
-    """
-
-    string_images_forbid_fields: list[str] = ["short_description"]
-    sdgs = serializers.ListField(
-        child=serializers.IntegerField(min_value=1, max_value=17),
-        required=False,
-    )
-
-    class Meta:
-        model = PeopleGroup
-        fields = [
-            "short_description",
-            "email",
-            "sdgs",
-            "publication_status",
-        ]
-
-
 class EmptyPayloadResponseSerializer(serializers.Serializer):
     detail = serializers.CharField()
 
