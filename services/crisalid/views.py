@@ -543,7 +543,11 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         """Method to return affiliated researchers"""
         researcher = self.get_object()
 
-        qs = researcher.modules_by_user(request.user, self.organization).affiliated()
+        qs = (
+            researcher.modules_by_user(request.user, self.organization)
+            .affiliated()
+            .select_related("user")
+        )
         data = self.get_serializer_class()(
             self.paginate_queryset(qs), context=self.get_serializer_context(), many=True
         ).data
