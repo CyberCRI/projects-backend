@@ -36,7 +36,7 @@ def format_date(date) -> datetime.date | None:
     return None
 
 
-def fetch_prompt(researcher: Researcher, prompt: str) -> dict | None:
+def fetch_prompt(researcher: Researcher, local_prompt: str) -> dict | None:
     print(f"researcher_pk: {researcher.pk}")
 
     mistral = MistralService.service
@@ -60,7 +60,7 @@ def fetch_prompt(researcher: Researcher, prompt: str) -> dict | None:
 """
 
     messages = [
-        {"content": prompt + "\n" + prompt_user, "role": "user"},
+        {"content": local_prompt + "\n" + prompt_user, "role": "user"},
     ]
 
     print(prompt_user)
@@ -83,8 +83,9 @@ def fetch_prompt(researcher: Researcher, prompt: str) -> dict | None:
         return None
 
 
-def poulate_researcher_domains(researcher: Researcher):
+def populate_researcher_domains(researcher: Researcher):
     results = fetch_prompt(researcher, prompt_domains)
+    print(results)
     if not results:
         return
 

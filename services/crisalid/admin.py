@@ -341,7 +341,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         all_taks.apply_async()
 
         logger.info(
-            "Run command `generate_domains` for %s researcher(s) (admin=%s)",
+            "Run command `generate_domains_ia` for %s researcher(s) (admin=%s)",
             total,
             request.user.pk,
         )
