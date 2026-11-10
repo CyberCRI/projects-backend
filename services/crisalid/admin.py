@@ -299,7 +299,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     )
     list_filter = (LinkedUser, OrganizationObject)
     autocomplete_fields = ("user",)
-    actions = ("assign_user", "vectorize", "generate_ia", "generate_domains")
+    actions = ("assign_user", "vectorize", "generate_ia", "generate_domains_ia")
     inlines = (
         identifiers_inline(ResearcherIdentifier),
         ResearcherDomainsAdminInline,
@@ -335,7 +335,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         )
 
     @admin.action(description="re-generate researcher domains from ia")
-    def generate_domains(self, request, queryset):
+    def generate_domains_ia(self, request, queryset):
         total = queryset.count()
         all_taks = group(update_researcher_domains.s(r.pk) for r in queryset)
         all_taks.apply_async()

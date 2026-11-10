@@ -8,15 +8,19 @@ from django.db.models import F, Value
 from django.db.models.functions import Concat
 
 from apps.organizations.models import Organization
+from apps.skills.models import Tag, TagClassification
 from services.crisalid.models.award import Award, AwardContributor
 from services.crisalid.models.funding import Funding
 from services.crisalid.models.patent import Patent, PatentContributor
-from services.crisalid.models.researcher import Researcher
+from services.crisalid.models.researcher import Researcher, ResearcherDomains
 from services.crisalid.models.teaching import Teaching
 from services.mistral.interface import MistralService
 
 prompt = (
     pathlib.Path(__file__).resolve().parent / pathlib.Path("./prompt_ia.txt")
+).read_text()
+prompt_domains = (
+    pathlib.Path(__file__).resolve().parent / pathlib.Path("./prompt_domains_ia.txt")
 ).read_text()
 
 
@@ -32,7 +36,7 @@ def format_date(date) -> datetime.date | None:
     return None
 
 
-def populate_researcher(researcher: Researcher):
+def fetch_prompt(researcher: Researcher, prompt: str) -> dict | None:
     print(f"researcher_pk: {researcher.pk}")
 
     mistral = MistralService.service
@@ -69,18 +73,64 @@ def populate_researcher(researcher: Researcher):
         for output in response.outputs:
             if output.type == "message.output":
                 print(output.content)
-                content = json.loads(
+                return json.loads(
                     output.content.split("```")[1].removeprefix("json"),
                     strict=False,
                 )
-                break
-        else:
-            raise ValueError("empty conversation")
+        raise ValueError("empty conversation")
     except Exception as e:
         print(e)
+        return None
+
+
+def poulate_researcher_domains(researcher: Researcher):
+    results = fetch_prompt(researcher, prompt_domains)
+    if not results:
         return
 
-    content = content.get("researcher", {})
+    classification_openalex = TagClassification.get_or_create_default_classification(
+        TagClassification.TagClassificationType.OPENALEX
+    )
+    classification_wiki = TagClassification.get_or_create_default_classification(
+        TagClassification.TagClassificationType.WIKIPEDIA
+    )
+
+    for element in results:
+        classification = external_id = None
+        if element["wikimedia_id"]:
+            classification = classification_wiki
+            external_id = element["wikimedia_id"]
+        elif element["openalex_id"]:
+            classification = classification_openalex
+            external_id = element["openalex_id"]
+
+        # llm return empty tag id, do nothing
+        if not all((external_id, classification)):
+            continue
+
+        tag, created = Tag.objects.get_or_create(
+            type=classification.type,
+            external_id=external_id,
+            defaults={
+                "title": element["title"],
+                "alternative_titles": element["alternative_titles"],
+                "description": element["description"],
+            },
+        )
+        if created:
+            classification.tags.add(tag)
+
+        ResearcherDomains.objects.update_or_create(
+            researcher=researcher, domain=tag, defaults={"level": element["level"]}
+        )
+
+
+def populate_researcher(researcher: Researcher):
+    result = fetch_prompt(researcher, prompt)
+    if not result:
+        return
+
+    content = result.get("researcher", {})
 
     if content.get("bibliometrics"):
         h_index = content["bibliometrics"].get("h_index", {}).get("value")

@@ -24,10 +24,12 @@ from services.crisalid.populates import (
     PopulateStructure,
 )
 from services.crisalid.populates.caches import LiveCache
-from services.crisalid.scripts.populate_by_ia import populate_researcher
+from services.crisalid.scripts.populate_by_ia import (
+    populate_researcher,
+    poulate_researcher_domains,
+)
 from services.crisalid.utils.bio import (
     generate_bio_from_researcher,
-    generate_domains_from_researcher,
 )
 from services.crisalid.utils.identifiers import release_instances
 from services.crisalid.utils.structures import sync_group_members, with_ancestors
@@ -267,7 +269,7 @@ def update_researcher_domains(researcher_id: int):
     researcher = Researcher.objects.get(pk=researcher_id)
     logger.info("Update researcher Domains pk=%s", researcher.pk)
 
-    generate_domains_from_researcher(researcher)
+    poulate_researcher_domains(researcher)
 
 
 @app.task(name="Update Researcher Bio generate by Ia")
