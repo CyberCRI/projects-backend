@@ -1,5 +1,6 @@
 from .document import DocumentModules
 from .group import PeopleGroupModules
+from .organization import OrganizationModules
 from .project import ProjectModules
 from .researcher import ResearcherModules
 from .structure import StructureModules
@@ -14,4 +15,5 @@ __all__ = [
     "DocumentModules",
     "ResearcherModules",
     "StructureModules",
+    "OrganizationModules",
 ]
