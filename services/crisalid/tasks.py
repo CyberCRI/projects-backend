@@ -24,6 +24,7 @@ from services.crisalid.populates import (
     PopulateStructure,
 )
 from services.crisalid.populates.caches import LiveCache
+from services.crisalid.scripts.populate_by_ia import populate_researcher
 from services.crisalid.utils.bio import (
     generate_bio_from_researcher,
     generate_domains_from_researcher,
@@ -251,6 +252,14 @@ def load_apollo_data(crisalid_config_id: int, content: dict):
     for key, populate in populates:
         if key in content:
             populate.multiple(content[key])
+
+
+@app.task(name="Update Researcher generate by Ia")
+def update_researcher_ia(researcher_id: int):
+    researcher = Researcher.objects.get(pk=researcher_id)
+    logger.info("Update researcher Domains pk=%s", researcher.pk)
+
+    populate_researcher(researcher)
 
 
 @app.task(name="Update Researcher Bio generate by Ia")
