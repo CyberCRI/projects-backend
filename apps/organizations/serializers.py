@@ -278,6 +278,7 @@ class OrganizationSerializer(
             "google_sync_enabled",
             "identity_providers",
             "attachment_files_count",
+            "modules",
         ]
         fields = read_only_fields + [
             "code",
@@ -399,7 +400,9 @@ class OrganizationLightSerializer(
             # read_only
             "logo_image",
             "is_logo_visible_on_parent_dashboard",
+            "modules",
         ]
+        modules_keys = ()
 
     def create(self, validated_data):
         """Create the instance's permissions and default groups."""
