@@ -28,22 +28,19 @@ from services.translator.serializers import auto_translated
 
 @auto_translated
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):
-    display_name = serializers.SerializerMethodField()
     profile_picture = ImageSerializer()
 
     class Meta:
         model = ProjectUser
         fields = (
             "id",
-            "display_name",
+            "given_name",
+            "family_name",
             "slug",
             "profile_picture",
             "short_description",
             "job",
         )
-
-    def get_display_name(self, instance: ProjectUser) -> str:
-        return str(instance)
 
 
 class IdentifierSerializer(serializers.Serializer):
