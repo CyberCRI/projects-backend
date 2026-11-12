@@ -494,6 +494,49 @@ class TestResearcherView(JwtAPITestCase):
         # test modules
         self.assertEqual(self.researcher.modules.teachings().count(), 2)
 
+    def test_get_structures(self):
+        structure = StructureFactory(organization=self.organization)
+        structure_2 = StructureFactory(organization=self.organization)
+        structure_3 = StructureFactory(organization=self.organization_2)
+        rstructure = ResearcherStructureFactory(
+            researcher=self.researcher,
+            position_code=ResearcherStructure.PositionCode.PR,
+            structure=structure,
+        )
+        rstructure_2 = ResearcherStructureFactory(
+            researcher=self.researcher,
+            position_code=ResearcherStructure.PositionCode.PR,
+            structure=structure_2,
+        )
+        # not same organiations
+        ResearcherStructureFactory(
+            researcher=self.researcher,
+            position_code=ResearcherStructure.PositionCode.PR,
+            structure=structure_3,
+        )
+        # not researcher
+        ResearcherStructureFactory(researcher=self.researcher_2, structure=structure)
+
+        response = self.client.get(
+            reverse(
+                "Researcher-structures",
+                args=(self.organization.code, self.researcher.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertSetEqual(
+            set((rstructure.pk, rstructure_2.pk)),
+            set((el["id"] for el in data["results"])),
+        )
+
+        # test modules
+        self.assertEqual(
+            self.researcher.modules.structures().count(),
+            3,
+        )
+
 
 class TestAwardView(JwtAPITestCase):
     @classmethod

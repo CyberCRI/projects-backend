@@ -12,7 +12,12 @@ from django.db.models import (
 )
 from django.db.models.manager import BaseManager
 
-from apps.modules.base import AbstractModules, ignore_method, register_module
+from apps.modules.base import (
+    AbstractModules,
+    ignore_method,
+    organization_related,
+    register_module,
+)
 from apps.skills.models import Tag
 from services.crisalid.models import (
     AuthorityOrganization,
@@ -58,6 +63,7 @@ class StructureModules(AbstractModules):
             output_field=CharField(),
         )
 
+    @organization_related
     def researchers(self, relation_type: str | None = None) -> BaseManager[Researcher]:
         """researchers with an active relation to the structure or its sub-structures
 
@@ -90,11 +96,13 @@ class StructureModules(AbstractModules):
         _name.__name__ = name
         locals()[name] = _name
 
+    @organization_related
     def sub_structures(self) -> BaseManager[Structure]:
         return self.user.get_people_group_related_queryset(
             self.instance.children().select_related("people_group")
         )
 
+    @organization_related
     def parent_structures(self) -> BaseManager[Structure]:
         return self.user.get_people_group_related_queryset(
             self.instance.parents().select_related("people_group")
@@ -113,6 +121,7 @@ class StructureModules(AbstractModules):
             output_field=CharField(),
         )
 
+    @organization_related
     def supervising_structures(self) -> BaseManager[Structure]:
         """structures supervising the structure, with the supervision position"""
         # same filter() call, so all conditions apply to the same relation
@@ -132,6 +141,7 @@ class StructureModules(AbstractModules):
             )
         )
 
+    @organization_related
     def supervised_structures(self) -> BaseManager[Structure]:
         """structures supervised by the structure, with the supervision position"""
         # same filter() call, so all conditions apply to the same relation

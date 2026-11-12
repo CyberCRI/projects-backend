@@ -4,10 +4,8 @@ import logging
 import traceback
 from typing import TYPE_CHECKING
 
-from django.contrib.postgres.aggregates import StringAgg
 from django.db import models, transaction
-from django.db.models import F, QuerySet, Value
-from django.db.models.functions import Concat
+from django.db.models import QuerySet
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
@@ -480,88 +478,6 @@ class ResearcherEmbedding(MistralEmbedding):
     def get_is_visible(self) -> bool:
         # generate embeding only if researcher is linked to a user
         return self.item.user_id is not None
-
-    @classmethod
-    def get_summary_chat_system(cls) -> list[str]:
-        return [
-            """
-You are a research assistant specialized in creating researcher biographies. Based on the following information, write a professional 2-3 paragraph summary presenting the researcher's career path and contributions.
-
-**Instructions:**
-
-1. **First Paragraph (Current Role):** Start with their current position(s) and responsibilities. Mention departments, teams led, and key mentoring or administrative roles.
-
-2. **Second Paragraph (Background & Research):** Cover their educational background (degrees, institutions), prior positions/postdocs, and current research focus areas. Include specific labs or programs mentioned.
-
-3. **Third Paragraph (Achievements):** Highlight major scientific contributions, notable publications (journals like Nature, Science, Cell, PNAS), and funding sources (grants, foundations, EU projects).
-
-**Style Guidelines:**
-- Third-person narrative
-- Professional yet accessible tone
-- Use specific names of institutions, programs, and collaborators
-- Include dates when relevant (years of appointment, since when teaching)
-- Keep it concise but comprehensive
-- Avoid speculation — only state facts verifiable from the provided data
-- Do not invent grant amounts, publication counts, or impact factors unless explicitly available
-
-**Example Output Format:**
-[Name] currently heads [Department/Unit] at [Institution]. Previously, they served as [previous roles], including [specific program directorships]. Their educational background includes [degrees] from [universities], followed by postdoctoral work at [institutions]. Their research focuses on [research axes]. Major contributions include publications in [journals] supported by [grant agencies].
-
-**Input Data Source:**
-[Insert extracted information from ORCID/HAL/IDREF profiles here]
-
----
- """
-        ]
-
-    def get_summary_chat_prompt(self) -> list[str]:
-        """
-        Return the prompt for the embedding model.
-        """
-
-        formated_identifiers = self.item.modules.public_identifiers().aggregate(
-            formated=StringAgg(
-                Concat(
-                    Value("• "),
-                    F("harvester"),
-                    Value(" : "),
-                    F("value"),
-                    output_field=models.CharField(),
-                ),
-                delimiter="\n",
-            )
-        )["formated"]
-
-        return [
-            f"""**Provided Identifiers:**
-- Full Name: {str(self.item)}
-- Provided Identifiers:
-{formated_identifiers}
-"""
-        ]
-
-    def get_summary_minimal(self) -> str:
-        system = [
-            """Write a one-to-two sentence mini-bio of a researcher, in the style of a conference speaker introduction or lab website blurb.
-
-**Structure (mandatory, in this order):**
-1. "[Full Name] is a [discipline/field] ([institution or affiliation])" — optionally add a founding/directorship role with "co-founder of" / "director of".
-2. One sentence on what they actually work on: the method or approach + the object of study. Format: "He/She uses [method/approach] to study [object/question] at [scale or angle]."
-
-**Rules:**
-- Maximum 45 words total. Hard limit.
-- No degrees, no postdoc history, no journal names, no grant names, no dates — those belong in the long version.
-- Present tense for current work.
-- One concrete detail beats three vague ones: prefer "synthetic biology" over "cutting-edge interdisciplinary research".
-- Do not invent affiliations or research topics that aren't supported by the provided data.
-- No marketing adjectives ("world-renowned", "leading expert", "pioneering").
-
-**Output:** the bio only, no preamble, no quotation marks, no commentary.
-
-**Input Data Source:**
-[Insert extracted information from ORCID/HAL/IDREF profiles here]"""
-        ]
-        return super().get_summary(system)
 
     def set_embedding(self, *args, **kwargs) -> "ResearcherEmbedding":
         domains = ""

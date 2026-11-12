@@ -12,7 +12,7 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
@@ -29,6 +29,7 @@ from services.crisalid.filters import (
     FundingFilter,
     PatentContributorFilter,
     PatentFilter,
+    ResearcherStructureFilter,
     TeachingFilter,
 )
 from services.crisalid.models import (
@@ -67,7 +68,7 @@ from services.crisalid.serializers import (
     TeachingLightSerializer,
     TeachingSerializer,
 )
-from services.crisalid.utils.bio import generate_bio_from_researcher
+from services.crisalid.utils.ia import generate_bio_from_researcher
 from services.crisalid.utils.views import NestedResearcherViewMixins
 
 OPENAPI_PARAMTERS_DOCUMENTS = [
@@ -415,7 +416,7 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
         description="return description generate by ia.",
         parameters=[
             OpenApiParameter(
-                name="minial",
+                name="short",
                 description="return a short description",
                 required=False,
                 type=bool,
@@ -570,13 +571,19 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
     def bio_ia(self, request, *args, **kwargs):
         """Method to return new generate bio ia from researcher"""
         researcher = self.get_object()
-        bio = generate_bio_from_researcher(
+        infos = generate_bio_from_researcher(
             researcher,
-            minimal=request.query_params.get("minial", "").lower() == "true",
         )
+        if not infos:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data="Mistral apis return nothing"
+            )
+
+        if request.query_params.get("short", "").lower() == "true":
+            return Response(data=infos.get("short"))
 
         return Response(
-            data=bio,
+            data=infos.get("long"),
         )
 
     @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
@@ -699,7 +706,15 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
             request.user, self.organization
         ).structures()
 
-        structures_qs = OrderingFilter().filter_queryset(request, structures_qs, self)
+        filterset = ResearcherStructureFilter(
+            data=request.query_params,
+            queryset=structures_qs,
+            request=request,
+        )
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        structures_qs = OrderingFilter().filter_queryset(request, filterset.qs, self)
 
         paginated_qs = self.paginate_queryset(structures_qs)
 

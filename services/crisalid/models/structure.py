@@ -195,7 +195,7 @@ class StructureRelation(CrisalidPeriodModel):
         )
 
 
-class ResearcherStructure(CrisalidPeriodModel):
+class ResearcherStructure(OrganizationRelated, CrisalidPeriodModel):
     """Relation between a researcher and a structure (MEMBER_OF / EMPLOYED_AT in crisalid)"""
 
     class RelationType(models.TextChoices):
@@ -290,6 +290,7 @@ class ResearcherStructure(CrisalidPeriodModel):
     position_code = models.CharField(
         max_length=255, choices=PositionCode.choices, blank=True
     )
+    organization_query_string = "structure__organization"
 
     def __str__(self):
         return f"{self.researcher} -{self.relation_type}-> {self.structure}"
@@ -299,3 +300,6 @@ class ResearcherStructure(CrisalidPeriodModel):
             f"<ResearcherStructure researcher={self.researcher_id} "
             f"{self.relation_type} structure={self.structure_id}>"
         )
+
+    def get_related_organizations(self):
+        return self.structure.get_related_organizations()

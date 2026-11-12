@@ -24,13 +24,7 @@ from services.crisalid.populates import (
     PopulateStructure,
 )
 from services.crisalid.populates.caches import LiveCache
-from services.crisalid.scripts.populate_by_ia import (
-    populate_researcher,
-    populate_researcher_domains,
-)
-from services.crisalid.utils.bio import (
-    generate_bio_from_researcher,
-)
+from services.crisalid.utils.ia import generate_bio_from_researcher
 from services.crisalid.utils.identifiers import release_instances
 from services.crisalid.utils.structures import sync_group_members, with_ancestors
 
@@ -256,31 +250,18 @@ def load_apollo_data(crisalid_config_id: int, content: dict):
             populate.multiple(content[key])
 
 
-@app.task(name="Update Researcher generate by Ia")
-def update_researcher_ia(researcher_id: int):
-    researcher = Researcher.objects.get(pk=researcher_id)
-    logger.info("Update researcher Domains pk=%s", researcher.pk)
-
-    populate_researcher(researcher)
-
-
-@app.task(name="Update Researcher domains generate by Ia")
-def update_researcher_domains(researcher_id: int):
-    researcher = Researcher.objects.get(pk=researcher_id)
-    logger.info("Update researcher Domains pk=%s", researcher.pk)
-
-    populate_researcher_domains(researcher)
-
-
 @app.task(name="Update Researcher Bio generate by Ia")
 def update_researcher_bio_ia(researcher_id: int):
     researcher = Researcher.objects.get(pk=researcher_id)
     logger.info("Update researcher Bio pk=%s", researcher.pk)
 
-    bio = generate_bio_from_researcher(researcher)
-    short_bio = generate_bio_from_researcher(researcher, minimal=True)
-    researcher.bio = bio
-    researcher.short_bio = short_bio
+    infos = generate_bio_from_researcher(researcher)
+    if not infos:
+        logger.info("Can't update researcher bio: infos is None")
+        return
+
+    researcher.bio = infos.get("long") or ""
+    researcher.short_bio = infos.get("short") or ""
     researcher.save()
     logger.info("Updated Researcher pk=%s bio successfully", researcher.pk)
 

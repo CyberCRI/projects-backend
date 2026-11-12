@@ -26,8 +26,7 @@ from services.crisalid.models.researcher import ResearcherDomains
 from services.crisalid.models.teaching import Teaching
 from services.crisalid.tasks import (
     load_apollo_data,
-    update_researcher_domains,
-    update_researcher_ia,
+    update_researcher_bio_ia,
     vectorize_documents,
     vectorize_researchers,
 )
@@ -299,7 +298,11 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     )
     list_filter = (LinkedUser, OrganizationObject)
     autocomplete_fields = ("user",)
-    actions = ("assign_user", "vectorize", "generate_ia", "generate_domains_ia")
+    actions = (
+        "assign_user",
+        "vectorize",
+        "update_researcher_bio_ia",
+    )
     inlines = (
         identifiers_inline(ResearcherIdentifier),
         ResearcherDomainsAdminInline,
@@ -334,14 +337,14 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
             f"Vecotrize Task created for {total} researcher(s)",
         )
 
-    @admin.action(description="re-generate researcher domains from ia")
-    def generate_domains_ia(self, request, queryset):
+    @admin.action(description="re-generate researcher description from ia")
+    def generate_description_ia(self, request, queryset):
         total = queryset.count()
-        all_taks = group(update_researcher_domains.s(r.pk) for r in queryset)
+        all_taks = group(update_researcher_bio_ia.s(r.pk) for r in queryset)
         all_taks.apply_async()
 
         logger.info(
-            "Run command `generate_domains_ia` for %s researcher(s) (admin=%s)",
+            "Run command `generate_description_ia` for %s researcher(s) (admin=%s)",
             total,
             request.user.pk,
         )
@@ -349,25 +352,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         messages.add_message(
             request,
             messages.INFO,
-            f"Launched domains regeneration for {total} researcher(s)",
-        )
-
-    @admin.action(description="re-generate researcher from ia")
-    def generate_ia(self, request, queryset):
-        total = queryset.count()
-        all_taks = group(update_researcher_ia.s(r.pk) for r in queryset)
-        all_taks.apply_async()
-
-        logger.info(
-            "Run command `generate_ia` for %s researcher(s) (admin=%s)",
-            total,
-            request.user.pk,
-        )
-
-        messages.add_message(
-            request,
-            messages.INFO,
-            f"Launched IA regeneration for {total} researcher(s)",
+            f"Launched IA description regeneration for {total} researcher(s)",
         )
 
     @admin.action(description="assign researcher on projects")

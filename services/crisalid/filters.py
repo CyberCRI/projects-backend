@@ -3,6 +3,7 @@ from django_filters import rest_framework as filters
 from services.crisalid.models.award import Award, AwardContributor
 from services.crisalid.models.funding import Funding
 from services.crisalid.models.patent import Patent, PatentContributor
+from services.crisalid.models.structure import ResearcherStructure
 from services.crisalid.models.teaching import Teaching
 
 
@@ -190,3 +191,28 @@ class TeachingFilter(filters.FilterSet):
     class Meta:
         model = Teaching
         fields = []
+
+
+class ResearcherStructureFilter(filters.FilterSet):
+    structure = filters.NumberFilter(
+        field_name="structure__id",
+        lookup_expr="exact",
+    )
+
+    relation_type = filters.ChoiceFilter(
+        field_name="relation_type",
+        choices=ResearcherStructure.RelationType.choices,
+    )
+
+    position_code = filters.ChoiceFilter(
+        field_name="position_code",
+        choices=ResearcherStructure.PositionCode.choices,
+    )
+
+    class Meta:
+        model = ResearcherStructure
+        fields = [
+            "structure",
+            "relation_type",
+            "position_code",
+        ]

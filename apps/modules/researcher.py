@@ -1,7 +1,12 @@
 from django.db.models import Case, Count, Q, When
 from django.db.models.manager import BaseManager
 
-from apps.modules.base import AbstractModules, ignore_method, register_module
+from apps.modules.base import (
+    AbstractModules,
+    ignore_method,
+    organization_related,
+    register_module,
+)
 from services.crisalid.constants import RolesCentralized
 from services.crisalid.models import (
     Document,
@@ -42,9 +47,11 @@ class ResearcherModules(AbstractModules):
         _name.__name__ = name
         locals()[name] = _name
 
+    @organization_related
     def similars(self) -> BaseManager[Researcher]:
         return self.instance.similars()
 
+    @organization_related
     def affiliated(self) -> BaseManager[Researcher]:
         # TODO: filter documents by only where researcher is Authors/Co-Authors ...ect
         #       not only reviewer/cited ...ect
@@ -86,17 +93,15 @@ class ResearcherModules(AbstractModules):
     def fundings(self) -> BaseManager[Funding]:
         return self.instance.fundings.all()
 
+    @organization_related
     def structures(self) -> BaseManager[ResearcherStructure]:
         priority_position_code = []
         for idx, (_, value) in enumerate(ResearcherStructure.PositionCode.choices):
             priority_position_code.append(When(position_code=value, then=idx))
 
-        qs = ResearcherStructure.objects.filter(researcher=self.instance)
-        if self.organization:
-            qs = qs.filter(structure__organization=self.organization)
-
         return (
-            qs.filter(
+            ResearcherStructure.objects.filter(researcher=self.instance)
+            .filter(
                 ResearcherStructure.active_query(),
             )
             .select_related("structure")
