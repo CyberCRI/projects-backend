@@ -301,7 +301,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     actions = (
         "assign_user",
         "vectorize",
-        "update_researcher_bio_ia",
+        "generate_description_ia",
     )
     inlines = (
         identifiers_inline(ResearcherIdentifier),
