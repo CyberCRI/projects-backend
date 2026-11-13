@@ -199,12 +199,12 @@ class ResearcherStructureFilter(filters.FilterSet):
         lookup_expr="exact",
     )
 
-    relation_type = filters.ChoiceFilter(
+    relation_type = filters.MultipleChoiceFilter(
         field_name="relation_type",
         choices=ResearcherStructure.RelationType.choices,
     )
 
-    position_code = filters.ChoiceFilter(
+    position_code = filters.MultipleChoiceFilter(
         field_name="position_code",
         choices=ResearcherStructure.PositionCode.choices,
     )
