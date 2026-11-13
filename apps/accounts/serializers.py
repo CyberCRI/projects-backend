@@ -27,7 +27,10 @@ from apps.modules.serializers import ModulesSerializers
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.serializers import TagRelatedField
-from services.crisalid.serializers import ResearcherSerializerLight
+from services.crisalid.serializers import (
+    ResearcherSerializerLight,
+    StructureSerializer,
+)
 from services.translator.serializers import auto_translated
 
 from .exceptions import (
@@ -793,6 +796,7 @@ class PeopleGroupSerializer(
         required=False,
     )
     locations = PeopleGroupLocationSerializer(many=True, required=False)
+    structure = StructureSerializer(read_only=True, allow_null=True)
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
@@ -880,6 +884,7 @@ class PeopleGroupSerializer(
             "tags",
             "locations",
             "publication_status",
+            "structure",
         ]
 
 

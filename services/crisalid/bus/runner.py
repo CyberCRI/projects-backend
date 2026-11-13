@@ -5,6 +5,8 @@ import threading
 from services.crisalid.bus.client import CrisalidBusClient
 from services.crisalid.models import CrisalidConfig
 
+logger = logging.getLogger(__name__)
+
 rlock = threading.RLock()
 
 
@@ -69,10 +71,30 @@ def stop_crisalidbus(config: CrisalidConfig):
 
 
 def initial_start_crisalidbus():
-    """ "first start all thread (when server web is started)"""
+    """first start all thread (when server web is started)
+
+    errors are logged and never raised: the web server must boot even if the bus
+    can't start (e.g. migrations not applied yet, database unavailable)
+    """
     with rlock:
-        for config in CrisalidConfig.objects.filter(active=True):
-            start_crisalidbus(config)
+        try:
+            configs = list(
+                CrisalidConfig.objects.filter(active=True).select_related(
+                    "organization"
+                )
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("CrisalidBus not started: can't load crisalid configs")
+            return
+
+        for config in configs:
+            try:
+                start_crisalidbus(config)
+            except Exception:  # noqa: BLE001
+                logger.exception(
+                    "CrisalidBus not started for organization %s",
+                    config.organization.code,
+                )
 
 
 # safe stop all crisalid bus

@@ -1,0 +1,117 @@
+from services.crisalid.relators import RolesChoices
+
+
+class RolesCentralized:
+    """centralized roles for calculate citations numbers"""
+
+    LEVEL_1 = (RolesChoices.AUT.value,)
+
+    LEVEL_2 = LEVEL_1 + (
+        # variants authors
+        RolesChoices.AQT.value,
+        RolesChoices.AFT.value,
+        RolesChoices.AUI.value,
+        RolesChoices.WAC.value,
+        RolesChoices.WAL.value,
+        RolesChoices.WAM.value,
+        RolesChoices.WAT.value,
+        RolesChoices.WAW.value,
+        RolesChoices.WFW.value,
+        RolesChoices.WIN.value,
+        RolesChoices.WPR.value,
+        RolesChoices.WST.value,
+        # writer content
+        RolesChoices.AUD.value,
+        RolesChoices.AUS.value,
+        RolesChoices.SCE.value,
+        RolesChoices.WFS.value,
+        RolesChoices.WFT.value,
+        RolesChoices.WTS.value,
+        RolesChoices.TAU.value,
+        # editorial direction
+        RolesChoices.EDT.value,
+        RolesChoices.EDC.value,
+        RolesChoices.EDD.value,
+        RolesChoices.COM.value,
+        RolesChoices.RED.value,
+        RolesChoices.PBD.value,
+        # translator
+        RolesChoices.TRL.value,
+        RolesChoices.TRC.value,
+        # Contributor Generic
+        RolesChoices.CRE.value,
+        RolesChoices.CTB.value,
+    )
+
+    LEVEL_3 = LEVEL_2 + (
+        # Music
+        RolesChoices.CMP.value,
+        RolesChoices.LYR.value,
+        RolesChoices.LBT.value,
+        RolesChoices.CND.value,
+        RolesChoices.MUS.value,
+        RolesChoices.VOC.value,
+        RolesChoices.SNG.value,
+        RolesChoices.ITR.value,
+        RolesChoices.ARR.value,
+        RolesChoices.MSD.value,
+        RolesChoices.MUP.value,
+        # Audiovisuel
+        RolesChoices.DRT.value,
+        RolesChoices.FMD.value,
+        RolesChoices.TLD.value,
+        RolesChoices.RDD.value,
+        RolesChoices.PRO.value,
+        RolesChoices.FMP.value,
+        RolesChoices.TLP.value,
+        RolesChoices.RPC.value,
+        RolesChoices.AUP.value,
+        RolesChoices.CNG.value,
+        RolesChoices.COP.value,
+        RolesChoices.FLM.value,
+        RolesChoices.EDM.value,
+        RolesChoices.SDE.value,
+        RolesChoices.SDS.value,
+        RolesChoices.MXE.value,
+        RolesChoices.RCE.value,
+        RolesChoices.RCD.value,
+        RolesChoices.SFX.value,
+        RolesChoices.VFX.value,
+        RolesChoices.VDG.value,
+        RolesChoices.FMK.value,
+        RolesChoices.PRF.value,
+        RolesChoices.ACT.value,
+        RolesChoices.VAC.value,
+        RolesChoices.NRT.value,
+        RolesChoices.PPT.value,
+        RolesChoices.DNC.value,
+        RolesChoices.CHR.value,
+        RolesChoices.CST.value,
+        RolesChoices.STD.value,
+        RolesChoices.LGD.value,
+        RolesChoices.PRS.value,
+        RolesChoices.MKA.value,
+        RolesChoices.DBD.value,
+        RolesChoices.STM.value,
+        RolesChoices.CAD.value,
+        # Info / data
+        RolesChoices.PRG.value,
+        RolesChoices.SWD.value,
+        RolesChoices.GDV.value,
+        RolesChoices.DTC.value,
+        RolesChoices.DTM.value,
+        RolesChoices.MDC.value,
+        RolesChoices.GIS.value,
+        # search /
+        RolesChoices.RES.value,
+        RolesChoices.RTH.value,
+        RolesChoices.RTM.value,
+        RolesChoices.SAD.value,
+        RolesChoices.TAD.value,
+        RolesChoices.THS.value,
+        RolesChoices.DGS.value,
+        RolesChoices.DGC.value,
+        RolesChoices.EXP.value,
+        RolesChoices.INV.value,
+        RolesChoices.TCH.value,
+    )

@@ -1,0 +1,38 @@
+#import "nodes/structure.graphql"
+
+query PopulateFromCrisalid($limit: Int, $offset: Int, $where: OrganizationUnitWhere) {
+  structuresAggregate: organizationUnitsAggregate(where: $where) {
+    count
+  }
+  # aliased to the query file name (key used by populate_crisalid)
+  structures: organizationUnits(limit: $limit, offset: $offset, where: $where) {
+    ...StructureNode
+
+    # parents (inclusions)
+    part_ofConnection {
+      edges {
+        properties {
+          start_date
+          end_date
+        }
+        node {
+          ...StructureNode
+        }
+      }
+    }
+
+    # supervisions / participations
+    member_ofConnection {
+      edges {
+        properties {
+          position
+          start_date
+          end_date
+        }
+        node {
+          ...StructureNode
+        }
+      }
+    }
+  }
+}

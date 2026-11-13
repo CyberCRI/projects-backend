@@ -70,7 +70,10 @@ from services.google.tasks import (
 from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
-from .exceptions import EmailTypeMissingError, PermissionNotFoundError
+from .exceptions import (
+    EmailTypeMissingError,
+    PermissionNotFoundError,
+)
 from .filters import PeopleGroupFilter, UserFilter
 from .models import (
     AnonymousUser,
@@ -80,7 +83,10 @@ from .models import (
     ProjectUser,
 )
 from .parsers import UserMultipartParser
-from .permissions import HasBasePermission, HasPeopleGroupPermission
+from .permissions import (
+    HasBasePermission,
+    HasPeopleGroupPermission,
+)
 from .serializers import (
     AccessTokenSerializer,
     CredentialsSerializer,

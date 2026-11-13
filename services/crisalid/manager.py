@@ -1,38 +1,33 @@
+from django.db import models
 from django.db.models import Case, Count, Q, QuerySet, Value, When
 
 
 class CrisalidQuerySet(QuerySet):
     def from_identifiers(self, identifiers: list, distinct=True):
-        """filter by identifiers
+        """filter by identifiers (owned by the model, related name "identifiers")
         identifiers is a list of:
-            - int: pk of the identifier
-            - Identifier: Identifier object
+            - identifier objects (ResearcherIdentifier, DocumentIdentifier ...)
             - dict: dict object with value/harvester key
 
             example:
-             Document.objects.form_identifiers([
-              Identifier(value="jhon.carter@mars.space", harvester="eppn"),
-              45,
+             Researcher.objects.from_identifiers([
+              ResearcherIdentifier(value="jhon.carter@mars.space", harvester="eppn"),
               {"harvester": "idref", "value": "4855993"}
              ])
-
         """
-        from services.crisalid.models import Identifier
-
-        pks = set()
-        filters = Q()
+        filters = models.Q()
         for identifier in identifiers:
-            if isinstance(identifier, int):
-                pks.add(identifier)
-            elif isinstance(identifier, Identifier):
-                pks.add(identifier.pk)
-            elif isinstance(identifier, dict):
-                filters |= Q(
-                    identifiers__value=identifier["value"],
-                    identifiers__harvester=identifier["harvester"],
-                )
+            if isinstance(identifier, dict):
+                harvester, value = identifier["harvester"], identifier["value"]
+            else:
+                harvester, value = identifier.harvester, identifier.value
+            filters |= models.Q(
+                identifiers__harvester=harvester, identifiers__value=value
+            )
 
-        qs = self.filter(Q(identifiers__pk__in=pks) | filters)
+        if not filters:
+            return self.none()
+        qs = self.filter(filters)
         if distinct:
             qs = qs.order_by("pk").distinct("pk")
         return qs

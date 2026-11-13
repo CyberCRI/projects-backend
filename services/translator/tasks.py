@@ -17,7 +17,14 @@ def automatic_translations():
         try:
             field.update_translation()
         except Exception as e:
-            logger.error(f"Error updating auto-translated field {field.id}: {e}")
+            logger.exception(
+                "Error updating auto-translated field %s (%s #%s.%s): %r",
+                field.id,
+                field.content_type.model,
+                field.object_id,
+                field.field_name,
+                e,
+            )
 
 
 @app.task(name="apps.translations.tasks.translate_object")

@@ -22,6 +22,7 @@ from apps.commons.serializers import (
 )
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
+from apps.modules.serializers import ModulesSerializers
 from apps.projects.models import Project, ProjectTab
 from apps.skills.models import TagClassification
 from apps.skills.serializers import (
@@ -207,6 +208,7 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 @auto_translated
 class OrganizationSerializer(
+    ModulesSerializers,
     StringsImagesSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
@@ -276,6 +278,7 @@ class OrganizationSerializer(
             "google_sync_enabled",
             "identity_providers",
             "attachment_files_count",
+            "modules",
         ]
         fields = read_only_fields + [
             "code",
@@ -306,6 +309,7 @@ class OrganizationSerializer(
             "logo_image_id",
             "team",
         ]
+        modules_keys = ()
 
     def validate_parent_code(self, value: Organization) -> Organization:
         if not self.instance:
@@ -396,7 +400,9 @@ class OrganizationLightSerializer(
             # read_only
             "logo_image",
             "is_logo_visible_on_parent_dashboard",
+            "modules",
         ]
+        modules_keys = ()
 
     def create(self, validated_data):
         """Create the instance's permissions and default groups."""

@@ -47,14 +47,14 @@ class WikipediaService:
         )
 
     @classmethod
-    def wbgetentities(cls, wikipedia_qids: list[str]) -> requests.Response:
+    def wbgetentities(cls, wikipedia_qids: list[str | int]) -> requests.Response:
         """
         Get the data for multiple Wikipedia Tags from the Wikimedia API.
         """
         params = {
             "action": "wbgetentities",
             "format": "json",
-            "ids": "|".join(wikipedia_qids),
+            "ids": "|".join((str(el_id) for el_id in wikipedia_qids)),
         }
         return requests.get(
             cls.MEDIAWIKI_API_URL,
@@ -66,7 +66,7 @@ class WikipediaService:
         )
 
     @classmethod
-    def get_by_ids(cls, wikipedia_qids: list[str]) -> list[dict[str, str]]:
+    def get_by_ids(cls, wikipedia_qids: list[str | int]) -> list[dict[str, str]]:
         """
         Get and format the data for multiple Wikipedia Tags from the Wikimedia API.
         """
@@ -120,8 +120,13 @@ class WikipediaService:
 
     @classmethod
     def search(
-        cls, query: str, language: str = "en", limit: int = 10, offset: int = 0
-    ) -> tuple[list[dict[str, str]], int | None]:
+        cls,
+        query: str,
+        language: str = "en",
+        limit: int = 10,
+        offset: int = 0,
+        **params,
+    ) -> tuple[list[str | int], int | None]:
         """
         Search Tags and get formatted data from the Wikimedia API.
         """

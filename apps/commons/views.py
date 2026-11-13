@@ -158,6 +158,8 @@ class PaginatedViewSet(viewsets.ViewSet):
 
 
 class NestedOrganizationViewMixins:
+    organization: Organization
+
     def initial(self, request, *args, **kwargs):
         self.organization = self.get_organization(request, *args, **kwargs)
 
@@ -220,7 +222,6 @@ class NestedProjectTabViewMixins:
     project: Project
 
     def initial(self, request, *args, **kwargs):
-
         self.tab = get_object_or_404(
             self.project.modules_by_user(request.user)
             .tabs()
@@ -270,9 +271,9 @@ class NestedOrganizationUserViewMixins(
 class QuerySerializersMixin:
     """return specified serializer from queryparams"""
 
-    query_serializers: dict[str, serializers.Serializer] = {}
+    query_serializers: dict[str, type[serializers.Serializer]] = {}
 
-    def get_serializer_class(self, query=None) -> serializers.Serializer:
+    def get_serializer_class(self, query=None) -> type[serializers.Serializer]:
         query = query or self.request.query_params.get("serializer")
         serializer = None
         if query:
@@ -282,11 +283,11 @@ class QuerySerializersMixin:
 
     @classmethod
     def OpenApiParameter(  # noqa: N802
-        cls, serializers: dict[str, serializers.Serializer]
+        cls, serializers: dict[str, type[serializers.Serializer]]
     ) -> _OpenApiParameter:
         return _OpenApiParameter(
             name="serializer",
             description="change output serializer",
             required=False,
-            enum=serializers.keys(),
+            enum=list(serializers.keys()),
         )

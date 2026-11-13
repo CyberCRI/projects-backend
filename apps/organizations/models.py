@@ -13,6 +13,7 @@ from apps.commons.mixins import (
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
+    HasRelatedModules,
     OrganizationRelated,
     TimestampedModelMixin,
 )
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
 
 
 class Organization(
+    HasRelatedModules,
     HasAutoTranslatedFields,
     HasPermissionsSetup,
     OrganizationRelated,
@@ -91,7 +93,6 @@ class Organization(
 
     organization_query_string: str = ""
     auto_translated_fields: list[str] = [
-        "name",
         "dashboard_title",
         "dashboard_subtitle",
         "html:description",
@@ -188,6 +189,7 @@ class Organization(
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     permissions_up_to_date = models.BooleanField(default=False)
+    enable_ia = models.BooleanField(default=False)
 
     class Meta:
         subscopes = (

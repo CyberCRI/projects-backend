@@ -113,7 +113,6 @@ class PeopleGroup(
     """
 
     auto_translated_fields: list[str] = [
-        "name",
         "html:description",
         "short_description",
     ]
