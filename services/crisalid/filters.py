@@ -2,8 +2,15 @@ from django_filters import rest_framework as filters
 
 from services.crisalid.models.award import Award, AwardContributor
 from services.crisalid.models.funding import Funding
+from services.crisalid.models.journal import Journal
+from services.crisalid.models.organization import AuthorityOrganization
 from services.crisalid.models.patent import Patent, PatentContributor
-from services.crisalid.models.structure import ResearcherStructure
+from services.crisalid.models.researcher import Researcher
+from services.crisalid.models.structure import (
+    ResearcherStructure,
+    Structure,
+    StructureRelation,
+)
 from services.crisalid.models.teaching import Teaching
 
 
@@ -216,3 +223,116 @@ class ResearcherStructureFilter(filters.FilterSet):
             "relation_type",
             "position_code",
         ]
+
+
+class StructureFilter(filters.FilterSet):
+    generic_type = filters.MultipleChoiceFilter(
+        choices=Structure.GenericType.choices,
+    )
+    main_mission = filters.MultipleChoiceFilter(
+        choices=Structure.MissionType.choices,
+    )
+
+    name = filters.CharFilter(lookup_expr="icontains")
+    acronym = filters.CharFilter(lookup_expr="icontains")
+    national_type = filters.CharFilter(lookup_expr="iexact")
+    external = filters.BooleanFilter()
+
+    researcher = filters.NumberFilter(
+        field_name="researchers__id",
+        distinct=True,
+    )
+
+    class Meta:
+        model = Structure
+        fields = []
+
+
+class StructureRelationFilter(filters.FilterSet):
+    relation_type = filters.MultipleChoiceFilter(
+        choices=StructureRelation.RelationType.choices,
+    )
+    position = filters.MultipleChoiceFilter(
+        choices=StructureRelation.Position.choices,
+    )
+
+    structure = filters.NumberFilter(
+        field_name="structure_id",
+    )
+    related_structure = filters.NumberFilter(
+        field_name="related_structure_id",
+    )
+
+    class Meta:
+        model = StructureRelation
+        fields = []
+
+
+class ResearcherFilter(filters.FilterSet):
+    given_name = filters.CharFilter(lookup_expr="icontains")
+    family_name = filters.CharFilter(lookup_expr="icontains")
+
+    h_index = filters.NumberFilter()
+    h_index_min = filters.NumberFilter(
+        field_name="h_index",
+        lookup_expr="gte",
+    )
+    h_index_max = filters.NumberFilter(
+        field_name="h_index",
+        lookup_expr="lte",
+    )
+    i10_index = filters.NumberFilter()
+    i10_index_min = filters.NumberFilter(
+        field_name="i10_index",
+        lookup_expr="gte",
+    )
+    i10_index_max = filters.NumberFilter(
+        field_name="i10_index",
+        lookup_expr="lte",
+    )
+
+    structure = filters.NumberFilter(
+        field_name="structures__id",
+        distinct=True,
+    )
+    organization = filters.NumberFilter(
+        field_name="structures__organization_id",
+        distinct=True,
+    )
+
+    class Meta:
+        model = Researcher
+        fields = []
+
+
+class StrucureResearcherFilter(ResearcherFilter):
+    position_code = filters.MultipleChoiceFilter(
+        choices=ResearcherStructure.PositionCode.choices,
+    )
+
+
+class AuthorityOrganizationFilter(filters.FilterSet):
+    type = filters.MultipleChoiceFilter(
+        choices=AuthorityOrganization.OrganizationType.choices,
+    )
+
+    name = filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = AuthorityOrganization
+        fields = []
+
+
+class JournalFilter(filters.FilterSet):
+    title = filters.CharFilter(lookup_expr="icontains")
+
+    acronym = filters.CharFilter(
+        method="filter_acronym",
+    )
+
+    def filter_acronym(self, queryset, name, value):
+        return queryset.filter(acronym__icontains=[value])
+
+    class Meta:
+        model = Journal
+        fields = []

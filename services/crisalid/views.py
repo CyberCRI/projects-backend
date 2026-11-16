@@ -5,7 +5,7 @@ from itertools import chain
 from django.db.models import Count, Prefetch, QuerySet
 from django.db.models.functions import ExtractYear
 from django.http import JsonResponse
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
@@ -23,13 +23,18 @@ from apps.commons.views import (
     NestedPeopleGroupViewMixins,
     QuerySerializersMixin,
 )
+from apps.skills.filters import TagFilter
 from services.crisalid.filters import (
+    AuthorityOrganizationFilter,
     AwardContributorFilter,
     AwardFilter,
     FundingFilter,
+    JournalFilter,
     PatentContributorFilter,
     PatentFilter,
     ResearcherStructureFilter,
+    StructureFilter,
+    StrucureResearcherFilter,
     TeachingFilter,
 )
 from services.crisalid.models import (
@@ -938,12 +943,29 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
         )
 
     def _paginated_module(
-        self, module: str, serializer_class: type[BaseSerializer], **kwargs
+        self,
+        module: str,
+        serializer_class: type[BaseSerializer],
+        query_filter: type[FilterSet] | None = None,
+        **kwargs,
     ) -> Response:
         structure = self.get_object()
         qs = getattr(
             structure.modules_by_user(self.request.user, self.organization), module
         )(**kwargs)
+
+        if query_filter:
+            filterset = TeachingFilter(
+                data=self.request.query_params,
+                queryset=qs,
+                request=self.request,
+            )
+            if not filterset.is_valid():
+                return Response(filterset.errors, status=400)
+            qs = filterset.qs
+
+        qs = OrderingFilter().filter_queryset(self.request, qs, self)
+
         return self.get_paginated_response(
             serializer_class(
                 self.paginate_queryset(qs),
@@ -956,20 +978,24 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
     @action(detail=True, methods=[HTTPMethod.GET], url_path="children")
     def children(self, request, *args, **kwargs):
         """Method to return the sub-structures of the structure"""
-        return self._paginated_module("sub_structures", StructureLightSerializer)
+        return self._paginated_module(
+            "sub_structures", StructureLightSerializer, StructureFilter
+        )
 
     @extend_schema(responses=StructureLightSerializer(many=True))
     @action(detail=True, methods=[HTTPMethod.GET], url_path="parents")
     def parents(self, request, *args, **kwargs):
         """Method to return the parent structures of the structure"""
-        return self._paginated_module("parent_structures", StructureLightSerializer)
+        return self._paginated_module(
+            "parent_structures", StructureLightSerializer, StructureFilter
+        )
 
     @extend_schema(responses=StructureSupervisionSerializer(many=True))
     @action(detail=True, methods=[HTTPMethod.GET], url_path="supervising-structures")
     def supervising_structures(self, request, *args, **kwargs):
         """Method to return the structures supervising the structure"""
         return self._paginated_module(
-            "supervising_structures", StructureSupervisionSerializer
+            "supervising_structures", StructureSupervisionSerializer, StructureFilter
         )
 
     @extend_schema(responses=StructureSupervisionSerializer(many=True))
@@ -977,7 +1003,7 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
     def supervised_structures(self, request, *args, **kwargs):
         """Method to return the structures supervised by the structure"""
         return self._paginated_module(
-            "supervised_structures", StructureSupervisionSerializer
+            "supervised_structures", StructureSupervisionSerializer, StructureFilter
         )
 
     @extend_schema(
@@ -997,6 +1023,7 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
         return self._paginated_module(
             "researchers",
             StructureResearcherSerializer,
+            StrucureResearcherFilter,
             relation_type=request.query_params.get("relation_type"),
         )
 
@@ -1004,16 +1031,20 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
     @action(detail=True, methods=[HTTPMethod.GET], url_path="research-domains")
     def research_domains(self, request, *args, **kwargs):
         """Method to return research domains of the structure documents"""
-        return self._paginated_module("research_domains", ResearchDomainSerializer)
+        return self._paginated_module(
+            "research_domains", ResearchDomainSerializer, TagFilter
+        )
 
     @extend_schema(responses=CollaborationSerializer(many=True))
     @action(detail=True, methods=[HTTPMethod.GET], url_path="collaborations")
     def collaborations(self, request, *args, **kwargs):
         """Method to return organizations affiliated to the structure documents"""
-        return self._paginated_module("collaborations", CollaborationSerializer)
+        return self._paginated_module(
+            "collaborations", CollaborationSerializer, AuthorityOrganizationFilter
+        )
 
     @extend_schema(responses=CitationSerializer(many=True))
     @action(detail=True, methods=[HTTPMethod.GET], url_path="citations")
     def citations(self, request, *args, **kwargs):
         """Method to return journals where the structure documents are published"""
-        return self._paginated_module("citations", CitationSerializer)
+        return self._paginated_module("citations", CitationSerializer, JournalFilter)
