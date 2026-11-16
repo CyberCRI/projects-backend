@@ -352,8 +352,9 @@ class TestResearcherView(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.json()
+        # only researcher_2 (researcher_3 not in same orga)
         self.assertSetEqual(
-            set((self.researcher_2.pk, self.researcher_3.pk)),
+            set((self.researcher_2.pk,)),
             set((el["id"] for el in data["results"])),
         )
 
