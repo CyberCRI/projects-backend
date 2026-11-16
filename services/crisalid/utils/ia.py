@@ -55,8 +55,8 @@ def conversations(messages: list[dict]) -> dict | None:
                     strict=False,
                 )
         raise ValueError("Empty Mistral results")
-    except Exception:
-        logger.exception("Empty Mistral results")
+    except Exception as e:
+        logger.exception("Exceptions in fetch mistral conversations: %s", e)
         return None
 
 

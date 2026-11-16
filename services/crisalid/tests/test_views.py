@@ -1,10 +1,11 @@
 import datetime
+import json
 from unittest import mock
 
 from django.urls import reverse
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
@@ -386,10 +387,29 @@ class TestResearcherView(JwtAPITestCase):
         # test modules
         self.assertEqual(self.researcher.modules.citations().count(), 2)
 
-    @mock.patch("services.mistral.interface.MistralService.get_chat_response")
-    def test_bio_ia(self, get_chat_response_mck):
-        bio = "a ramdom bio"
-        get_chat_response_mck.return_value = bio
+    @mock.patch("services.crisalid.utils.ia.MistralService")
+    def test_bio_ia(self, mistral_service):
+        bio = {
+            "long": "a ramdom bio",
+            "short": "a short radom bio",
+        }
+
+        def mck_mistral(**kw):
+            m = mock.Mock()
+            for k, v in kw.items():
+                setattr(m, k, v)
+            return m
+
+        results_promts = json.dumps({"researcher": {"researcherDescriptions": bio}})
+        result = mck_mistral(
+            outputs=[
+                mck_mistral(type="message.input", content="..."),
+                mck_mistral(
+                    type="message.output", content=f"```json\n{results_promts}```"
+                ),
+            ]
+        )
+        mistral_service.return_value.beta.conversations.start.return_value = result
 
         response = self.client.get(
             reverse(
@@ -397,9 +417,8 @@ class TestResearcherView(JwtAPITestCase):
                 args=(self.organization.code, self.researcher.pk),
             )
         )
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, bio)
+        self.assertEqual(response.data, bio["long"])
 
     def test_get_patents(self):
         patent = PatentContributorFactory(researcher=self.researcher)
@@ -746,7 +765,9 @@ class StructureViewsTestCase(JwtAPITestCase):
         )
 
         # researcher of the team (so member of the laboratory)
-        cls.researcher = ResearcherFactory()
+        cls.researcher = ResearcherFactory(
+            user=UserFactory(groups=[cls.organization.get_users()])
+        )
         ResearcherStructureFactory(
             researcher=cls.researcher, structure=cls.team, position_code="CR"
         )
