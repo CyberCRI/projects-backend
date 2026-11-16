@@ -2,20 +2,32 @@ from django.db.models import Q
 from django_filters import filters
 from django_filters.rest_framework import FilterSet
 
-from apps.commons.filters import MultiValueCharFilter
-
 from .models import Tag, TagClassification
 
 
 class TagFilter(FilterSet):
-    ids = MultiValueCharFilter(method="filter_ids")
+    ids = filters.BaseInFilter(
+        field_name="id",
+        lookup_expr="in",
+    )
+
+    type = filters.MultipleChoiceFilter(
+        choices=Tag.TagType.choices,
+    )
+    secondary_type = filters.MultipleChoiceFilter(
+        choices=Tag.SecondaryTagType.choices,
+    )
+
+    title = filters.CharFilter(
+        lookup_expr="icontains",
+    )
+    external_id = filters.CharFilter(
+        lookup_expr="iexact",
+    )
 
     class Meta:
         model = Tag
-        fields = ["ids"]
-
-    def filter_ids(self, queryset, name, value):
-        return queryset.filter(id__in=value).distinct()
+        fields = []
 
 
 class TagClassificationFilter(FilterSet):

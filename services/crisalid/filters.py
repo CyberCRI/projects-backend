@@ -295,10 +295,6 @@ class ResearcherFilter(filters.FilterSet):
         field_name="structures__id",
         distinct=True,
     )
-    organization = filters.NumberFilter(
-        field_name="structures__organization_id",
-        distinct=True,
-    )
 
     class Meta:
         model = Researcher
