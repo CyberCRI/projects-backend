@@ -669,7 +669,7 @@ class PeopleGroupSerializer(
 
 @auto_translated
 class PeopleGroupLightSerializer(PeopleGroupSerializer):
-    strucure = StructureSuperLightSerializer(read_only=True, allow_null=True)
+    structure = StructureSuperLightSerializer(read_only=True, allow_null=True)
 
     class Meta(PeopleGroupSerializer.Meta):
         read_only_fields = ["organization", "is_root", "publication_status"]
@@ -690,7 +690,7 @@ class PeopleGroupLightSerializer(PeopleGroupSerializer):
 
 @auto_translated
 class PeopleGroupExtraLightSerializer(PeopleGroupLightSerializer):
-    strucure = StructureSuperLightSerializer(read_only=True, allow_null=True)
+    structure = StructureSuperLightSerializer(read_only=True, allow_null=True)
 
     class Meta(PeopleGroupLightSerializer.Meta):
         fields = ("id", "slug", "name", "roles", "strucutre")

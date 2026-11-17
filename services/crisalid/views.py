@@ -33,7 +33,7 @@ from services.crisalid.filters import (
     PatentFilter,
     ResearcherStructureFilter,
     StructureFilter,
-    StrucureResearcherFilter,
+    StructureResearcherFilter,
     TeachingFilter,
 )
 from services.crisalid.models import (
@@ -1022,7 +1022,7 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
         return self._paginated_module(
             "researchers",
             StructureResearcherSerializer,
-            StrucureResearcherFilter,
+            StructureResearcherFilter,
             relation_type=request.query_params.get("relation_type"),
         )
 

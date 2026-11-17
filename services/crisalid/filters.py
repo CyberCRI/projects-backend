@@ -301,7 +301,7 @@ class ResearcherFilter(filters.FilterSet):
         fields = []
 
 
-class StrucureResearcherFilter(ResearcherFilter):
+class StructureResearcherFilter(ResearcherFilter):
     position_code = filters.MultipleChoiceFilter(
         choices=ResearcherStructure.PositionCode.choices,
     )
