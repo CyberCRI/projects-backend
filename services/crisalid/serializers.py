@@ -110,15 +110,13 @@ class ResearcherSerializerLight(ResearcherSerializer):
             "domains",
             "modules",
         )
+        modules_keys = ("domains", "strucutres")
 
 
 class ResearcherSerializerSuperLight(ResearcherSerializerLight):
     class Meta(ResearcherSerializerLight.Meta):
-        fields = (
-            "id",
-            "display_name",
-            "short_bio",
-        )
+        fields = ("id", "display_name", "short_bio", "modules")
+        modules_keys = ()
 
 
 class ResearcherDocumentsSerializer(ResearcherSerializer):
@@ -348,6 +346,22 @@ class StructureLightSerializer(StructureSerializer):
             "main_mission",
             "external",
             "people_group",
+            "modules",
+        )
+        modules_keys = ()
+
+
+@auto_translated
+class StructureSuperLightSerializer(StructureSerializer):
+    class Meta(StructureSerializer.Meta):
+        fields = (
+            "id",
+            "name",
+            "acronym",
+            "generic_type",
+            "national_type",
+            "main_mission",
+            "external",
             "modules",
         )
         modules_keys = ()

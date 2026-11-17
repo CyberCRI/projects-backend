@@ -29,7 +29,9 @@ from apps.projects.models import Project
 from apps.skills.serializers import TagRelatedField
 from services.crisalid.serializers import (
     ResearcherSerializerLight,
+    ResearcherSerializerSuperLight,
     StructureSerializer,
+    StructureSuperLightSerializer,
 )
 from services.translator.serializers import auto_translated
 
@@ -432,6 +434,7 @@ class UserLightSerializer(UserSerializer):
             "last_login",
             "created_at",
             "modules",
+            "researcher",
         ]
         fields = read_only_fields
         # for light serializer, default is "skill/groups/mentor/mentoree"
@@ -441,6 +444,7 @@ class UserLightSerializer(UserSerializer):
 @auto_translated
 class UserLighterSerializer(UserLightSerializer):
     role = serializers.CharField(required=False, read_only=True)
+    researcher = ResearcherSerializerSuperLight()
 
     class Meta(UserLightSerializer.Meta):
         read_only_fields = [
@@ -455,6 +459,7 @@ class UserLighterSerializer(UserLightSerializer):
             "profile_picture",
             "role",
             "modules",
+            "researcher",
         ]
         fields = read_only_fields
         # for lighter serializer, default is no modules
@@ -538,18 +543,135 @@ class PeopleGroupAddLocationsSerializer(serializers.Serializer):
 
 
 @auto_translated
-class PeopleGroupLightSerializer(
+class PeopleGroupSerializer(
     ModulesSerializers,
+    StringsImagesSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_forbid_fields: list[str] = [
+        "name",
+        "description",
+        "short_description",
+    ]
+
+    organization = serializers.SlugRelatedField(
+        slug_field="code", queryset=Organization.objects.all()
+    )
+    hierarchy = serializers.SerializerMethodField()
+    parent = serializers.PrimaryKeyRelatedField(
+        queryset=PeopleGroup.objects.all(),
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
     header_image = ImageSerializer(read_only=True)
+    logo_image = ImageSerializer(read_only=True)
     roles = serializers.SlugRelatedField(
         many=True, slug_field="name", read_only=True, source="groups"
     )
-    organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
+    tags = TagRelatedField(many=True, required=False)
+    sdgs = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=17),
+        required=False,
+    )
+    locations = PeopleGroupLocationSerializer(many=True, required=False)
+    structure = StructureSerializer(read_only=True, allow_null=True)
+
+    def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
+        request = self.context.get("request")
+        groups_ids = request.user.get_people_group_queryset().values_list(
+            "id", flat=True
+        )
+        hierarchy = []
+        while obj.parent and not obj.parent.is_root:
+            obj = obj.parent
+            if obj.id in groups_ids:
+                hierarchy.append(
+                    PeopleGroupSuperLightSerializer(obj, context=self.context).data
+                )
+        return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
+
+    def validate_organization(self, value):
+        if self.instance and self.instance.organization != value:
+            raise GroupOrganizationChangeError
+        return value
+
+    def run_validation(self, data=serializers.empty):
+        data["parent"] = (
+            data.get("parent", self.instance.parent)
+            if self.instance
+            else data.get("parent")
+        )
+        if isinstance(data["parent"], PeopleGroup):
+            data["parent"] = data["parent"].id
+        return super().run_validation(data)
+
+    def validate_parent(self, value):
+        organization_code = (
+            self.initial_data["organization"]
+            if not self.instance
+            else self.instance.organization.code
+        )
+        if (not value and not self.instance) or (
+            not value and self.instance and not self.instance.is_root
+        ):
+            organization = get_object_or_404(Organization, code=organization_code)
+            value = PeopleGroup.update_or_create_root(organization)
+        if value and self.instance and self.instance.is_root is True:
+            raise RootGroupParentError
+        if not value and self.instance and self.instance.is_root is False:
+            raise NonRootGroupParentError
+        if value and value.organization.code != organization_code:
+            raise ParentGroupOrganizationError
+        parent = value
+        while parent is not None:
+            if self.instance == parent:
+                raise GroupHierarchyLoopError
+            parent = parent.parent
+        return value
+
+    def create(self, validated_data):
+        locations = validated_data.pop("locations", [])
+
+        people_group = super().create(validated_data)
+        PeopleGroupAddLocationsSerializer().create(
+            {"people_group": people_group, "locations": locations}
+        )
+        return people_group
+
+    def update(self, instance, validated_data):
+        validated_data.pop("locations", None)
+
+        return super().update(instance, validated_data)
 
     class Meta:
         model = PeopleGroup
+        read_only_fields = ["is_root", "slug", "modules"]
+        fields = read_only_fields + [
+            "id",
+            "name",
+            "description",
+            "short_description",
+            "email",
+            "parent",
+            "organization",
+            "hierarchy",
+            "header_image",
+            "logo_image",
+            "roles",
+            "sdgs",
+            "tags",
+            "locations",
+            "publication_status",
+            "structure",
+        ]
+
+
+@auto_translated
+class PeopleGroupLightSerializer(PeopleGroupSerializer):
+    strucure = StructureSuperLightSerializer(read_only=True, allow_null=True)
+
+    class Meta(PeopleGroupSerializer.Meta):
         read_only_fields = ["organization", "is_root", "publication_status"]
         fields = read_only_fields + [
             "id",
@@ -561,14 +683,17 @@ class PeopleGroupLightSerializer(
             "header_image",
             "roles",
             "modules",
+            "strucutre",
         ]
         modules_keys = ("members", "subgroups")
 
 
 @auto_translated
 class PeopleGroupExtraLightSerializer(PeopleGroupLightSerializer):
+    strucure = StructureSuperLightSerializer(read_only=True, allow_null=True)
+
     class Meta(PeopleGroupLightSerializer.Meta):
-        fields = ("id", "slug", "name", "roles")
+        fields = ("id", "slug", "name", "roles", "strucutre")
         modules_keys = ()
 
 
@@ -761,131 +886,6 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
         projects = validated_data.get("featured_projects", [])
         people_group.featured_projects.remove(*projects)
         return validated_data
-
-
-@auto_translated
-class PeopleGroupSerializer(
-    ModulesSerializers,
-    StringsImagesSerializer,
-    serializers.ModelSerializer,
-):
-    string_images_forbid_fields: list[str] = [
-        "name",
-        "description",
-        "short_description",
-    ]
-
-    organization = serializers.SlugRelatedField(
-        slug_field="code", queryset=Organization.objects.all()
-    )
-    hierarchy = serializers.SerializerMethodField()
-    parent = serializers.PrimaryKeyRelatedField(
-        queryset=PeopleGroup.objects.all(),
-        required=False,
-        allow_null=True,
-        write_only=True,
-    )
-    header_image = ImageSerializer(read_only=True)
-    logo_image = ImageSerializer(read_only=True)
-    roles = serializers.SlugRelatedField(
-        many=True, slug_field="name", read_only=True, source="groups"
-    )
-    tags = TagRelatedField(many=True, required=False)
-    sdgs = serializers.ListField(
-        child=serializers.IntegerField(min_value=1, max_value=17),
-        required=False,
-    )
-    locations = PeopleGroupLocationSerializer(many=True, required=False)
-    structure = StructureSerializer(read_only=True, allow_null=True)
-
-    def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
-        request = self.context.get("request")
-        groups_ids = request.user.get_people_group_queryset().values_list(
-            "id", flat=True
-        )
-        hierarchy = []
-        while obj.parent and not obj.parent.is_root:
-            obj = obj.parent
-            if obj.id in groups_ids:
-                hierarchy.append(
-                    PeopleGroupSuperLightSerializer(obj, context=self.context).data
-                )
-        return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
-
-    def validate_organization(self, value):
-        if self.instance and self.instance.organization != value:
-            raise GroupOrganizationChangeError
-        return value
-
-    def run_validation(self, data=serializers.empty):
-        data["parent"] = (
-            data.get("parent", self.instance.parent)
-            if self.instance
-            else data.get("parent")
-        )
-        if isinstance(data["parent"], PeopleGroup):
-            data["parent"] = data["parent"].id
-        return super().run_validation(data)
-
-    def validate_parent(self, value):
-        organization_code = (
-            self.initial_data["organization"]
-            if not self.instance
-            else self.instance.organization.code
-        )
-        if (not value and not self.instance) or (
-            not value and self.instance and not self.instance.is_root
-        ):
-            organization = get_object_or_404(Organization, code=organization_code)
-            value = PeopleGroup.update_or_create_root(organization)
-        if value and self.instance and self.instance.is_root is True:
-            raise RootGroupParentError
-        if not value and self.instance and self.instance.is_root is False:
-            raise NonRootGroupParentError
-        if value and value.organization.code != organization_code:
-            raise ParentGroupOrganizationError
-        parent = value
-        while parent is not None:
-            if self.instance == parent:
-                raise GroupHierarchyLoopError
-            parent = parent.parent
-        return value
-
-    def create(self, validated_data):
-        locations = validated_data.pop("locations", [])
-
-        people_group = super().create(validated_data)
-        PeopleGroupAddLocationsSerializer().create(
-            {"people_group": people_group, "locations": locations}
-        )
-        return people_group
-
-    def update(self, instance, validated_data):
-        validated_data.pop("locations", None)
-
-        return super().update(instance, validated_data)
-
-    class Meta:
-        model = PeopleGroup
-        read_only_fields = ["is_root", "slug", "modules"]
-        fields = read_only_fields + [
-            "id",
-            "name",
-            "description",
-            "short_description",
-            "email",
-            "parent",
-            "organization",
-            "hierarchy",
-            "header_image",
-            "logo_image",
-            "roles",
-            "sdgs",
-            "tags",
-            "locations",
-            "publication_status",
-            "structure",
-        ]
 
 
 class EmptyPayloadResponseSerializer(serializers.Serializer):
