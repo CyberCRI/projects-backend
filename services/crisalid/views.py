@@ -23,7 +23,6 @@ from apps.commons.views import (
     NestedPeopleGroupViewMixins,
     QuerySerializersMixin,
 )
-from apps.skills.filters import TagFilter
 from services.crisalid.filters import (
     AuthorityOrganizationFilter,
     AwardContributorFilter,
@@ -63,9 +62,9 @@ from services.crisalid.serializers import (
     FundingSerializer,
     PatentSerializer,
     PatentSerializerLight,
-    ResearchDomainSerializer,
     ResearcherSerializer,
     ResearcherStructureSerializer,
+    StructureDomainSerializer,
     StructureLightSerializer,
     StructureResearcherSerializer,
     StructureSerializer,
@@ -1027,13 +1026,11 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
             relation_type=request.query_params.get("relation_type"),
         )
 
-    @extend_schema(responses=ResearchDomainSerializer(many=True))
+    @extend_schema(responses=StructureDomainSerializer(many=True))
     @action(detail=True, methods=[HTTPMethod.GET], url_path="research-domains")
-    def research_domains(self, request, *args, **kwargs):
+    def domains(self, request, *args, **kwargs):
         """Method to return research domains of the structure documents"""
-        return self._paginated_module(
-            "research_domains", ResearchDomainSerializer, TagFilter
-        )
+        return self._paginated_module("domains", StructureDomainSerializer)
 
     @extend_schema(responses=CollaborationSerializer(many=True))
     @action(detail=True, methods=[HTTPMethod.GET], url_path="collaborations")
@@ -1048,3 +1045,15 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
     def citations(self, request, *args, **kwargs):
         """Method to return journals where the structure documents are published"""
         return self._paginated_module("citations", CitationSerializer, JournalFilter)
+
+    @extend_schema(responses=AwardSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="awards")
+    def awards(self, request, *args, **kwargs):
+        """Method to return awards from all structures researchers"""
+        return self._paginated_module("awards", AwardSerializer, AwardFilter)
+
+    @extend_schema(responses=TeachingSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="teachings")
+    def teachings(self, request, *args, **kwargs):
+        """Method to return teachings from all structures researchers"""
+        return self._paginated_module("teachings", TeachingSerializer, TeachingFilter)

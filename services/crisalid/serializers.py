@@ -22,6 +22,7 @@ from services.crisalid.models import (
 )
 from services.crisalid.models.award import AwardContributor
 from services.crisalid.models.funding import Funding
+from services.crisalid.models.structure import StructureDomain
 from services.crisalid.models.teaching import Teaching, TeachingDomain
 from services.translator.serializers import auto_translated
 
@@ -252,6 +253,7 @@ class TeachingDomainSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeachingDomain
         fields = (
+            "id",
             "domain",
             "level",
         )
@@ -300,6 +302,18 @@ class StructurePeopleGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = PeopleGroup
         fields = ("id", "slug", "name")
+
+
+class StructureDomainSerializer(serializers.ModelSerializer):
+    domain = TagSerializer()
+
+    class Meta:
+        model = StructureDomain
+        fields = (
+            "id",
+            "domain",
+            "level",
+        )
 
 
 @auto_translated

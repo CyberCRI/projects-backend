@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -7,6 +8,7 @@ from apps.commons.mixins import (
     OrganizationRelated,
     TimestampedModelMixin,
 )
+from apps.skills.models import Tag
 from services.crisalid.manager import CrisalidQuerySet
 from services.translator.mixins import HasAutoTranslatedFields
 
@@ -38,6 +40,36 @@ class CrisalidPeriodModel(models.Model):
         return (self.start_date is None or self.start_date <= today) and (
             self.end_date is None or self.end_date >= today
         )
+
+
+class StructureDomain(TimestampedModelMixin, models.Model):
+    domain = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    structure = models.ForeignKey(
+        "crisalid.Structure",
+        on_delete=models.CASCADE,
+        related_name="structure_domains",
+    )
+    level = models.SmallIntegerField(
+        default=0, validators=(MinValueValidator(0), MaxValueValidator(100))
+    )
+
+    class Meta:
+        ordering = ("-level",)
+        constraints = (
+            # only one structure by domains
+            models.UniqueConstraint(
+                "domain",
+                "structure",
+                name="unique_domain_structure",
+            ),
+        )
+        verbose_name_plural = "StructureDomains"
+
+    def __str__(self):
+        return f"{self.domain} {self.level}"
+
+    def __repr__(self):
+        return f"<StructureDomain domain={self.domain} structure={self.structure_id} level={self.level}>"
 
 
 class Structure(

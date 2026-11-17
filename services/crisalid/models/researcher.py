@@ -28,7 +28,7 @@ class ResearcherDomains(TimestampedModelMixin, models.Model):
     )
 
     class Meta:
-        ordering = ("level",)
+        ordering = ("-level",)
         constraints = (
             # only one researcher by domains
             models.UniqueConstraint(

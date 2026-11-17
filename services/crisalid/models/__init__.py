@@ -24,6 +24,7 @@ from .structure import (
     CrisalidPeriodModel,
     ResearcherStructure,
     Structure,
+    StructureDomain,
     StructureRelation,
 )
 from .teaching import Teaching, TeachingDomain
@@ -56,4 +57,5 @@ __all__ = [
     "Funding",
     "Structure",
     "StructureRelation",
+    "StructureDomain",
 ]

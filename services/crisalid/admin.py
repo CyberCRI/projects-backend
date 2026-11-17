@@ -23,6 +23,7 @@ from services.crisalid.models.document import DocumentDomains, DocumentJournal
 from services.crisalid.models.funding import Funding
 from services.crisalid.models.patent import Patent, PatentContributor
 from services.crisalid.models.researcher import ResearcherDomains
+from services.crisalid.models.structure import StructureDomain
 from services.crisalid.models.teaching import Teaching
 from services.crisalid.tasks import (
     load_apollo_data,
@@ -470,6 +471,12 @@ class ResearcherStructureAdminInline(admin.TabularInline):
     autocomplete_fields = ("researcher",)
 
 
+class StructureDomainAdminInline(admin.TabularInline):
+    model = StructureDomain
+    extra = 0
+    autocomplete_fields = ("structure",)
+
+
 @admin.register(Structure)
 class StructureAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
@@ -492,6 +499,7 @@ class StructureAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Mode
         identifiers_inline(StructureIdentifier),
         StructureRelationAdminInline,
         ResearcherStructureAdminInline,
+        StructureDomainAdminInline,
     )
     actions = ("sync_groups",)
 

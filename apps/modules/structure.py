@@ -18,7 +18,6 @@ from apps.modules.base import (
     organization_related,
     register_module,
 )
-from apps.skills.models import Tag
 from services.crisalid.models import (
     AuthorityOrganization,
     Document,
@@ -29,6 +28,9 @@ from services.crisalid.models import (
     Structure,
     StructureRelation,
 )
+from services.crisalid.models.award import Award
+from services.crisalid.models.structure import StructureDomain
+from services.crisalid.models.teaching import Teaching
 
 
 @register_module(Structure)
@@ -161,13 +163,8 @@ class StructureModules(AbstractModules):
             )
         )
 
-    def research_domains(self) -> BaseManager[Tag]:
-        # filter before annotate: only structure documents are counted
-        return (
-            Tag.objects.filter(documents__in=self.documents())
-            .annotate(documents_count=Count("documents", distinct=True))
-            .order_by("-documents_count", "title")
-        )
+    def research_domains(self) -> BaseManager[StructureDomain]:
+        return self.instance.structure_domains.all()
 
     def collaborations(self) -> BaseManager[AuthorityOrganization]:
         # filter before annotate: only structure documents are counted
@@ -179,3 +176,9 @@ class StructureModules(AbstractModules):
 
     def citations(self) -> BaseManager[DocumentJournal]:
         return DocumentJournal.objects.filter(document__in=self.documents())
+
+    def awards(self) -> BaseManager[Award]:
+        return Award.objects.filter(researchers__in=self.researchers())
+
+    def teachings(self) -> BaseManager[Teaching]:
+        return Teaching.objects.filter(researcher__in=self.researchers())
