@@ -1,5 +1,6 @@
 from typing import Any, Optional
 
+from jsonschema import SchemaError, validators
 from rest_framework import serializers
 
 from apps.accounts.serializers import UserLighterSerializer
@@ -15,7 +16,9 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from services.translator.serializers import auto_translated
 
+from .ai_evaluation import render_prompt
 from .exceptions import (
+    AIEvaluationInvalidSchemaError,
     CommentProjectPermissionDeniedError,
     CommentReplyOnReplyError,
     CommentReplyToSelfError,
@@ -216,3 +219,39 @@ class CommentSerializer(
         if "project" in self.validated_data:
             return self.validated_data["project"]
         return None
+
+
+class AIEvaluationRequestSerializer(serializers.Serializer):
+    """Body of `POST /v1/project/{project_id}/ai-evaluation/`.
+
+    `system` and `prompts` are Django templates rendered against `project`,
+    e.g. `{{ project.description }}`, `{{ project.tabs.<tab_slug>.text }}` (tab
+    slug with `-` replaced by `_`) or
+    `{% for entry in project.blog_entries %}{{ entry.title }}{% endfor %}`.
+    """
+
+    system = serializers.ListField(
+        child=serializers.CharField(trim_whitespace=False), required=False, default=list
+    )
+    prompts = serializers.ListField(
+        child=serializers.CharField(trim_whitespace=False), allow_empty=False
+    )
+    json_schema = serializers.DictField()
+    language = serializers.CharField(required=False, default="en", allow_blank=True)
+
+    def validate_system(self, value: list[str]) -> list[str]:
+        for template in value:
+            render_prompt(template, {})
+        return value
+
+    def validate_prompts(self, value: list[str]) -> list[str]:
+        for template in value:
+            render_prompt(template, {})
+        return value
+
+    def validate_json_schema(self, value: dict[str, Any]) -> dict[str, Any]:
+        try:
+            validators.validator_for(value).check_schema(value)
+        except SchemaError as e:
+            raise AIEvaluationInvalidSchemaError(e.message) from e
+        return value
