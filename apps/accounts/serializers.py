@@ -444,7 +444,9 @@ class UserLightSerializer(UserSerializer):
 @auto_translated
 class UserLighterSerializer(UserLightSerializer):
     role = serializers.CharField(required=False, read_only=True)
-    researcher = ResearcherSerializerSuperLight()
+    researcher = ResearcherSerializerSuperLight(
+        read_only=True, required=False, allow_null=True
+    )
 
     class Meta(UserLightSerializer.Meta):
         read_only_fields = [
@@ -575,7 +577,7 @@ class PeopleGroupSerializer(
         required=False,
     )
     locations = PeopleGroupLocationSerializer(many=True, required=False)
-    structure = StructureSerializer(read_only=True, allow_null=True)
+    structure = StructureSerializer(read_only=True, required=False, allow_null=True)
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
@@ -597,13 +599,16 @@ class PeopleGroupSerializer(
         return value
 
     def run_validation(self, data=serializers.empty):
-        data["parent"] = (
-            data.get("parent", self.instance.parent)
-            if self.instance
-            else data.get("parent")
-        )
-        if isinstance(data["parent"], PeopleGroup):
-            data["parent"] = data["parent"].id
+        if isinstance(data, dict):
+            data = data.copy()
+            if self.instance:
+                data["parent"] = data.get("parent", self.instance.parent)
+            else:
+                data["parent"] = data.get("parent")
+
+            if isinstance(data["parent"], PeopleGroup):
+                data["parent"] = data["parent"].id
+
         return super().run_validation(data)
 
     def validate_parent(self, value):
@@ -646,7 +651,7 @@ class PeopleGroupSerializer(
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["is_root", "slug", "modules"]
+        read_only_fields = ["is_root", "slug", "modules", "structure"]
         fields = read_only_fields + [
             "id",
             "name",
@@ -663,13 +668,14 @@ class PeopleGroupSerializer(
             "tags",
             "locations",
             "publication_status",
-            "structure",
         ]
 
 
 @auto_translated
 class PeopleGroupLightSerializer(PeopleGroupSerializer):
-    structure = StructureSuperLightSerializer(read_only=True, allow_null=True)
+    structure = StructureSuperLightSerializer(
+        read_only=True, required=False, allow_null=True
+    )
 
     class Meta(PeopleGroupSerializer.Meta):
         read_only_fields = ["organization", "is_root", "publication_status"]
@@ -690,8 +696,6 @@ class PeopleGroupLightSerializer(PeopleGroupSerializer):
 
 @auto_translated
 class PeopleGroupExtraLightSerializer(PeopleGroupLightSerializer):
-    structure = StructureSuperLightSerializer(read_only=True, allow_null=True)
-
     class Meta(PeopleGroupLightSerializer.Meta):
         fields = ("id", "slug", "name", "roles", "structure")
         modules_keys = ()

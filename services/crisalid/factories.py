@@ -6,12 +6,14 @@ from faker import Faker
 
 from apps.accounts.factories import UserFactory
 from apps.organizations.factories import OrganizationFactory
+from apps.skills.factories import TagFactory
 from services.crisalid import relators
 from services.crisalid.models.award import Award
 from services.crisalid.models.document import DocumentJournal
 from services.crisalid.models.funding import Funding
 from services.crisalid.models.journal import Journal
 from services.crisalid.models.patent import Patent, PatentContributor
+from services.crisalid.models.structure import StructureDomain
 from services.crisalid.models.teaching import Teaching
 
 from .models import (
@@ -167,6 +169,14 @@ class AwardContributorFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = AwardContributor
+
+
+class StructureDomainFactory(factory.django.DjangoModelFactory):
+    domain = factory.LazyFunction(lambda: TagFactory())
+    level = faker.random_digit() * 10
+
+    class Meta:
+        model = StructureDomain
 
 
 class StructureFactory(factory.django.DjangoModelFactory):

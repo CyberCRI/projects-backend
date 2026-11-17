@@ -21,6 +21,7 @@ from services.crisalid.factories import (
     PatentFactory,
     ResearcherFactory,
     ResearcherStructureFactory,
+    StructureDomainFactory,
     StructureFactory,
     StructureRelationFactory,
     TeachingFactory,
@@ -753,6 +754,8 @@ class StructureViewsTestCase(JwtAPITestCase):
             organization=cls.organization, generic_type="institution"
         )
         cls.laboratory = StructureFactory(organization=cls.organization)
+        cls.laboratory_domains = StructureDomainFactory(structure=cls.laboratory)
+        cls.laboratory_domains_2 = StructureDomainFactory(structure=cls.laboratory)
         cls.team = StructureFactory(organization=cls.organization, generic_type="team")
         StructureRelationFactory(
             structure=cls.laboratory, related_structure=cls.faculty
@@ -819,9 +822,11 @@ class StructureViewsTestCase(JwtAPITestCase):
         self.assertEqual(modules["parent_structures"], 1)
         self.assertEqual(modules["supervising_structures"], 1)
         self.assertEqual(modules["supervised_structures"], 0)
-        self.assertEqual(modules["research_domains"], 2)
+        self.assertEqual(modules["domains"], 2)
         self.assertEqual(modules["collaborations"], 1)
         self.assertEqual(modules["citations"], 1)
+        self.assertEqual(modules["awards"], 0)
+        self.assertEqual(modules["teachings"], 0)
 
     def test_list_structures(self):
         self.authenticate()
@@ -870,16 +875,14 @@ class StructureViewsTestCase(JwtAPITestCase):
             [(self.laboratory.id, "main_supervision")],
         )
 
-    def test_research_domains(self):
+    def test_domains(self):
         self.authenticate()
-        response = self.client.get(
-            self.url("Structure-research-domains", self.laboratory)
-        )
+        response = self.client.get(self.url("Structure-domains", self.laboratory))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.json()["results"]
-        self.assertEqual(
-            [(r["id"], r["documents_count"]) for r in results],
-            [(self.biophysics.id, 2), (self.optics.id, 1)],
+        self.assertSetEqual(
+            {r["id"] for r in results},
+            {self.laboratory_domains.id, self.laboratory_domains_2.id},
         )
 
     def test_collaborations(self):

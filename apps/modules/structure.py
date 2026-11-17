@@ -163,7 +163,7 @@ class StructureModules(AbstractModules):
             )
         )
 
-    def research_domains(self) -> BaseManager[StructureDomain]:
+    def domains(self) -> BaseManager[StructureDomain]:
         return self.instance.structure_domains.all()
 
     def collaborations(self) -> BaseManager[AuthorityOrganization]:
