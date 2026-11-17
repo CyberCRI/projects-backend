@@ -110,7 +110,7 @@ class ResearcherSerializerLight(ResearcherSerializer):
             "domains",
             "modules",
         )
-        modules_keys = ("domains", "strucutres")
+        modules_keys = ("domains", "structures")
 
 
 class ResearcherSerializerSuperLight(ResearcherSerializerLight):

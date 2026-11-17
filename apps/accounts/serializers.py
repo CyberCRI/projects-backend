@@ -683,7 +683,7 @@ class PeopleGroupLightSerializer(PeopleGroupSerializer):
             "header_image",
             "roles",
             "modules",
-            "strucutre",
+            "structure",
         ]
         modules_keys = ("members", "subgroups")
 
@@ -693,7 +693,7 @@ class PeopleGroupExtraLightSerializer(PeopleGroupLightSerializer):
     structure = StructureSuperLightSerializer(read_only=True, allow_null=True)
 
     class Meta(PeopleGroupLightSerializer.Meta):
-        fields = ("id", "slug", "name", "roles", "strucutre")
+        fields = ("id", "slug", "name", "roles", "structure")
         modules_keys = ()
 
 
