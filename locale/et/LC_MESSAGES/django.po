@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 17:37+0200\n"
+"POT-Creation-Date: 2026-11-17 15:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -237,6 +237,42 @@ msgstr "Sa ei saa vastusele vastata"
 #: apps/feedbacks/exceptions.py:51
 msgid "A comment cannot be a reply to itself"
 msgstr "Kommentaar ei saa olla vastus iseendale"
+
+#: apps/feedbacks/exceptions.py:57
+msgid "The prompt template is invalid"
+msgstr "Prompti mall ei ole kehtiv"
+
+#: apps/feedbacks/exceptions.py:62
+#, python-brace-format
+msgid "The prompt template is invalid : {error}"
+msgstr "Prompti mall ei ole kehtiv: {error}"
+
+#: apps/feedbacks/exceptions.py:71
+msgid "The JSON schema is invalid"
+msgstr "JSON-skeem ei ole kehtiv"
+
+#: apps/feedbacks/exceptions.py:76
+#, python-brace-format
+msgid "The JSON schema is invalid : {error}"
+msgstr "JSON-skeem ei ole kehtiv: {error}"
+
+#: apps/feedbacks/exceptions.py:88
+msgid "The AI service failed to answer"
+msgstr "Tehisintellekti teenus ei vastanud"
+
+#: apps/feedbacks/exceptions.py:93
+#, python-brace-format
+msgid "The AI service failed to answer : {error}"
+msgstr "Tehisintellekti teenus ei vastanud: {error}"
+
+#: apps/feedbacks/exceptions.py:102
+msgid "The AI answer does not match the JSON schema"
+msgstr "Tehisintellekti vastus ei vasta JSON-skeemile"
+
+#: apps/feedbacks/exceptions.py:107
+#, python-brace-format
+msgid "The AI answer does not match the JSON schema : {error}"
+msgstr "Tehisintellekti vastus ei vasta JSON-skeemile: {error}"
 
 #: apps/files/exceptions.py:12
 msgid "The file you are trying to upload is already attached to this project"
@@ -4397,15 +4433,3 @@ msgstr "Autoriõigus"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Kõik õigused kaitstud."
-
-#~ msgid "Book Review"
-#~ msgstr "Raamatuarvustus"
-
-#~ msgid "Editorial"
-#~ msgstr "Juhtkiri"
-
-#~ msgid "Peer review"
-#~ msgstr "Eelretsenseerimine"
-
-#~ msgid "Review Paper"
-#~ msgstr "Ülevaateartikkel"

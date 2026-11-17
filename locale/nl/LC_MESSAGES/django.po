@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 17:37+0200\n"
+"POT-Creation-Date: 2026-11-17 15:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -241,6 +241,42 @@ msgstr "Je kunt niet reageren op een antwoord"
 #: apps/feedbacks/exceptions.py:51
 msgid "A comment cannot be a reply to itself"
 msgstr "Een reactie kan geen antwoord op zichzelf zijn"
+
+#: apps/feedbacks/exceptions.py:57
+msgid "The prompt template is invalid"
+msgstr "Het promptsjabloon is ongeldig"
+
+#: apps/feedbacks/exceptions.py:62
+#, python-brace-format
+msgid "The prompt template is invalid : {error}"
+msgstr "Het promptsjabloon is ongeldig: {error}"
+
+#: apps/feedbacks/exceptions.py:71
+msgid "The JSON schema is invalid"
+msgstr "Het JSON-schema is ongeldig"
+
+#: apps/feedbacks/exceptions.py:76
+#, python-brace-format
+msgid "The JSON schema is invalid : {error}"
+msgstr "Het JSON-schema is ongeldig: {error}"
+
+#: apps/feedbacks/exceptions.py:88
+msgid "The AI service failed to answer"
+msgstr "De AI-service heeft niet geantwoord"
+
+#: apps/feedbacks/exceptions.py:93
+#, python-brace-format
+msgid "The AI service failed to answer : {error}"
+msgstr "De AI-service heeft niet geantwoord: {error}"
+
+#: apps/feedbacks/exceptions.py:102
+msgid "The AI answer does not match the JSON schema"
+msgstr "Het AI-antwoord komt niet overeen met het JSON-schema"
+
+#: apps/feedbacks/exceptions.py:107
+#, python-brace-format
+msgid "The AI answer does not match the JSON schema : {error}"
+msgstr "Het AI-antwoord komt niet overeen met het JSON-schema: {error}"
 
 #: apps/files/exceptions.py:12
 msgid "The file you are trying to upload is already attached to this project"
@@ -4437,15 +4473,3 @@ msgstr "Auteursrecht"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Alle rechten voorbehouden."
-
-#~ msgid "Book Review"
-#~ msgstr "Boekbespreking"
-
-#~ msgid "Editorial"
-#~ msgstr "Redactioneel"
-
-#~ msgid "Peer review"
-#~ msgstr "Collegiale beoordeling"
-
-#~ msgid "Review Paper"
-#~ msgstr "Overzichtsartikel"

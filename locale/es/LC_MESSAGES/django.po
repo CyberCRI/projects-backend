@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 17:37+0200\n"
+"POT-Creation-Date: 2026-11-17 15:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -239,6 +239,42 @@ msgstr "No puedes responder a una respuesta"
 #: apps/feedbacks/exceptions.py:51
 msgid "A comment cannot be a reply to itself"
 msgstr "Un comentario no puede ser una respuesta a sí mismo"
+
+#: apps/feedbacks/exceptions.py:57
+msgid "The prompt template is invalid"
+msgstr "La plantilla del prompt no es válida"
+
+#: apps/feedbacks/exceptions.py:62
+#, python-brace-format
+msgid "The prompt template is invalid : {error}"
+msgstr "La plantilla del prompt no es válida: {error}"
+
+#: apps/feedbacks/exceptions.py:71
+msgid "The JSON schema is invalid"
+msgstr "El esquema JSON no es válido"
+
+#: apps/feedbacks/exceptions.py:76
+#, python-brace-format
+msgid "The JSON schema is invalid : {error}"
+msgstr "El esquema JSON no es válido: {error}"
+
+#: apps/feedbacks/exceptions.py:88
+msgid "The AI service failed to answer"
+msgstr "El servicio de IA no ha respondido"
+
+#: apps/feedbacks/exceptions.py:93
+#, python-brace-format
+msgid "The AI service failed to answer : {error}"
+msgstr "El servicio de IA no ha respondido: {error}"
+
+#: apps/feedbacks/exceptions.py:102
+msgid "The AI answer does not match the JSON schema"
+msgstr "La respuesta de la IA no coincide con el esquema JSON"
+
+#: apps/feedbacks/exceptions.py:107
+#, python-brace-format
+msgid "The AI answer does not match the JSON schema : {error}"
+msgstr "La respuesta de la IA no coincide con el esquema JSON: {error}"
 
 #: apps/files/exceptions.py:12
 msgid "The file you are trying to upload is already attached to this project"
@@ -4421,15 +4457,3 @@ msgstr "Derechos de autor"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
-
-#~ msgid "Book Review"
-#~ msgstr "Reseña de libro"
-
-#~ msgid "Editorial"
-#~ msgstr "Editorial"
-
-#~ msgid "Peer review"
-#~ msgstr "Revisión por pares"
-
-#~ msgid "Review Paper"
-#~ msgstr "Artículo de revisión"

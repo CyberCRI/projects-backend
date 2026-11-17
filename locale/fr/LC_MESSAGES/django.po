@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 17:37+0200\n"
+"POT-Creation-Date: 2026-11-17 15:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -240,6 +240,42 @@ msgstr "Vous ne pouvez pas répondre à une réponse"
 #: apps/feedbacks/exceptions.py:51
 msgid "A comment cannot be a reply to itself"
 msgstr "Un commentaire ne peut pas être une réponse à lui-même"
+
+#: apps/feedbacks/exceptions.py:57
+msgid "The prompt template is invalid"
+msgstr "Le modèle de prompt n'est pas valide"
+
+#: apps/feedbacks/exceptions.py:62
+#, python-brace-format
+msgid "The prompt template is invalid : {error}"
+msgstr "Le modèle de prompt n'est pas valide : {error}"
+
+#: apps/feedbacks/exceptions.py:71
+msgid "The JSON schema is invalid"
+msgstr "Le schéma JSON n'est pas valide"
+
+#: apps/feedbacks/exceptions.py:76
+#, python-brace-format
+msgid "The JSON schema is invalid : {error}"
+msgstr "Le schéma JSON n'est pas valide : {error}"
+
+#: apps/feedbacks/exceptions.py:88
+msgid "The AI service failed to answer"
+msgstr "Le service d'IA n'a pas répondu"
+
+#: apps/feedbacks/exceptions.py:93
+#, python-brace-format
+msgid "The AI service failed to answer : {error}"
+msgstr "Le service d'IA n'a pas répondu : {error}"
+
+#: apps/feedbacks/exceptions.py:102
+msgid "The AI answer does not match the JSON schema"
+msgstr "La réponse de l'IA ne correspond pas au schéma JSON"
+
+#: apps/feedbacks/exceptions.py:107
+#, python-brace-format
+msgid "The AI answer does not match the JSON schema : {error}"
+msgstr "La réponse de l'IA ne correspond pas au schéma JSON : {error}"
 
 #: apps/files/exceptions.py:12
 msgid "The file you are trying to upload is already attached to this project"
@@ -4424,15 +4460,3 @@ msgstr "Droit d'auteur"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Tous droits réservés."
-
-#~ msgid "Book Review"
-#~ msgstr "Critique de livre"
-
-#~ msgid "Editorial"
-#~ msgstr "Éditorial"
-
-#~ msgid "Peer review"
-#~ msgstr "Révision par les pairs"
-
-#~ msgid "Review Paper"
-#~ msgstr "Article de synthèse"
