@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 15:40+0100\n"
+"POT-Creation-Date: 2026-11-17 17:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -230,7 +230,7 @@ msgstr "Sul puudub luba selle projekti jälgimiseks"
 msgid "You don't have the permission to follow this project : {project_title}"
 msgstr "Sul puudub luba selle projekti jälgimiseks: {project_title}"
 
-#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:122
+#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:128
 msgid "You cannot reply to a reply"
 msgstr "Sa ei saa vastusele vastata"
 
@@ -1538,26 +1538,30 @@ msgid "The organizations parameter is mandatory"
 msgstr "Organisatsioonide parameeter on kohustuslik"
 
 #: apps/projects/exceptions.py:53
+msgid "This user is the owner of several projects"
+msgstr "See kasutaja on mitme projekti omanik"
+
+#: apps/projects/exceptions.py:59
 msgid "The project does not belong to any of the given organizations"
 msgstr "Projekt ei kuulu ühessegi antud organisatsiooni"
 
-#: apps/projects/exceptions.py:74
+#: apps/projects/exceptions.py:80
 msgid "You cannot remove all the owners of a project"
 msgstr "Sa ei saa eemaldada kõiki projekti omanikke"
 
-#: apps/projects/exceptions.py:80
+#: apps/projects/exceptions.py:86
 msgid "A project must belong to at least one organization"
 msgstr "Projekt peab kuuluma vähemalt ühte organisatsiooni"
 
-#: apps/projects/exceptions.py:86
+#: apps/projects/exceptions.py:92
 msgid "Only a reviewer can change this project's status"
 msgstr "Ainult ülevaataja saab selle projekti staatust muuta"
 
-#: apps/projects/exceptions.py:92
+#: apps/projects/exceptions.py:98
 msgid "You cannot empty the description of a project"
 msgstr "Sa ei saa projekti kirjeldust tühjendada"
 
-#: apps/projects/exceptions.py:99
+#: apps/projects/exceptions.py:105
 msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
@@ -1565,20 +1569,20 @@ msgstr ""
 "Projekt ei saa kuuluda kategooriasse, kui see ei kuulu ühte projekti "
 "organisatsioonidest"
 
-#: apps/projects/exceptions.py:106
+#: apps/projects/exceptions.py:112
 msgid "A project can't be linked to itself"
 msgstr "Projekti ei saa iseendaga siduda"
 
-#: apps/projects/exceptions.py:111
+#: apps/projects/exceptions.py:117
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
 msgstr "Projekti '{project_title}' ei saa iseendaga siduda"
 
-#: apps/projects/exceptions.py:128
+#: apps/projects/exceptions.py:134
 msgid "A message cannot be a reply to itself"
 msgstr "Sõnum ei saa olla vastus iseendale"
 
-#: apps/projects/exceptions.py:134
+#: apps/projects/exceptions.py:140
 msgid "You cannot change the type of a project's tab"
 msgstr "Sa ei saa muuta projekti vahelehe tüüpi"
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 15:40+0100\n"
+"POT-Creation-Date: 2026-11-17 17:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -236,7 +236,7 @@ msgid "You don't have the permission to follow this project : {project_title}"
 msgstr ""
 "Sie haben keine Berechtigung, diesem Projekt zu folgen: {project_title}"
 
-#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:122
+#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:128
 msgid "You cannot reply to a reply"
 msgstr "Sie können nicht auf eine Antwort antworten"
 
@@ -1577,26 +1577,30 @@ msgid "The organizations parameter is mandatory"
 msgstr "Der Parameter 'Organisationen' ist obligatorisch"
 
 #: apps/projects/exceptions.py:53
+msgid "This user is the owner of several projects"
+msgstr "Dieser Benutzer ist Eigentümer mehrerer Projekte"
+
+#: apps/projects/exceptions.py:59
 msgid "The project does not belong to any of the given organizations"
 msgstr "Das Projekt gehört keiner der angegebenen Organisationen an"
 
-#: apps/projects/exceptions.py:74
+#: apps/projects/exceptions.py:80
 msgid "You cannot remove all the owners of a project"
 msgstr "Sie können nicht alle Eigentümer eines Projekts entfernen"
 
-#: apps/projects/exceptions.py:80
+#: apps/projects/exceptions.py:86
 msgid "A project must belong to at least one organization"
 msgstr "Ein Projekt muss mindestens einer Organisation angehören"
 
-#: apps/projects/exceptions.py:86
+#: apps/projects/exceptions.py:92
 msgid "Only a reviewer can change this project's status"
 msgstr "Nur ein Gutachter kann den Status dieses Projekts ändern"
 
-#: apps/projects/exceptions.py:92
+#: apps/projects/exceptions.py:98
 msgid "You cannot empty the description of a project"
 msgstr "Sie können die Beschreibung eines Projekts nicht leeren"
 
-#: apps/projects/exceptions.py:99
+#: apps/projects/exceptions.py:105
 msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
@@ -1604,21 +1608,21 @@ msgstr ""
 "Ein Projekt kann sich nicht in einer Kategorie befinden, wenn es keiner der "
 "Organisationen des Projekts angehört"
 
-#: apps/projects/exceptions.py:106
+#: apps/projects/exceptions.py:112
 msgid "A project can't be linked to itself"
 msgstr "Ein Projekt kann nicht mit sich selbst verknüpft werden"
 
-#: apps/projects/exceptions.py:111
+#: apps/projects/exceptions.py:117
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
 msgstr ""
 "Das Projekt '{project_title}' kann nicht mit sich selbst verknüpft werden"
 
-#: apps/projects/exceptions.py:128
+#: apps/projects/exceptions.py:134
 msgid "A message cannot be a reply to itself"
 msgstr "Eine Nachricht kann keine Antwort auf sich selbst sein"
 
-#: apps/projects/exceptions.py:134
+#: apps/projects/exceptions.py:140
 msgid "You cannot change the type of a project's tab"
 msgstr "Sie können den Typ eines Projekt-Tabs nicht ändern"
 
