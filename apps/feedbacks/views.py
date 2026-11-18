@@ -2,8 +2,9 @@ import uuid
 
 from django.db import transaction
 from django.db.models import Q, QuerySet
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -13,7 +14,7 @@ from rest_framework.response import Response
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.commons.permissions import IsOwner, ReadOnly
+from apps.commons.permissions import HasApiKey, IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     CreateListDestroyViewSet,
@@ -28,10 +29,12 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission
 
+from . import ai_evaluation
 from .filters import CommentFilter, ReviewFilter
 from .models import Comment, Follow, Review
 from .permissions import IsReviewable
 from .serializers import (
+    AIEvaluationRequestSerializer,
     CommentSerializer,
     FollowSerializer,
     ReviewSerializer,
@@ -237,3 +240,61 @@ class CommentImagesView(NestedProjectViewMixins, ImageStorageView):
 
     def add_image_to_model(self, image, *args, **kwargs):
         return f"/v1/project/{self.project.id}/comment-image/{image.id}"
+
+
+class ProjectAIEvaluationViewSet(MultipleIDViewsetMixin, viewsets.GenericViewSet):
+    """Evaluate a project with an LLM, using caller-provided prompts and schema.
+
+    Authenticated with the API key only, so it deliberately does not use
+    `NestedProjectViewMixins`: that mixin checks the project against the
+    request user's visible projects, and an API-key caller has no user.
+    """
+
+    permission_classes = [HasApiKey]
+    multiple_lookup_fields = [(Project, "project_id")]
+    project: Project
+
+    def initial(self, request, *args, **kwargs):
+        self.project = get_object_or_404(
+            Project.objects.filter(pk=kwargs["project_id"]).prefetch_related(
+                "additional_tabs__items",
+                "blog_entries",
+                "goals",
+                "categories",
+                "tags",
+                "locations",
+                "links",
+                "files",
+            )
+        )
+        super().initial(request, *args, **kwargs)
+
+    @extend_schema(
+        request=AIEvaluationRequestSerializer,
+        responses={200: OpenApiTypes.OBJECT},
+        description=(
+            "Render `system` and `prompts` as Django templates against the "
+            "project (e.g. `{{ project.description }}`, "
+            "`{{ project.tabs.<tab_slug>.text }}` (tab slug with `-` as `_`), "
+            "`{% for entry in project.blog_entries %}...{% endfor %}`) and "
+            "return the LLM answer, validated against `json_schema`."
+        ),
+    )
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_name="evaluate",
+        url_path="evaluate",
+    )
+    def evaluate(self, request, *args, **kwargs):
+        serializer = AIEvaluationRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        result = ai_evaluation.evaluate(
+            self.project,
+            system=data["system"],
+            prompts=data["prompts"],
+            json_schema=data["json_schema"],
+            language=data["language"] or None,
+        )
+        return Response(result, status=status.HTTP_200_OK)

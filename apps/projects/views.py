@@ -2,9 +2,10 @@ import uuid
 
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import QuerySet
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -22,7 +23,8 @@ from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.analytics.models import Stat
 from apps.commons.cache import cache, clear_cache_with_key, redis_cache_view
-from apps.commons.permissions import IsOwner, ReadOnly
+from apps.commons.models import GroupData
+from apps.commons.permissions import HasApiKey, IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     MultipleIDViewsetMixin,
@@ -47,6 +49,7 @@ from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.exceptions import (
     LinkedProjectPermissionDeniedError,
     OrganizationsParameterMissing,
+    UserOwnsSeveralProjectsError,
 )
 
 from .filters import (
@@ -286,6 +289,43 @@ class ProjectViewSet(
         page = self.paginate_queryset(queryset)
         serializer = ProjectSuperLightSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @extend_schema(
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {"email": {"type": "string", "format": "email"}},
+                "required": ["email"],
+            }
+        },
+        responses={200: ProjectSerializer},
+        description=(
+            "Return the only project owned by the user with the given email. "
+            "404 if the user owns no project, 409 if they own several."
+        ),
+    )
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="by-user-email",
+        url_name="by_user_email",
+        permission_classes=[HasApiKey],
+    )
+    def get_by_user_email(self, request, *args, **kwargs):
+        owner_groups = Group.objects.filter(
+            data__role=GroupData.Role.OWNERS,
+            users__email__iexact=request.data.get("email", ""),
+        )
+        projects = (
+            Project.objects.filter(groups__in=owner_groups)
+            .select_related("header_image")
+            .prefetch_related("categories", "tags", "organizations__logo_image")
+            .distinct()
+        )
+        if projects.count() > 1:
+            raise UserOwnsSeveralProjectsError
+        project = get_object_or_404(projects)
+        return Response(self.get_serializer(project).data)
 
 
 class ProjectHeaderView(NestedProjectViewMixins, ImageStorageView):
