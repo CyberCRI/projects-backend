@@ -58,6 +58,12 @@ class AbstractModules:
 
     @classmethod
     @ignore_method
+    @cache
+    def all_modules_keys(cls) -> tuple[str, ...]:
+        return tuple((name for name, _ in cls.all_modules()))
+
+    @classmethod
+    @ignore_method
     # not cached: `modules_keys` comes from the query string, an unbounded cache
     # would grow with each distinct combination sent by clients
     def modules(
