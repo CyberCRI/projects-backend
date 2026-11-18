@@ -1057,3 +1057,9 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
     def teachings(self, request, *args, **kwargs):
         """Method to return teachings from all structures researchers"""
         return self._paginated_module("teachings", TeachingSerializer, TeachingFilter)
+
+    @extend_schema(responses=FundingSerializer(many=True))
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="fundings")
+    def fundings(self, request, *args, **kwargs):
+        """Method to return fundings from all structures researchers"""
+        return self._paginated_module("fundings", FundingSerializer, FundingFilter)

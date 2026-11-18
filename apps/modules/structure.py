@@ -29,6 +29,7 @@ from services.crisalid.models import (
     StructureRelation,
 )
 from services.crisalid.models.award import Award
+from services.crisalid.models.funding import Funding
 from services.crisalid.models.structure import StructureDomain
 from services.crisalid.models.teaching import Teaching
 
@@ -182,3 +183,6 @@ class StructureModules(AbstractModules):
 
     def teachings(self) -> BaseManager[Teaching]:
         return Teaching.objects.filter(researcher__in=self.researchers())
+
+    def fundings(self) -> BaseManager[Funding]:
+        return Funding.objects.filter(researcher__in=self.researchers())
