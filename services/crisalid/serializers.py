@@ -115,13 +115,8 @@ class ResearcherSerializerLight(ResearcherSerializer):
 
 class ResearcherSerializerSuperLight(ResearcherSerializerLight):
     class Meta(ResearcherSerializerLight.Meta):
-        fields = ("id", "display_name", "short_bio", "modules")
+        fields = ("id", "user", "display_name", "short_bio", "modules")
         modules_keys = ()
-
-
-class ResearcherDocumentsSerializer(ResearcherSerializer):
-    class Meta(ResearcherSerializer.Meta):
-        fields = ("id", "user", "display_name")
 
 
 class DocumentDomainsSerializer(serializers.ModelSerializer):
@@ -134,7 +129,7 @@ class DocumentDomainsSerializer(serializers.ModelSerializer):
 
 @auto_translated
 class DocumentSerializer(ModulesSerializers, serializers.ModelSerializer):
-    contributors = ResearcherDocumentsSerializer(many=True)
+    contributors = ResearcherSerializerSuperLight(many=True)
     identifiers = IdentifierSerializer(many=True)
 
     class Meta:
