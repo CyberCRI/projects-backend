@@ -1027,7 +1027,7 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
         )
 
     @extend_schema(responses=StructureDomainSerializer(many=True))
-    @action(detail=True, methods=[HTTPMethod.GET], url_path="research-domains")
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="domains")
     def domains(self, request, *args, **kwargs):
         """Method to return research domains of the structure documents"""
         return self._paginated_module("domains", StructureDomainSerializer)

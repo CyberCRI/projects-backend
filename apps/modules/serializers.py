@@ -22,6 +22,10 @@ class ModulesSerializers(serializers.ModelSerializer):
             # if modules is not set, get "default" values from Meta serializer
             if modules_keys is None:
                 modules_keys = getattr(self.Meta, "modules_keys", None)
+
+            if modules_keys is not None and "all" in modules_keys:
+                modules_keys = self.Meta.model.get_related_module().modules_keys()
+
             self.context["modules_keys"] = (
                 tuple(modules_keys) if modules_keys is not None else None
             )
