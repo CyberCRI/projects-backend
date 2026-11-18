@@ -5,6 +5,7 @@ from apps.commons.urls import project_router_register
 from apps.feedbacks.views import (
     CommentImagesView,
     CommentViewSet,
+    ProjectAIEvaluationViewSet,
     ProjectFollowViewSet,
     ReviewViewSet,
 )
@@ -58,6 +59,9 @@ project_router_register(
 )
 project_router_register(router, r"follow", ProjectFollowViewSet, basename="Followed")
 project_router_register(router, r"review", ReviewViewSet, basename="Reviewed")
+project_router_register(
+    router, r"ai-evaluation", ProjectAIEvaluationViewSet, basename="AIEvaluation"
+)
 project_router_register(
     router, r"announcement", ProjectAnnouncementViewSet, basename="Project-Announcement"
 )

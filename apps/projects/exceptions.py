@@ -48,6 +48,12 @@ class OrganizationsParameterMissing(APIException):
     default_code = "organizations_parameter_missing_error"
 
 
+class UserOwnsSeveralProjectsError(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = _("This user is the owner of several projects")
+    default_code = "user_owns_several_projects_error"
+
+
 class WrongProjectOrganizationError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("The project does not belong to any of the given organizations")

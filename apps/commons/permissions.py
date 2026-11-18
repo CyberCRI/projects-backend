@@ -1,3 +1,6 @@
+import hmac
+
+from django.conf import settings
 from django.db.models import Model
 from rest_framework import permissions
 from rest_framework.request import Request
@@ -84,6 +87,24 @@ class WillBeOwner(permissions.BasePermission):
             if user_id:
                 return int(request.user.id) == int(user_id)
         return False
+
+    def has_object_permission(
+        self, request: Request, view: GenericViewSet, obj
+    ) -> bool:
+        return self.has_permission(request, view)
+
+
+class HasApiKey(permissions.BasePermission):
+    """Allows requests carrying a valid API key in the `X-API-Key` header."""
+
+    header_name = "X-API-Key"
+
+    def has_permission(self, request: Request, view: GenericViewSet) -> bool:
+        api_key = request.headers.get(settings.API_KEY_HEADER_NAME)
+        expected_key = settings.API_KEY
+        if not api_key or not expected_key:
+            return False
+        return hmac.compare_digest(api_key, expected_key)
 
     def has_object_permission(
         self, request: Request, view: GenericViewSet, obj

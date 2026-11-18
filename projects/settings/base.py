@@ -386,6 +386,11 @@ OIDC_RP_SCOPES = "openid profile email"
 LOGIN_URL = "oidc_authentication_init"
 
 
+# API Key
+API_KEY_HEADER_NAME = os.getenv("API_KEY_HEADER_NAME", "X-API-Key")
+API_KEY = os.getenv("API_KEY", "")
+
+
 # SWAGGER
 # https://github.com/tfranzel/drf-spectacular
 SPECTACULAR_SETTINGS = {
@@ -707,6 +712,8 @@ GOOGLE_DEFAULT_ORG_UNIT = "/CRI/Admin Staff"
 ##############
 
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
+MISTRAL_COMPLETION_MODEL = os.getenv("MISTRAL_COMPLETION_MODEL", "mistral-small")
+MISTRAL_EMBEDDING_MODEL = os.getenv("MISTRAL_EMBEDDING_MODEL", "mistral-embed")
 
 
 ##############
