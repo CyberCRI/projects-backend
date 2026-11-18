@@ -185,4 +185,4 @@ class StructureModules(AbstractModules):
         return Teaching.objects.filter(researcher__in=self.researchers())
 
     def fundings(self) -> BaseManager[Funding]:
-        return Funding.objects.filter(researcher__in=self.researchers())
+        return Funding.objects.filter(researchers__in=self.researchers())
