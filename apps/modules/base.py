@@ -58,12 +58,6 @@ class AbstractModules:
 
     @classmethod
     @ignore_method
-    @cache
-    def all_modules_keys(cls) -> tuple[str, ...]:
-        return tuple((name for name, _ in cls.all_modules()))
-
-    @classmethod
-    @ignore_method
     # not cached: `modules_keys` comes from the query string, an unbounded cache
     # would grow with each distinct combination sent by clients
     def modules(
@@ -78,6 +72,12 @@ class AbstractModules:
 
         return tuple(modules_list)
 
+    @classmethod
+    @ignore_method
+    @cache
+    def modules_keys(cls) -> tuple[str, ...]:
+        return tuple((name for name, _ in cls.modules()))
+
     @ignore_method
     def count(self, modules_keys: tuple[str] | None = None):
         modules = {}
@@ -90,7 +90,7 @@ class AbstractModules:
     @ignore_method
     def ApiParameter(cls, **kw):  # noqa: N802
         """generate OpenApiParameter from modules class"""
-        enum = [name for name, _ in cls.modules()]
+        enum = ("none", "all", *cls.modules_keys())
         return OpenApiParameter(
             name="modules",
             description="modules keys to returns",
