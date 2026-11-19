@@ -30,7 +30,9 @@ class AwardContributor(models.Model):
         on_delete=models.CASCADE,
         related_name="awards_conributor",
     )
-    award = models.ForeignKey(Award, on_delete=models.CASCADE)
+    award = models.ForeignKey(
+        Award, on_delete=models.CASCADE, related_name="contributors"
+    )
     description = models.TextField(null=True, blank=True)
 
     date = models.DateField(null=True, blank=True)

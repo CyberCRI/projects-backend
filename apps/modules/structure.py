@@ -182,7 +182,7 @@ class StructureModules(AbstractModules):
     def awards(self) -> BaseManager[Award]:
         qs = AwardContributor.objects.filter(researcher__in=self.researchers())
 
-        pf = Prefetch("awardcontributor_set", queryset=qs)
+        pf = Prefetch("contributors", queryset=qs)
         return Award.objects.filter(
             researchers__in=self.researchers()
         ).prefetch_related(pf)

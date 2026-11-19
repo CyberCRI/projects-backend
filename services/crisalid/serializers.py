@@ -215,9 +215,7 @@ class AwardContributorSerializerFromAward(serializers.ModelSerializer):
 
 @auto_translated
 class AwardWithContributorSerializer(serializers.ModelSerializer):
-    contributors = AwardContributorSerializerFromAward(
-        many=True, source="awardcontributor_set"
-    )
+    contributors = AwardContributorSerializerFromAward(many=True)
 
     class Meta:
         model = Award
