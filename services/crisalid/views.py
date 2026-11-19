@@ -54,6 +54,7 @@ from services.crisalid.serializers import (
     AwardContributorSerializer,
     AwardSerializer,
     AwardSerializerLight,
+    AwardWithContributorSerializer,
     CitationSerializer,
     CollaborationSerializer,
     DocumentAnalyticsSerializer,
@@ -1046,11 +1047,13 @@ class StructureViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewS
         """Method to return journals where the structure documents are published"""
         return self._paginated_module("citations", CitationSerializer, JournalFilter)
 
-    @extend_schema(responses=AwardSerializer(many=True))
+    @extend_schema(responses=AwardWithContributorSerializer(many=True))
     @action(detail=True, methods=[HTTPMethod.GET], url_path="awards")
     def awards(self, request, *args, **kwargs):
         """Method to return awards from all structures researchers"""
-        return self._paginated_module("awards", AwardSerializer, AwardFilter)
+        return self._paginated_module(
+            "awards", AwardWithContributorSerializer, AwardFilter
+        )
 
     @extend_schema(responses=TeachingSerializer(many=True))
     @action(detail=True, methods=[HTTPMethod.GET], url_path="teachings")

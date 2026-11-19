@@ -6,6 +6,7 @@ from django.db.models import (
     Count,
     IntegerField,
     OuterRef,
+    Prefetch,
     Subquery,
     Value,
     When,
@@ -28,7 +29,7 @@ from services.crisalid.models import (
     Structure,
     StructureRelation,
 )
-from services.crisalid.models.award import Award
+from services.crisalid.models.award import Award, AwardContributor
 from services.crisalid.models.funding import Funding
 from services.crisalid.models.structure import StructureDomain
 from services.crisalid.models.teaching import Teaching
@@ -179,7 +180,12 @@ class StructureModules(AbstractModules):
         return DocumentJournal.objects.filter(document__in=self.documents())
 
     def awards(self) -> BaseManager[Award]:
-        return Award.objects.filter(researchers__in=self.researchers())
+        qs = AwardContributor.objects.filter(researcher__in=self.researchers())
+
+        pf = Prefetch("awardcontributor_set", queryset=qs)
+        return Award.objects.filter(
+            researchers__in=self.researchers()
+        ).prefetch_related(pf)
 
     def teachings(self) -> BaseManager[Teaching]:
         return Teaching.objects.filter(researcher__in=self.researchers())

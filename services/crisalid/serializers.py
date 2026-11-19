@@ -205,6 +205,25 @@ class AwardContributorSerializer(serializers.ModelSerializer):
         fields = ("id", "award", "date", "link")
 
 
+class AwardContributorSerializerFromAward(serializers.ModelSerializer):
+    researcher = ResearcherSerializerSuperLight()
+
+    class Meta:
+        model = AwardContributor
+        fields = ("id", "date", "link", "researcher")
+
+
+@auto_translated
+class AwardWithContributorSerializer(serializers.ModelSerializer):
+    contributors = AwardContributorSerializerFromAward(
+        many=True, source="awardcontributor_set"
+    )
+
+    class Meta:
+        model = Award
+        fields = ("id", "name", "description", "contributors")
+
+
 @auto_translated
 class FundingSerializer(serializers.ModelSerializer):
     researchers = ResearcherSerializerSuperLight(many=True)
