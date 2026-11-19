@@ -1,5 +1,6 @@
 import hashlib
 import itertools
+import logging
 import traceback
 from typing import TYPE_CHECKING
 
@@ -17,6 +18,8 @@ from .interface import MistralService
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
     from apps.skills.models import Tag
+
+logger = logging.getLogger(__name__)
 
 
 class HasWeight:
@@ -456,6 +459,35 @@ class DocumentEmbedding(MistralEmbedding):
             self.item.description,
             self.item.document_type,
         ]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
+        return self
+
+
+class ResearcherEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "crisalid.Researcher",
+        on_delete=models.CASCADE,
+        related_name="embedding",
+    )
+
+    def get_is_visible(self) -> bool:
+        # generate embeding only if researcher is linked to a user
+        return self.item.user_id is not None
+
+    def set_embedding(self, *args, **kwargs) -> "ResearcherEmbedding":
+        domains = ""
+        for title, description in self.item.domains.values_list("title", "description"):
+            domains += f"{title}"
+            if description:
+                domains += f": {description}"
+            domains += "\n"
+
+        prompt = [self.item.bio, f"domains : {domains}"]
         prompt_hashcode = self.hash_prompt(prompt)
         if self.prompt_hashcode != prompt_hashcode:
             prompt = "\n\n".join(prompt)

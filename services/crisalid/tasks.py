@@ -1,5 +1,10 @@
+import datetime
 import logging
 
+from django.conf import settings
+from django.db import transaction
+
+from apps.organizations.models import Organization
 from projects.celery import app
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
 from services.crisalid.bus.consumer import on_event
@@ -8,9 +13,20 @@ from services.crisalid.models import (
     CrisalidConfig,
     Document,
     Researcher,
+    ResearcherStructure,
+    Structure,
 )
-from services.crisalid.populates import PopulateDocument, PopulateResearcher
+from services.crisalid.populates import (
+    PopulateAuthorityOrganization,
+    PopulateDocument,
+    PopulateJournal,
+    PopulateResearcher,
+    PopulateStructure,
+)
 from services.crisalid.populates.caches import LiveCache
+from services.crisalid.utils.ia import generate_bio_from_researcher
+from services.crisalid.utils.identifiers import release_instances
+from services.crisalid.utils.structures import sync_group_members, with_ancestors
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +35,23 @@ def get_crisalid_config(crisalid_config_id: int) -> CrisalidConfig:
     return CrisalidConfig.objects.select_related("organization").get(
         id=crisalid_config_id
     )
+
+
+def event_identifiers(fields: dict) -> list[dict]:
+    """identifiers of a person/structure event (ikg format)"""
+    return [
+        {"harvester": iden["type"].lower(), "value": iden["value"]}
+        for iden in fields["identifiers"]
+    ]
+
+
+def person_identifiers(fields: dict) -> list[dict]:
+    """identifiers of a person event, without privacy identifiers"""
+    return [
+        iden
+        for iden in event_identifiers(fields)
+        if iden["harvester"] not in Researcher.PRIVACY_HARVESTER
+    ]
 
 
 # TODO(remi): convert fields to graphql request
@@ -37,15 +70,31 @@ def create_researcher(crisalid_config_id: int, fields: dict):
     service = CrisalidService(config)
 
     # fetch data from apollo
-    data = service.query("people", offset=0, limit=1, where={"uid_EQ": fields["uid"]})[
-        "people"
-    ]
+    data = service.profile(fields["uid"])
     if not data:
         logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
         return
 
     populate = PopulateResearcher(config)
-    populate.single(data[0])
+    populate.single(data)
+
+
+@on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.UNCHANGED)
+@app.task(name=f"{__name__}.update_researcher_structures")
+def update_researcher_structures(crisalid_config_id: int, fields: dict):
+    """ikg sends "updated" only when identifiers changed, memberships/employments
+    changes are sent as "unchanged" events
+    """
+    identifiers = person_identifiers(fields)
+    if not identifiers:
+        return
+    researcher = Researcher.objects.from_identifiers(identifiers).first()
+    # unknown researchers are created on "created" events
+    if researcher is None:
+        return
+
+    # TODO: only fetch from graph when relations changed
+    create_researcher(crisalid_config_id, fields)
 
 
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.DELETED)
@@ -54,15 +103,29 @@ def delete_researcher(crisalid_config_id: int, fields: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.info("receive %s for organization %s", fields, config.organization)
 
-    identifiers = [
-        iden
-        for iden in fields["identifiers"]
-        if iden["harvester"].lower() not in Researcher.PRIVACY_HARVESTER
-    ]
+    identifiers = person_identifiers(fields)
 
     # TODO(remi): check only one elements are deleted
-    pks = Researcher.objects.from_identifiers(identifiers).values_list("pk", flat=True)
-    deleted, _ = Researcher.objects.filter(pk__in=pks).delete()
+    pks = list(
+        Researcher.objects.from_identifiers(identifiers).values_list("pk", flat=True)
+    )
+    # structures groups to sync (all of them if researchers are deleted)
+    structures = with_ancestors(
+        Structure.objects.filter(
+            pk__in=ResearcherStructure.objects.filter(researcher__in=pks).values(
+                "structure"
+            )
+        )
+    )
+    with transaction.atomic():
+        # researchers are no longer members of the organization structures
+        ResearcherStructure.objects.filter(
+            researcher__in=pks, structure__organization=config.organization
+        ).delete()
+        # researchers are deleted only when no other config references them
+        deleted = release_instances(Researcher.objects.filter(pk__in=pks), config)
+    for structure in structures:
+        sync_group_members(structure)
 
     logger.info("deleted = %s", deleted)
 
@@ -77,15 +140,13 @@ def create_document(crisalid_config_id: int, fields: dict):
     service = CrisalidService(config)
 
     # fetch data from apollo
-    data = service.query(
-        "documents", offset=0, limit=1, where={"uid_EQ": fields["uid"]}
-    )["documents"]
+    data = service.document(fields["uid"])
     if not data:
         logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
         return
 
     populate = PopulateDocument(config)
-    populate.single(data[0])
+    populate.single(data)
 
 
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.DELETED)
@@ -100,8 +161,54 @@ def delete_document(crisalid_config_id: int, fields: dict):
     ]
 
     pks = Document.objects.from_identifiers(identifiers).values_list("pk", flat=True)
-    deleted, _ = Document.objects.filter(pk__in=pks).delete()
+    # documents are deleted only when no other config references them
+    deleted = release_instances(Document.objects.filter(pk__in=pks), config)
     logger.info("deleted = %s", deleted)
+
+
+@on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.CREATED)
+@on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.UPDATED)
+@app.task(name=f"{__name__}.create_structure")
+def create_structure(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.info("receive %s for organization %s", fields, config.organization)
+
+    service = CrisalidService(config)
+
+    # fetch data from apollo
+    data = service.structure(fields["uid"])
+    if not data:
+        logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
+        return
+
+    # structures and people related to this one already have their relations:
+    # they created it (node only) if it was missing
+    PopulateStructure(config).single(data)
+
+
+@on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.DELETED)
+@app.task(name=f"{__name__}.delete_structure")
+def delete_structure(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.info("receive %s for organization %s", fields, config.organization)
+
+    # uids can be the same in two crisalid instances, structures are matched by identifiers
+    structure = (
+        Structure.objects.filter(organization=config.organization)
+        .from_identifiers(event_identifiers(fields))
+        .first()
+    )
+    if structure is None:
+        return
+
+    # sub-structures members are no longer members of ancestors groups
+    ancestors = structure.ancestors()
+    with transaction.atomic():
+        if structure.people_group:
+            structure.people_group.delete()
+        structure.delete()
+    for ancestor in ancestors:
+        sync_group_members(ancestor)
 
 
 # ----
@@ -114,17 +221,68 @@ def vectorize_documents(documents_pks: list[int]):
         obj.vectorize()
 
 
+# ----
+# Vectorize researcher for similarity
+# ----
+@app.task(name="Vectorize researcher")
+def vectorize_researchers(researchers_pks: list[int]):
+    for obj in Researcher.objects.filter(pk__in=researchers_pks):
+        logger.debug("vectorize researcher=%s", obj)
+        obj.vectorize()
+
+
 @app.task(name="Load json apollo data")
 def load_apollo_data(crisalid_config_id: int, content: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.info("load apollo data file for organization %s", config.organization)
 
     cache = LiveCache()
-    populate_researcher = PopulateResearcher(config, cache=cache)
-    populate_document = PopulateDocument(config, cache=cache)
+    # same order as the initial import
+    populates = (
+        ("organizations", PopulateAuthorityOrganization(config, cache=cache)),
+        ("journals", PopulateJournal(config, cache=cache)),
+        ("structures", PopulateStructure(config, cache=cache)),
+        ("people", PopulateResearcher(config, cache=cache)),
+        ("documents", PopulateDocument(config, cache=cache)),
+    )
+    for key, populate in populates:
+        if key in content:
+            populate.multiple(content[key])
 
-    for key, datas in content.items():
-        if key == "people":
-            populate_researcher.multiple(datas)
-        elif key == "documents":
-            populate_document.multiple(datas)
+
+@app.task(name="Update Researcher Bio generate by Ia")
+def update_researcher_bio_ia(researcher_id: int):
+    researcher = Researcher.objects.get(pk=researcher_id)
+    logger.info("Update researcher Bio pk=%s", researcher.pk)
+
+    infos = generate_bio_from_researcher(researcher)
+    if not infos:
+        logger.info("Can't update researcher bio: infos is None")
+        return
+
+    researcher.bio = infos.get("long") or ""
+    researcher.short_bio = infos.get("short") or ""
+    researcher.save()
+    logger.info("Updated Researcher pk=%s bio successfully", researcher.pk)
+
+
+@app.task(name="Update all Organization Researcher Bio generate by Ia")
+def update_organization_researcher_bio_ia(organization_id: int):
+    organization = Organization.objects.get(id=organization_id)
+    # if organization is not enable ia, dont do it
+    if not organization.enable_ia:
+        logger.info(
+            "Update researcher Bio from organization=%s not enabled", organization.code
+        )
+        return
+    logger.info("Update researcher Bio from organization=%s enabled", organization.code)
+
+    delta_update: datetime.timedelta = settings.RESEARCHER_DELTA_UPDATE_BIO
+    last_update = datetime.datetime.now() - delta_update
+
+    researchers_qs = Researcher.objects.filter(
+        user__groups__organization=organization, updated_at__lt=last_update
+    ).values_list("pk", flat=True)
+
+    for researcher in researchers_qs:
+        update_researcher_bio_ia.aplly_async((researcher.id,))

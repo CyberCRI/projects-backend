@@ -1,0 +1,18 @@
+fragment PersonNode on Person {
+  uid
+  display_name
+  names {
+    first_names {
+      language
+      value
+    }
+    last_names {
+      language
+      value
+    }
+  }
+  identifiers {
+    harvester: type
+    value
+  }
+}

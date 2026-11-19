@@ -22,7 +22,14 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "command",
-            choices=("document", "researcher", "all"),
+            choices=(
+                "organization",
+                "journal",
+                "structure",
+                "document",
+                "researcher",
+                "all",
+            ),
             help="elements to populate",
         )
         parser.add_argument("--offset", help="offset for graphql", default=0)
@@ -67,6 +74,15 @@ class Command(BaseCommand):
         command = options["command"]
 
         service = CrisalidService(config)
+        if command in ("all", "organization"):
+            self.populate_crisalid(service, query="organizations", **options)
+
+        if command in ("all", "journal"):
+            self.populate_crisalid(service, query="journals", **options)
+
+        if command in ("all", "structure"):
+            self.populate_crisalid(service, query="structures", **options)
+
         if command in ("all", "document"):
             self.populate_crisalid(service, query="documents", **options)
 

@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
@@ -72,6 +74,20 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     _auto_translated_fields: list[str] = []
     _html_auto_translated_fields: list[str] = []
     _original_auto_translated_fields_values: dict[str, str] = {}
+
+    # this is a werid fix for new runing migrations
+    # django think this class is a models, but not !
+    class _meta:  # noqa: N801
+        app_label = ""
+        model_name = ""
+        base_manager = namedtuple("Manager", ["name"])("_base_manager")
+        label_lower = ""
+        abstract = True
+        local_fields = ()
+        parents = []
+        private_fields = ()
+        local_managers = ()
+        local_many_to_many = ()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

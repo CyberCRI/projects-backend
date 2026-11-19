@@ -141,7 +141,12 @@ class SearchViewSet(ListViewSet):
         search_objects_ids = [hit.search_object_id for hit in response.hits]
 
         # remove search id not hits in opensearch
-        filtered_search_object = queryset.filter(id__in=search_objects_ids)
+        filtered_search_object = queryset.filter(
+            id__in=search_objects_ids
+        ).select_related(
+            "people_group__structure",
+            "user__researcher",
+        )
 
         # sort filtered_search_object by hits index
         ordered_search_objs = sorted(

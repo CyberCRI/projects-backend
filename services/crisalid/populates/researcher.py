@@ -1,16 +1,29 @@
 from apps.accounts.models import PrivacySettings, ProjectUser
-from services.crisalid.models import Identifier, Researcher
-from services.crisalid.populates.identifier import PopulateIdentifier
+from services.crisalid.models import (
+    Researcher,
+    ResearcherIdentifier,
+    ResearcherStructure,
+    Structure,
+)
+from services.crisalid.utils.structures import sync_structures, with_ancestors
 
 from .base import AbstractPopulate
+from .structure import PopulateStructure
+
+STRUCTURES_CONNECTIONS = {
+    "membershipsConnection": ResearcherStructure.RelationType.MEMBERSHIP,
+    "employmentsConnection": ResearcherStructure.RelationType.EMPLOYMENT,
+}
 
 
 class PopulateResearcher(AbstractPopulate):
-    def __init__(self, *ar, populate_identifiers=None, **kw):
+    """Populate researchers from crisalid "people" query
+    with relations to structures (memberships / employments)
+    """
+
+    def __init__(self, *ar, **kw):
         super().__init__(*ar, **kw)
-        self.populate_identifiers = populate_identifiers or PopulateIdentifier(
-            self.config, self.cache
-        )
+        self.populate_structure = PopulateStructure(self.config, self.cache)
 
     def get_names(self, data):
         given_name = family_name = ""
@@ -47,7 +60,7 @@ class PopulateResearcher(AbstractPopulate):
     def check_mapping_user(
         self,
         researcher: Researcher,
-        identifiers: list[Identifier],
+        identifiers: list[dict],
         given_name: str,
         family_name: str,
     ) -> ProjectUser | None:
@@ -57,23 +70,25 @@ class PopulateResearcher(AbstractPopulate):
             return self.update_user(researcher.user)
 
         for iden in identifiers:
-            if iden.harvester != Identifier.Harvester.EPPN:
+            if iden["harvester"] != ResearcherIdentifier.Harvester.EPPN:
                 continue
 
-            return self.create_user(iden.value, given_name, family_name)
+            return self.create_user(iden["value"], given_name, family_name)
         return None
 
-    def single(self, data: dict) -> Researcher | None:
-        researcher_identifiers = self.populate_identifiers.multiple(data["identifiers"])
+    def node(self, data: dict) -> Researcher | None:
+        researcher_identifiers = self.sanitize_identifiers(
+            ResearcherIdentifier, data["identifiers"]
+        )
 
         # remove local/eppn identifiers to match only hal/eppn/orcid ..ect
         researcher_identifiers_without_local = [
             identifier
             for identifier in researcher_identifiers
-            if identifier.harvester not in Researcher.PRIVACY_HARVESTER
+            if identifier["harvester"] not in Researcher.PRIVACY_HARVESTER
         ]
 
-        # researcher withtout any identifiers no neeeeeeed to be created
+        # researcher withtout any identifiers no need to be created
         if not researcher_identifiers_without_local:
             return None
 
@@ -92,6 +107,47 @@ class PopulateResearcher(AbstractPopulate):
             family_name=family_name,
             user=user,
         )
-        self.cache.save_m2m(researcher, identifiers=researcher_identifiers)
-
+        self.save_identifiers(researcher, researcher_identifiers)
         return researcher
+
+    def relations(self, researcher: Researcher, data: dict):
+        """recreate relations from researcher to structures of the organization (graph is the source of truth)"""
+        # structures with old relations, to sync their members
+        touched = list(
+            Structure.objects.filter(
+                organization=self.config.organization,
+                researcherstructure__researcher=researcher,
+            ).distinct()
+        )
+
+        relations = []
+        for connection, relation_type in STRUCTURES_CONNECTIONS.items():
+            for edge in data.get(connection, {}).get("edges", []):
+                structure = self.populate_structure.node(edge["node"])
+                if structure is None:
+                    continue
+
+                properties = edge.get("properties") or {}
+                relations.append(
+                    ResearcherStructure(
+                        researcher=researcher,
+                        structure=structure,
+                        relation_type=relation_type,
+                        position_code=self.sanitize_string(
+                            properties.get("position_code")
+                        ),
+                        start_date=self.sanitize_date(properties.get("start_date")),
+                        end_date=self.sanitize_date(properties.get("end_date")),
+                    )
+                )
+                touched.append(structure)
+
+        self.replace_relations(
+            ResearcherStructure.objects.filter(
+                researcher=researcher, structure__organization=self.config.organization
+            ),
+            relations,
+        )
+
+        # researchers are members of structures groups and their ancestors groups
+        sync_structures(with_ancestors(touched))

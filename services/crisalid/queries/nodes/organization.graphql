@@ -1,0 +1,9 @@
+fragment OrganizationNode on AuthorityOrganization {
+  uid
+  display_names
+  type
+  identifiers {
+    harvester: type
+    value
+  }
+}

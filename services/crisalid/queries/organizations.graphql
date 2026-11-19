@@ -1,0 +1,11 @@
+#import "nodes/organization.graphql"
+
+query PopulateFromCrisalid($limit: Int, $offset: Int, $where: AuthorityOrganizationWhere) {
+  organizationsAggregate: authorityOrganizationsAggregate(where: $where) {
+    count
+  }
+  # aliased to the query file name (key used by populate_crisalid)
+  organizations: authorityOrganizations(limit: $limit, offset: $offset, where: $where) {
+    ...OrganizationNode
+  }
+}

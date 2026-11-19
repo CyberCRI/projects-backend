@@ -53,6 +53,8 @@ from apps.commons.views import (
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.modules.group import PeopleGroupModules
+from apps.modules.researcher import ResearcherModules
+from apps.modules.user import UserModules
 from apps.newsfeed.serializers import EventSerializer, NewsSerializer
 from apps.newsfeed.views import EventViewSet, NewsViewSet
 from apps.organizations.models import Organization, ProjectCategory
@@ -70,7 +72,10 @@ from services.google.tasks import (
 from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
-from .exceptions import EmailTypeMissingError, PermissionNotFoundError
+from .exceptions import (
+    EmailTypeMissingError,
+    PermissionNotFoundError,
+)
 from .filters import PeopleGroupFilter, UserFilter
 from .models import (
     AnonymousUser,
@@ -80,7 +85,10 @@ from .models import (
     ProjectUser,
 )
 from .parsers import UserMultipartParser
-from .permissions import HasBasePermission, HasPeopleGroupPermission
+from .permissions import (
+    HasBasePermission,
+    HasPeopleGroupPermission,
+)
 from .serializers import (
     AccessTokenSerializer,
     CredentialsSerializer,
@@ -282,10 +290,27 @@ class UserViewSet(
                 required=False,
                 type=str,
             ),
+            UserModules.ApiParameter(),
+            ResearcherModules.ApiParameter(),
         ]
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="current_org_pk",
+                description="Organization id used to fetch the role of the users in the organization",
+                required=False,
+                type=str,
+            ),
+            UserModules.ApiParameter(),
+            ResearcherModules.ApiParameter(),
+        ]
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
     @extend_schema(
         parameters=[

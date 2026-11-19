@@ -3,8 +3,6 @@ from contextlib import suppress
 
 from django.db.models import Model
 
-from services.crisalid.models import Identifier
-
 from .logger import logger
 
 # TODO create a new Cache class to optimize save/get with
@@ -26,7 +24,7 @@ class BaseCache(metaclass=abc.ABCMeta):
 
     @classmethod
     @abc.abstractmethod
-    def from_identifiers(cls, model, identifiers: list[Identifier]):
+    def from_identifiers(cls, model, identifiers: list[dict], **filters):
         """get object element from identifiers lists"""
 
 
@@ -57,8 +55,9 @@ class LiveCache(BaseCache):
         except model.DoesNotExist:
             return model(**fields)
 
-    def from_identifiers(self, model, identifiers):
+    def from_identifiers(self, model, identifiers, **filters):
+        """filters: scope of the lookup (ex: organization of structures)"""
         try:
-            return model.objects.from_identifiers(identifiers).get()
+            return model.objects.filter(**filters).from_identifiers(identifiers).get()
         except model.DoesNotExist:
-            return model()
+            return model(**filters)

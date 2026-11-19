@@ -1,12 +1,103 @@
 import datetime
+from io import StringIO
 
 from django import test
+from django.core.exceptions import ValidationError
+from django.core.management import call_command
 
-from apps.accounts.factories import UserFactory
-from apps.accounts.models import PrivacySettings, ProjectUser
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
+from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
 from services.crisalid.factories import CrisalidConfigFactory
-from services.crisalid.models import Document, Identifier, Researcher
-from services.crisalid.populates import PopulateDocument, PopulateResearcher
+from services.crisalid.models import (
+    AuthorityOrganization,
+    Document,
+    DocumentContributor,
+    DocumentIdentifier,
+    Journal,
+    Researcher,
+    ResearcherIdentifier,
+    ResearcherStructure,
+    Structure,
+    StructureRelation,
+)
+from services.crisalid.populates import (
+    PopulateDocument,
+    PopulateJournal,
+    PopulateResearcher,
+    PopulateStructure,
+)
+
+
+def structure_node(uid, **kwargs):
+    """structure fields (StructureNode fragment)"""
+    return {
+        "uid": uid,
+        "external": False,
+        "generic_type": "unit",
+        "national_type": None,
+        "types": ["OrganizationUnit"],
+        "long_labels": [{"language": "fr", "value": f"long {uid}"}],
+        "short_labels": [{"language": "fr", "value": uid}],
+        "local_types": [],
+        "descriptions": [],
+        "identifiers": [{"harvester": "local", "value": uid}],
+        **kwargs,
+    }
+
+
+def local_uid(structure: Structure) -> str:
+    """uid of the structure in the graph (local identifier of structure_node)"""
+    return structure.identifiers.get(harvester="local").value
+
+
+def edges(*uids, **properties):
+    return {
+        "edges": [
+            {
+                "properties": {"start_date": None, "end_date": None, **properties},
+                "node": structure_node(uid),
+            }
+            for uid in uids
+        ]
+    }
+
+
+def structure_data(uid, part_of=None, member_of=None, **kwargs):
+    return structure_node(
+        uid,
+        part_ofConnection=part_of or edges(),
+        member_ofConnection=member_of or edges(),
+        **kwargs,
+    )
+
+
+def researcher_data(eppn, memberships=None, employments=None):
+    return {
+        "uid": eppn,
+        "names": [
+            {
+                "first_names": [{"value": "marty", "language": "fr"}],
+                "last_names": [{"value": "mcfly", "language": "fr"}],
+            }
+        ],
+        "identifiers": [
+            {"value": eppn, "harvester": ResearcherIdentifier.Harvester.EPPN.value},
+            {
+                "value": f"hal-{eppn}",
+                "harvester": ResearcherIdentifier.Harvester.IDHALS.value,
+            },
+        ],
+        "membershipsConnection": memberships or edges(),
+        "employmentsConnection": employments or edges(),
+    }
+
+
+def group_of(uid) -> PeopleGroup:
+    return (
+        Structure.objects.select_related("people_group__parent")
+        .get(identifiers__value=uid)
+        .people_group
+    )
 
 
 class TestPopulateResearcher(test.TestCase):
@@ -26,7 +117,10 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
+                {
+                    "value": "hals-truc",
+                    "harvester": ResearcherIdentifier.Harvester.IDHALS.value,
+                }
             ],
         }
 
@@ -41,7 +135,7 @@ class TestPopulateResearcher(test.TestCase):
         self.assertEqual(obj.identifiers.count(), 1)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
-        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+        self.assertEqual(iden.harvester, ResearcherIdentifier.Harvester.IDHALS.value)
 
     def test_create_researcher_whithout_identifiers(self):
         data = {
@@ -70,21 +164,23 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
+                {
+                    "value": "hals-truc",
+                    "harvester": ResearcherIdentifier.Harvester.IDHALS.value,
+                }
             ],
         }
         # create same object in db
         researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
-        iden = Identifier.objects.create(
-            value="hals-truc", harvester=Identifier.Harvester.HAL.value
+        researcher.identifiers.create(
+            value="hals-truc", harvester=ResearcherIdentifier.Harvester.IDHALS.value
         )
-        researcher.identifiers.add(iden)
 
         new_obj = self.popu.single(data)
 
         # check no new object are created
         self.assertEqual(Researcher.objects.count(), 1)
-        self.assertEqual(Identifier.objects.count(), 1)
+        self.assertEqual(ResearcherIdentifier.objects.count(), 1)
 
         # check obj from db
         obj = Researcher.objects.first()
@@ -93,7 +189,7 @@ class TestPopulateResearcher(test.TestCase):
         self.assertEqual(obj.identifiers.count(), 1)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
-        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+        self.assertEqual(iden.harvester, ResearcherIdentifier.Harvester.IDHALS.value)
 
     def test_update_identifiers(self):
         data = {
@@ -104,30 +200,35 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
+                {
+                    "value": "hals-truc",
+                    "harvester": ResearcherIdentifier.Harvester.IDHALS.value,
+                }
             ],
         }
         # create same object in db
         researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
-        iden = Identifier.objects.create(
-            value="hals-truc", harvester=Identifier.Harvester.HAL.value
+        researcher.identifiers.create(
+            value="hals-truc", harvester=ResearcherIdentifier.Harvester.IDHALS.value
         )
-        researcher.identifiers.add(iden)
 
         data["identifiers"].append(
-            {"value": "000-666-999", "harvester": Identifier.Harvester.ORCID.value}
+            {
+                "value": "000-666-999",
+                "harvester": ResearcherIdentifier.Harvester.ORCID.value,
+            }
         )
         self.popu.single(data)
 
         # check no new object are created
         self.assertEqual(Researcher.objects.count(), 1)
-        self.assertEqual(Identifier.objects.count(), 2)
+        self.assertEqual(ResearcherIdentifier.objects.count(), 2)
 
         # check obj from db
         obj = Researcher.objects.first()
         iden = obj.identifiers.last()
         self.assertEqual(iden.value, "000-666-999")
-        self.assertEqual(iden.harvester, Identifier.Harvester.ORCID.value)
+        self.assertEqual(iden.harvester, ResearcherIdentifier.Harvester.ORCID.value)
 
     def test_create_user_researcher(self):
         data = {
@@ -139,10 +240,13 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value},
+                {
+                    "value": "hals-truc",
+                    "harvester": ResearcherIdentifier.Harvester.IDHALS.value,
+                },
                 {
                     "value": "eppn@lpi.com",
-                    "harvester": Identifier.Harvester.EPPN.value,
+                    "harvester": ResearcherIdentifier.Harvester.EPPN.value,
                 },
             ],
         }
@@ -168,10 +272,13 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value},
+                {
+                    "value": "hals-truc",
+                    "harvester": ResearcherIdentifier.Harvester.IDHALS.value,
+                },
                 {
                     "value": "eppn@lpi.com",
-                    "harvester": Identifier.Harvester.EPPN.value,
+                    "harvester": ResearcherIdentifier.Harvester.EPPN.value,
                 },
             ],
         }
@@ -240,7 +347,10 @@ class TestPopulateDocument(test.TestCase):
                 }
             ],
             "recorded_by": [
-                {"harvester": Identifier.Harvester.HAL.value, "value": "hals-truc"}
+                {
+                    "harvester": DocumentIdentifier.Harvester.HAL.value,
+                    "value": "hals-truc",
+                }
             ],
         }
 
@@ -255,7 +365,7 @@ class TestPopulateDocument(test.TestCase):
         self.assertEqual(obj.document_type, Document.DocumentType.UNKNOWN.value)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
-        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+        self.assertEqual(iden.harvester, DocumentIdentifier.Harvester.HAL.value)
 
     def test_create_document_whitout_identifiers(self):
         data = {
@@ -394,7 +504,10 @@ class TestPopulateDocument(test.TestCase):
                 }
             ],
             "recorded_by": [
-                {"harvester": Identifier.Harvester.HAL.value, "value": "hals-truc"}
+                {
+                    "harvester": DocumentIdentifier.Harvester.HAL.value,
+                    "value": "hals-truc",
+                }
             ],
         }
 
@@ -403,3 +516,554 @@ class TestPopulateDocument(test.TestCase):
         # html content are removed
         self.assertEqual(new_obj.description, "description with html")
         self.assertEqual(new_obj.title, "title with html")
+
+
+class TestPopulateDocumentCrisalidData(test.TestCase):
+    """journals, open access status and affiliations"""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.config = CrisalidConfigFactory()
+        cls.popu = PopulateDocument(cls.config)
+
+    @staticmethod
+    def contributor(eppn: str) -> dict:
+        return {
+            "names": [
+                {
+                    "first_names": [{"value": eppn, "language": "fr"}],
+                    "last_names": [{"value": eppn, "language": "fr"}],
+                }
+            ],
+            "identifiers": [
+                {"harvester": "eppn", "value": eppn},
+                {"harvester": "idref", "value": f"idref-{eppn}"},
+            ],
+        }
+
+    def document_data(self, **kwargs) -> dict:
+        return {
+            "uid": "doc-uid",
+            "document_type": "JournalArticle",
+            "titles": [{"language": "en", "value": "fiction"}],
+            "abstracts": [],
+            "publication_date": "2020",
+            "publishedInConnection": {
+                "edges": [
+                    {
+                        "properties": {"volume": "270", "issue": "3", "pages": "1-9"},
+                        "node": {
+                            "uid": "journal-uid",
+                            "titles": ["Journal of Biological Chemistry"],
+                            "identifiers": [
+                                {"harvester": "issn", "value": "0021-9258"}
+                            ],
+                        },
+                    }
+                ]
+            },
+            "has_contributions": [
+                {
+                    "roles": ["http://id.loc.gov/vocabulary/relators/aut"],
+                    "contributor": [
+                        self.contributor("marty@example.com"),
+                        self.contributor("doc@example.com"),
+                    ],
+                    "affiliations": [
+                        {
+                            "uid": "org-uid",
+                            "display_names": ["Institut Curie", "Curie"],
+                            "type": "institution",
+                            "identifiers": [
+                                {"harvester": "ror", "value": "04t0gwh46"},
+                                {"harvester": "unknown_harvester", "value": "x"},
+                            ],
+                        }
+                    ],
+                }
+            ],
+            "recorded_by": [{"harvester": "hal", "value": "hal-doc-uid"}],
+            **kwargs,
+        }
+
+    def test_create_document_crisalid_data(self):
+        document = self.popu.single(self.document_data())
+
+        document_journal = document.document_journals.get()
+        self.assertEqual(
+            list(document_journal.journal.identifiers.values_list("value", flat=True)),
+            ["0021-9258"],
+        )
+        self.assertEqual(
+            document_journal.journal.title, "Journal of Biological Chemistry"
+        )
+        self.assertEqual(
+            (document_journal.volume, document_journal.issue, document_journal.pages),
+            ("270", "3", "1-9"),
+        )
+        organization = document.affiliations.get()
+        self.assertEqual(organization.name, "Institut Curie")
+        self.assertEqual(
+            organization.type, AuthorityOrganization.OrganizationType.INSTITUTION
+        )
+        # unknown harvesters are ignored
+        self.assertEqual(
+            list(organization.identifiers.values_list("harvester", flat=True)),
+            ["ror"],
+        )
+
+    def test_unknown_organization_type(self):
+        data = self.document_data()
+        data["has_contributions"][0]["affiliations"][0]["type"] = "unknown_type"
+        document = self.popu.single(data)
+        self.assertEqual(document.affiliations.get().type, "")
+
+    def test_multiple_contributors_in_contribution(self):
+        document = self.popu.single(self.document_data())
+        self.assertEqual(document.contributors.count(), 2)
+        for contributor in DocumentContributor.objects.filter(document=document):
+            self.assertEqual(contributor.roles, ["aut"])
+
+    def test_update_document_crisalid_data(self):
+        self.popu.single(self.document_data())
+        document = self.popu.single(
+            self.document_data(publishedInConnection={"edges": []})
+        )
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertFalse(document.document_journals.exists())
+        # journal is kept, it can be used by other documents
+        self.assertTrue(Journal.objects.filter(identifiers__value="0021-9258").exists())
+
+    def test_update_contributors(self):
+        self.popu.single(self.document_data())
+        data = self.document_data()
+        # doc@example.com is removed, marty@example.com has a second contribution
+        data["has_contributions"][0]["contributor"].pop()
+        data["has_contributions"].append(
+            {
+                "roles": ["http://id.loc.gov/vocabulary/relators/edt"],
+                "contributor": [self.contributor("marty@example.com")],
+            }
+        )
+        document = self.popu.single(data)
+        contributor = DocumentContributor.objects.get(document=document)
+        self.assertEqual(
+            contributor.researcher.identifiers.get(harvester="eppn").value,
+            "marty@example.com",
+        )
+        # roles of all contributions are merged
+        self.assertEqual(contributor.roles, ["aut", "edt"])
+
+
+class TestPopulateStructure(test.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.config = CrisalidConfigFactory()
+        self.organization = self.config.organization
+        self.root = PeopleGroup.update_or_create_root(self.organization)
+        self.popu = PopulateStructure(self.config)
+
+    def test_same_uid_in_two_organizations(self):
+        # uids can be the same in two crisalid instances
+        other = CrisalidConfigFactory()
+        self.popu.multiple([structure_data("local-LAB")])
+        PopulateStructure(other).multiple([structure_data("local-LAB")])
+
+        self.assertEqual(
+            Structure.objects.filter(identifiers__value="local-LAB").count(), 2
+        )
+        self.assertEqual(
+            Structure.objects.filter(organization=other.organization).count(), 1
+        )
+
+    def test_matched_by_identifiers(self):
+        self.popu.multiple([structure_data("local-LAB")])
+        # uid changed, same identifiers
+        self.popu.multiple(
+            [
+                structure_data(
+                    "local-NEW",
+                    identifiers=[{"harvester": "local", "value": "local-LAB"}],
+                )
+            ]
+        )
+        self.assertEqual(Structure.objects.get().name, "long local-NEW")
+
+    def test_create_structures(self):
+        self.popu.multiple(
+            [
+                structure_data(
+                    "local-LAB",
+                    part_of=edges("local-FAC", start_date="2020-01-01"),
+                    member_of=edges("local-INSERM", position="main_supervision"),
+                    national_type="UMR",
+                    types=["OrganizationUnit", "Unit", "ResearchUnit"],
+                ),
+                structure_data("local-FAC", generic_type="institution_subdivision"),
+                structure_data("local-INSERM", generic_type="institution"),
+            ]
+        )
+
+        lab = Structure.objects.get(identifiers__value="local-LAB")
+        self.assertEqual(lab.organization, self.organization)
+        self.assertEqual(lab.name, "long local-LAB")
+        self.assertEqual(lab.acronym, "local-LAB")
+        self.assertEqual(lab.national_type, "UMR")
+        self.assertEqual(lab.main_mission, Structure.MissionType.RESEARCH)
+        self.assertEqual(lab.identifiers.get().value, "local-LAB")
+
+        part_of = lab.relations.get(
+            relation_type=StructureRelation.RelationType.PART_OF
+        )
+        self.assertEqual(local_uid(part_of.related_structure), "local-FAC")
+        self.assertEqual(part_of.start_date, datetime.date(2020, 1, 1))
+        member_of = lab.relations.get(
+            relation_type=StructureRelation.RelationType.MEMBER_OF
+        )
+        self.assertEqual(local_uid(member_of.related_structure), "local-INSERM")
+        self.assertEqual(member_of.position, "main_supervision")
+
+        # each structure has a group, all groups in root group (no hierarchy)
+        self.assertEqual(group_of("local-LAB").name, "local-LAB")
+        self.assertEqual(group_of("local-LAB").short_description, "long local-LAB")
+        for uid in ("local-LAB", "local-FAC", "local-INSERM"):
+            self.assertEqual(group_of(uid).parent, self.root)
+        self.assertEqual([local_uid(s) for s in lab.parents()], ["local-FAC"])
+
+    def test_populate_idempotent(self):
+        datas = [
+            structure_data("local-LAB", part_of=edges("local-FAC")),
+            structure_data("local-FAC"),
+        ]
+        self.popu.multiple(datas)
+        groups = set(PeopleGroup.objects.values_list("pk", flat=True))
+
+        self.popu.multiple(datas)
+
+        self.assertEqual(Structure.objects.count(), 2)
+        self.assertEqual(StructureRelation.objects.count(), 1)
+        self.assertEqual(set(PeopleGroup.objects.values_list("pk", flat=True)), groups)
+
+    def test_update_name_and_relations(self):
+        self.popu.multiple(
+            [
+                structure_data("local-LAB", part_of=edges("local-FAC")),
+                structure_data("local-FAC"),
+            ]
+        )
+        data = structure_data("local-LAB")
+        data["long_labels"] = [{"language": "fr", "value": "new name"}]
+        data["descriptions"] = [{"language": "fr", "value": "new description"}]
+        self.popu.multiple([data])
+
+        structure = Structure.objects.get(identifiers__value="local-LAB")
+        self.assertEqual(structure.name, "new name")
+        self.assertEqual(structure.description, "new description")
+        # group is only initialized from the structure
+        self.assertEqual(group_of("local-LAB").name, "local-LAB")
+        self.assertEqual(group_of("local-LAB").short_description, "long local-LAB")
+        self.assertFalse(StructureRelation.objects.exists())
+
+    def test_structures_groups_root(self):
+        structures_root = PeopleGroupFactory(organization=self.organization)
+        self.config.structures_groups_root = structures_root
+        self.config.save()
+        self.popu.multiple([structure_data("local-LAB")])
+        self.assertEqual(group_of("local-LAB").parent, structures_root)
+
+    def test_structures_groups_root_validation(self):
+        self.popu.multiple([structure_data("local-LAB")])
+        self.config.structures_groups_root = group_of("local-LAB")
+        with self.assertRaises(ValidationError):
+            self.config.clean()
+        self.config.structures_groups_root = PeopleGroupFactory()
+        with self.assertRaises(ValidationError):
+            self.config.clean()
+
+    def test_create_group_if_missing(self):
+        self.popu.multiple([structure_data("local-LAB")])
+        group_of("local-LAB").delete()
+
+        self.popu.multiple([structure_data("local-LAB")])
+
+        self.assertIsNotNone(group_of("local-LAB"))
+
+    def test_multiple_parents(self):
+        self.popu.multiple(
+            [
+                structure_data("local-LAB", part_of=edges("local-A", "local-B")),
+                structure_data("local-A"),
+                structure_data("local-B"),
+            ]
+        )
+        lab = Structure.objects.get(identifiers__value="local-LAB")
+        self.assertEqual({local_uid(s) for s in lab.parents()}, {"local-A", "local-B"})
+
+    def test_ended_relation_ignored(self):
+        self.popu.multiple(
+            [
+                structure_data(
+                    "local-LAB",
+                    part_of={
+                        "edges": [
+                            *edges("local-A", end_date="2020-01-01")["edges"],
+                            *edges("local-B")["edges"],
+                        ]
+                    },
+                ),
+                structure_data("local-A"),
+                structure_data("local-B"),
+            ]
+        )
+        lab = Structure.objects.get(identifiers__value="local-LAB")
+        self.assertEqual([local_uid(s) for s in lab.parents()], ["local-B"])
+
+    def test_hierarchy(self):
+        self.popu.multiple(
+            [
+                structure_data("local-TEAM", part_of=edges("local-LAB")),
+                structure_data("local-LAB", part_of=edges("local-FAC")),
+                structure_data("local-FAC"),
+            ]
+        )
+        lab = Structure.objects.get(identifiers__value="local-LAB")
+        self.assertEqual([local_uid(s) for s in lab.parents()], ["local-FAC"])
+        self.assertEqual([local_uid(s) for s in lab.children()], ["local-TEAM"])
+        fac = Structure.objects.get(identifiers__value="local-FAC")
+        self.assertEqual(
+            {local_uid(s) for s in fac.descendants()}, {"local-LAB", "local-TEAM"}
+        )
+        team = Structure.objects.get(identifiers__value="local-TEAM")
+        self.assertEqual(
+            {local_uid(s) for s in team.ancestors()}, {"local-LAB", "local-FAC"}
+        )
+
+    def test_loop_in_hierarchy(self):
+        self.popu.multiple(
+            [
+                structure_data("local-A", part_of=edges("local-B")),
+                structure_data("local-B", part_of=edges("local-A")),
+            ]
+        )
+        # relations are saved, walking the hierarchy doesn't loop
+        self.assertEqual(StructureRelation.objects.count(), 2)
+        structure = Structure.objects.get(identifiers__value="local-A")
+        self.assertEqual([local_uid(s) for s in structure.ancestors()], ["local-B"])
+        self.assertEqual([local_uid(s) for s in structure.descendants()], ["local-B"])
+
+    def test_invalid_structure(self):
+        self.assertEqual(
+            self.popu.multiple([structure_data("local-X", generic_type="unknown")]),
+            [],
+        )
+        self.assertFalse(Structure.objects.exists())
+
+
+class TestPopulateResearcherStructures(test.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.config = CrisalidConfigFactory()
+        PopulateStructure(self.config).multiple([structure_data("local-LAB")])
+        self.structure = Structure.objects.get(identifiers__value="local-LAB")
+        self.popu = PopulateResearcher(self.config)
+
+    def test_membership_creates_group_member(self):
+        researcher = self.popu.single(
+            researcher_data(
+                "marty@example.com",
+                memberships=edges("local-LAB", position_code="stat_mmb"),
+                employments=edges("local-UNKNOWN"),
+            )
+        )
+
+        relation = ResearcherStructure.objects.get(
+            researcher=researcher, structure=self.structure
+        )
+        self.assertEqual(relation.position_code, "stat_mmb")
+        self.assertIn(researcher.user, self.structure.people_group.members.all())
+        # missing structure is created (node only) with its group
+        self.assertIn(researcher.user, group_of("local-UNKNOWN").members.all())
+
+    def test_membership_periods(self):
+        old = edges("local-LAB", start_date="2010-01-01", end_date="2015-01-01")
+        current = edges("local-LAB", start_date="2020-01-01", position_code="CR")
+        researcher = self.popu.single(
+            researcher_data(
+                "marty@example.com",
+                memberships={"edges": [*old["edges"], *current["edges"]]},
+            )
+        )
+
+        # all periods are saved, only the current one is active
+        relations = ResearcherStructure.objects.filter(researcher=researcher)
+        self.assertEqual(relations.count(), 2)
+        self.assertEqual([r.position_code for r in relations if r.is_active], ["CR"])
+        self.assertIn(researcher.user, self.structure.people_group.members.all())
+
+        # idempotent
+        self.popu.single(
+            researcher_data(
+                "marty@example.com",
+                memberships={"edges": [*old["edges"], *current["edges"]]},
+            )
+        )
+        self.assertEqual(relations.count(), 2)
+
+    def test_old_membership(self):
+        researcher = self.popu.single(
+            researcher_data(
+                "marty@example.com",
+                memberships=edges(
+                    "local-LAB", start_date="2010-01-01", end_date="2015-01-01"
+                ),
+            )
+        )
+
+        # saved, but not member of the group
+        self.assertTrue(
+            ResearcherStructure.objects.filter(researcher=researcher).exists()
+        )
+        self.assertNotIn(researcher.user, self.structure.people_group.members.all())
+
+    def test_membership_removed(self):
+        self.popu.single(
+            researcher_data("marty@example.com", memberships=edges("local-LAB"))
+        )
+        researcher = self.popu.single(researcher_data("marty@example.com"))
+
+        self.assertFalse(ResearcherStructure.objects.exists())
+        self.assertNotIn(researcher.user, self.structure.people_group.members.all())
+
+    def test_sub_structure_members(self):
+        PopulateStructure(self.config).multiple(
+            [structure_data("local-TEAM", part_of=edges("local-LAB"))]
+        )
+        team = Structure.objects.get(identifiers__value="local-TEAM")
+        researcher = self.popu.single(
+            researcher_data("marty@example.com", employments=edges("local-TEAM"))
+        )
+        # members of a team are members of its laboratory
+        self.assertIn(researcher.user, team.people_group.members.all())
+        self.assertIn(researcher.user, self.structure.people_group.members.all())
+
+        # removed from the team, removed from the laboratory
+        self.popu.single(researcher_data("marty@example.com"))
+        self.assertNotIn(researcher.user, self.structure.people_group.members.all())
+
+    def test_ended_membership(self):
+        researcher = self.popu.single(
+            researcher_data(
+                "marty@example.com",
+                memberships=edges("local-LAB", end_date="2020-01-01"),
+            )
+        )
+        self.assertTrue(ResearcherStructure.objects.exists())
+        self.assertNotIn(researcher.user, self.structure.people_group.members.all())
+
+    def test_other_roles_kept(self):
+        manager = UserFactory()
+        self.structure.people_group.managers.add(manager)
+        researcher = self.popu.single(
+            researcher_data(
+                "marty@example.com",
+                memberships=edges("local-LAB"),
+            )
+        )
+        self.assertIn(manager, self.structure.people_group.managers.all())
+        self.assertIn(researcher.user, self.structure.people_group.members.all())
+
+    def test_document_contributors_keep_memberships(self):
+        self.popu.single(
+            researcher_data("marty@example.com", memberships=edges("local-LAB"))
+        )
+        contributor = researcher_data("marty@example.com")
+        del contributor["membershipsConnection"]
+        del contributor["employmentsConnection"]
+        PopulateDocument(self.config).single(
+            {
+                "publication_date": "2020-01-01",
+                "document_type": "Article",
+                "titles": [{"language": "en", "value": "title"}],
+                "abstracts": [],
+                "has_contributions": [{"roles": [], "contributor": [contributor]}],
+                "recorded_by": [{"harvester": "hal", "value": "hal-doc"}],
+            }
+        )
+        self.assertTrue(ResearcherStructure.objects.exists())
+
+
+class TestPopulateCrisalidDelete(test.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.config = CrisalidConfigFactory(active=True)
+        PopulateStructure(self.config).multiple([structure_data("local-LAB")])
+        self.researcher = PopulateResearcher(self.config).single(
+            researcher_data("marty@example.com", memberships=edges("local-LAB"))
+        )
+
+    def delete(self):
+        call_command(
+            "populate_crisalid",
+            self.config.organization.code,
+            "all",
+            "--delete",
+            stdout=StringIO(),
+        )
+
+    def test_delete_with_other_organization(self):
+        other = CrisalidConfigFactory(active=True)
+        PopulateStructure(other).multiple([structure_data("local-OTHER")])
+        other_researcher = PopulateResearcher(other).single(
+            researcher_data("doc@example.com", memberships=edges("local-OTHER"))
+        )
+        other_group = group_of("local-OTHER")
+        lab_group = group_of("local-LAB")
+        user = self.researcher.user
+
+        self.delete()
+
+        # objects of the organization are deleted
+        self.assertFalse(
+            Structure.objects.filter(identifiers__value="local-LAB").exists()
+        )
+        self.assertFalse(PeopleGroup.objects.filter(pk=lab_group.pk).exists())
+        self.assertFalse(Researcher.objects.filter(pk=self.researcher.pk).exists())
+        # users are kept
+        self.assertTrue(ProjectUser.objects.filter(pk=user.pk).exists())
+        # other organization objects are kept
+        self.assertTrue(
+            Structure.objects.filter(identifiers__value="local-OTHER").exists()
+        )
+        self.assertTrue(PeopleGroup.objects.filter(pk=other_group.pk).exists())
+        self.assertTrue(Researcher.objects.filter(pk=other_researcher.pk).exists())
+        self.assertTrue(
+            other_researcher.identifiers.filter(value="hal-doc@example.com").exists()
+        )
+
+
+class TestPopulateJournal(test.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.popu = PopulateJournal(CrisalidConfigFactory())
+
+    def test_matched_by_identifiers(self):
+        issn = [{"harvester": "issn", "value": "0021-9258"}]
+        self.popu.single({"uid": "a", "titles": ["A"], "identifiers": issn})
+        self.popu.single({"uid": "b", "titles": ["B"], "identifiers": issn})
+        # same uid from another crisalid instance, other journal
+        self.popu.single(
+            {
+                "uid": "b",
+                "titles": ["C"],
+                "identifiers": [{"harvester": "issn", "value": "1111-2222"}],
+            }
+        )
+
+        self.assertEqual(
+            sorted(Journal.objects.values_list("title", flat=True)), ["B", "C"]
+        )
+
+    def test_without_identifiers(self):
+        self.assertIsNone(self.popu.single({"uid": "a", "titles": ["A"]}))
+        self.assertFalse(Journal.objects.exists())

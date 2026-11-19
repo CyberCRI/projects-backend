@@ -370,6 +370,7 @@ docker-compose.override.yml
 apps/commons/management/commands/*.csv
 
 # Database dumps
-*.pgdump
+dumps/*
+!dumps/__init__.py
 
 charts/

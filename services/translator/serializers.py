@@ -21,7 +21,6 @@ def prefix_fields_langs(fields: list[str]) -> list[list[str]]:
 
 def generate_translated_fields(fields_names: tuple[str]):
     def _wraps(cls: serializers.BaseSerializer) -> serializers.BaseSerializer:
-
         # generates all fields
         for field in fields_names:
             for field_name in prefix_field_langs(field):
@@ -33,7 +32,9 @@ def generate_translated_fields(fields_names: tuple[str]):
     return _wraps
 
 
-def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerializer:
+def auto_translated(
+    cls: type[serializers.ModelSerializer],
+) -> type[serializers.ModelSerializer]:
     """Automatically include translations fields for models with `HasAutoTranslatedFields` mixin.
 
     Because these are automatically generated, they are read-only.
