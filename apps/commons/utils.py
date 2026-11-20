@@ -3,13 +3,16 @@ import gc
 import html
 import io
 import itertools
+import logging
 import uuid
 from contextlib import suppress
-from typing import TYPE_CHECKING, Optional
+from functools import partial, wraps
+from typing import TYPE_CHECKING, Callable, Optional
 
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.core.cache import cache
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import reset_queries
@@ -421,3 +424,48 @@ def clear_memory(func):
         return result
 
     return wrapper
+
+
+logger_task = logging.getLogger("CeleryTask")
+
+
+# https://github.com/jazzband/django-redis/blob/master/django_redis/client/default.py#L452
+def task_lock(
+    task_function: Callable | None = None,
+    /,
+    key: str | None = None,
+    version: int | None = None,
+    timeout: float | None = None,
+    sleep: float = 0.1,
+    blocking: bool = True,
+    blocking_timeout: float | None = None,
+):
+    """add task lock to run only once task"""
+
+    if task_function is None:
+        return partial(
+            task_lock,
+            key=key,
+            version=version,
+            timeout=timeout,
+            sleep=sleep,
+            blocking=blocking,
+            blocking_timeout=blocking_timeout,
+        )
+
+    key = key or task_function.__qualname__
+
+    lock = cache.lock(
+        key,
+        timeout=timeout,
+        blocking=blocking,
+    )
+
+    @wraps(task_function)
+    def _wraps(*ar, **kw):
+        nonlocal lock
+
+        with lock:
+            return task_function(*ar, **kw)
+
+    return _wraps

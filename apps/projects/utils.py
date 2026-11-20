@@ -114,7 +114,7 @@ def sync_project_tabs(projects: Iterable[Project], tabs: Iterable[TemplateTab]):
     for tab in ProjectTab.objects.filter(
         (Q(uuid__in=all_uuids) | Q(type__in=ProjectTab.PROJECT_TYPE_BRIDGE))
         & Q(project__in=projects)
-    ):
+    ).distinct():
         if tab.type in ProjectTab.PROJECT_TYPE_BRIDGE:
             exists_tabs_types[tab.project_id][tab.type] = tab
         else:
@@ -134,22 +134,22 @@ def sync_project_tabs(projects: Iterable[Project], tabs: Iterable[TemplateTab]):
             ):
                 new_tab = tabs_type_exists[tab.type]
                 new_tab.uuid = tab.uuid
-                new_tab.save()
-                continue
+            else:
+                # TODO: we use .save() to generate slug
+                # we need to change that to use bulk_create, and generate slug in db
+                new_tab = ProjectTab(
+                    uuid=tab.uuid,
+                    project=project,
+                    title=tab.title,
+                    description=tab.description,
+                    type=tab.type,
+                    icon=tab.icon,
+                    show_preview=tab.show_preview,
+                    show_tab=tab.show_tab,
+                    order=tab.order,
+                )
 
-            # TODO: we use .save() to generate slug
-            # we need to change that to use bulk_create, and generate slug in db
-            new_tab = ProjectTab(
-                uuid=tab.uuid,
-                project=project,
-                title=tab.title,
-                description=tab.description,
-                type=tab.type,
-                icon=tab.icon,
-                show_preview=tab.show_preview,
-                show_tab=tab.show_tab,
-                order=tab.order,
-            )
+            tabs_exists.add(new_tab.uuid)
             new_tab.save()
 
 
