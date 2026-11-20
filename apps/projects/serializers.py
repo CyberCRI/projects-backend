@@ -539,6 +539,12 @@ class PeopleGroupLightSerializerPrimaryKeyRelatedField(
     def to_internal_value(self, data):
         return serializers.PrimaryKeyRelatedField.to_internal_value(self, data)
 
+    def get_validators(self):
+        # The input is a primary key resolved to a PeopleGroup instance, so the
+        # model serializer validators (e.g. the UniqueTogetherValidator DRF
+        # builds from PeopleGroup's conditional UniqueConstraint) don't apply.
+        return []
+
 
 class ProjectTeamMembersSerializer(UserLighterSerializer):
     role = serializers.CharField()

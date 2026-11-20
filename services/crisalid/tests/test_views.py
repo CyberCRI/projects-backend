@@ -808,7 +808,9 @@ class StructureViewsTestCase(JwtAPITestCase):
 
     def test_retrieve_structure(self):
         self.authenticate()
-        response = self.client.get(self.url("Structure-detail", self.laboratory))
+        response = self.client.get(
+            self.url("Structure-detail", self.laboratory), {"modules": "all"}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
 
@@ -955,7 +957,9 @@ class StructureViewsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual([c["id"] for c in response.json()["results"]], [self.team.id])
 
-        response = self.client.get(self.url("Structure-detail", self.laboratory))
+        response = self.client.get(
+            self.url("Structure-detail", self.laboratory), {"modules": "all"}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["modules"]["sub_structures"], 1)
 

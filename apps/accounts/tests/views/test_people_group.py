@@ -231,7 +231,8 @@ class ReadPeopleGroupHierarchyTestCase(JwtAPITestCase):
             reverse(
                 "PeopleGroup-detail",
                 args=(self.organization.code, self.group.id),
-            )
+            ),
+            {"modules": "all"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
