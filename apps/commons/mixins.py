@@ -11,8 +11,8 @@ from django.db.models.manager import BaseManager
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
+from guardian.ctypes import get_content_type
 from guardian.models import GroupObjectPermission
-from guardian.shortcuts import assign_perm, remove_perm
 
 from .models import GroupData
 
@@ -145,10 +145,28 @@ class HasPermissionsSetup:
         )
         permissions_to_remove = current_role_permissions.difference(permissions)
         permissions_to_add = permissions.difference(current_role_permissions)
-        for permission in permissions_to_add:
-            assign_perm(permission, group, self)
-        for permission in permissions_to_remove:
-            remove_perm(permission, group, self)
+        # Bulk equivalent of guardian's `assign_perm` / `remove_perm` for each
+        # permission (which run 2 queries per permission)
+        content_type = get_content_type(self)
+        GroupObjectPermission.objects.bulk_create(
+            [
+                GroupObjectPermission(
+                    group=group,
+                    permission=permission,
+                    content_type=content_type,
+                    object_pk=str(self.pk),
+                )
+                for permission in permissions_to_add
+            ],
+            ignore_conflicts=True,
+        )
+        permissions_to_remove_ids = [p.id for p in permissions_to_remove]
+        if permissions_to_remove_ids:
+            GroupObjectPermission.objects.filter(
+                group=group,
+                permission_id__in=permissions_to_remove_ids,
+                object_pk=self.pk,
+            ).delete()
         return group
 
     def setup_group_global_permissions(
@@ -157,10 +175,8 @@ class HasPermissionsSetup:
         current_role_permissions = group.permissions.all()
         permissions_to_remove = current_role_permissions.difference(permissions)
         permissions_to_add = permissions.difference(current_role_permissions)
-        for permission in permissions_to_add:
-            assign_perm(permission, group)
-        for permission in permissions_to_remove:
-            remove_perm(permission, group)
+        group.permissions.add(*permissions_to_add)
+        group.permissions.remove(*permissions_to_remove)
         return group
 
     def get_or_create_group(self, name: str) -> Group:

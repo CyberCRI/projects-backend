@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from googleapiclient.errors import HttpError
-from guardian.shortcuts import assign_perm, get_group_perms
+from guardian.shortcuts import get_group_perms
 from keycloak import KeycloakError
 from rest_framework.request import Request
 
@@ -58,16 +58,14 @@ def get_superadmins_group_permissions():
 def get_default_group():
     group, created = Group.objects.get_or_create(name="default")
     if created:
-        for permission in get_default_group_permissions():
-            assign_perm(permission, group)
+        group.permissions.add(*get_default_group_permissions())
     return group
 
 
 def get_superadmins_group():
     group, created = Group.objects.get_or_create(name="superadmins")
     if created:
-        for permission in get_superadmins_group_permissions():
-            assign_perm(permission, group)
+        group.permissions.add(*get_superadmins_group_permissions())
     return group
 
 
