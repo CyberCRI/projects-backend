@@ -876,7 +876,9 @@ class MiscUserTestCase(JwtAPITestCase):
         NotificationFactory(receiver=user, project=project, is_viewed=True)
         NotificationFactory(project=project)
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
+        response = self.client.get(
+            reverse("ProjectUser-detail", args=(user.id,)), {"modules": "all"}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["modules"]["notifications"], 5)
 

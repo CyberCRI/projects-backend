@@ -756,7 +756,7 @@ class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
             "Organization-people-groups-hierarchy",
             args=(organization.code,),
         )
-        response = self.client.get(url)
+        response = self.client.get(url, default_modules=False)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data["modules"], {})

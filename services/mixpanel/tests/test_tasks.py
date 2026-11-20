@@ -1,9 +1,11 @@
+import datetime
 from unittest.mock import patch
 
 from django.test import TestCase
 
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+from services.mixpanel.interface import MixpanelService
 from services.mixpanel.models import MixpanelEvent
 from services.mixpanel.tasks import get_new_mixpanel_events
 
@@ -35,6 +37,9 @@ class MixpanelServiceTestCase(TestCase):
 
         return inner
 
+    # Without this, the task requests one day at a time since 2021-09-01 (and the
+    # mock returns the same events for each day): the test gets slower every day
+    @patch.object(MixpanelService, "initial_date", datetime.date.today())
     @patch("mixpanel_utils.MixpanelUtils.request")
     def test_get_new_mixpanel_events(self, mocked):
         projects = ProjectFactory.create_batch(

@@ -28,7 +28,8 @@ class CrisalidPeopleGroupTestCase(JwtAPITestCase):
             reverse(
                 "PeopleGroup-detail",
                 args=(self.organization.code, self.people_group.pk),
-            )
+            ),
+            {"modules": "all"},
         )
         content = response.json()
         self.assertEqual(content["structure"]["id"], self.structure.id)
