@@ -20,6 +20,7 @@ class CrisalidPeopleGroupTestCase(JwtAPITestCase):
         cls.people_group = cls.structure.people_group
 
     def test_retrieve_structure(self):
+        self.client.default_modules = None  # this test checks the modules
         user = self.get_parameterized_test_user(
             TestRoles.SUPERADMIN, instances=[self.people_group]
         )

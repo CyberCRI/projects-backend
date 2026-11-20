@@ -427,19 +427,37 @@ class Image(BaseImage, HasOwner, ProjectRelated, OrganizationRelated):
         Organization = apps.get_model("organizations", "Organization")  # noqa
         return list(
             Organization.objects.filter(
-                Q(images=self)
-                | Q(logo_image=self)
-                | Q(banner_image=self)
-                | Q(project_categories__background_image=self)
-                | Q(templates__images=self)
-                | Q(people_groups__header_image=self)
-                | Q(people_groups__logo_image=self)
-                | Q(news__header_image=self)
-                | Q(news__images=self)
-                | Q(instructions__images=self)
-                | Q(events__images=self)
-            ).distinct()
+                self._any_relation_query(
+                    Organization,
+                    [
+                        "images",
+                        "logo_image",
+                        "banner_image",
+                        "project_categories__background_image",
+                        "templates__images",
+                        "people_groups__header_image",
+                        "people_groups__logo_image",
+                        "news__header_image",
+                        "news__images",
+                        "instructions__images",
+                        "events__images",
+                    ],
+                )
+            )
         )
+
+    def _any_relation_query(self, model: type[models.Model], lookups: list[str]) -> Q:
+        """
+        Return a query matching the instances of `model` related to this image
+        through any of the given lookups.
+
+        Each lookup is checked in its own subquery: OR-ing the lookups directly
+        joins all the relations together, which is very slow.
+        """
+        query = Q()
+        for lookup in lookups:
+            query |= Q(id__in=model.objects.filter(**{lookup: self}).values("id"))
+        return query
 
     def get_related_project(self) -> Optional["Project"]:
         """
@@ -455,14 +473,19 @@ class Image(BaseImage, HasOwner, ProjectRelated, OrganizationRelated):
         """
         Project = apps.get_model("projects", "Project")  # noqa
         queryset = Project.objects.filter(
-            Q(header_image=self)
-            | Q(images=self)
-            | Q(blog_entries__images=self)
-            | Q(comments__images=self)
-            | Q(messages__images=self)
-            | Q(additional_tabs__images=self)
-            | Q(additional_tabs__items__images=self)
-        ).distinct()
+            self._any_relation_query(
+                Project,
+                [
+                    "header_image",
+                    "images",
+                    "blog_entries__images",
+                    "comments__images",
+                    "messages__images",
+                    "additional_tabs__images",
+                    "additional_tabs__items__images",
+                ],
+            )
+        )
         with suppress(Project.DoesNotExist):
             return queryset.first()
         return None

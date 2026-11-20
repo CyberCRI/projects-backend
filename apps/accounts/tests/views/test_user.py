@@ -868,6 +868,7 @@ class MiscUserTestCase(JwtAPITestCase):
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
     def test_notifications_count(self):
+        self.client.default_modules = None  # this test checks the modules
         project = ProjectFactory()
         user = UserFactory()
         NotificationFactory.create_batch(

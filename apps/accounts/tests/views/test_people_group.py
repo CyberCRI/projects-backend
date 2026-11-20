@@ -223,6 +223,7 @@ class ReadPeopleGroupHierarchyTestCase(JwtAPITestCase):
     def test_retrieve_people_group_hierarchy(
         self, role, expected_parents, expected_children
     ):
+        self.client.default_modules = None  # this test checks the modules
         user = self.get_parameterized_test_user(
             role, instances=[self.level_2, self.private_child]
         )

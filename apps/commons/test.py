@@ -5,6 +5,7 @@ import os
 import uuid
 from typing import Any
 from unittest import skipUnless, util
+from urllib.parse import parse_qs
 
 from django.conf import settings
 from django.core.files import File
@@ -53,7 +54,23 @@ class JwtClient(APIClient):
 
     This token will then be given in any subsequent request in the
     header `HTTP_AUTHORIZATION`.
+
+    By default, every request is sent with `?modules=none` so the responses
+    don't compute the `modules` counts (one heavy COUNT query per module).
+    Tests checking these counts can either pass the `modules` query parameter
+    themselves or set `client.default_modules = None` to send requests as is.
+    The modules are tested in `apps/modules/tests`.
     """
+
+    default_modules: str | None = "none"
+
+    def request(self, **kwargs):
+        query_string = kwargs.get("QUERY_STRING", "")
+        if self.default_modules and "modules" not in parse_qs(query_string):
+            kwargs["QUERY_STRING"] = "&".join(
+                filter(None, [query_string, f"modules={self.default_modules}"])
+            )
+        return super().request(**kwargs)
 
     def force_authenticate(  # nosec
         self,
