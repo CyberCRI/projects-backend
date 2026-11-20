@@ -807,9 +807,10 @@ class StructureViewsTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
 
     def test_retrieve_structure(self):
-        self.client.default_modules = None  # this test checks the modules
         self.authenticate()
-        response = self.client.get(self.url("Structure-detail", self.laboratory))
+        response = self.client.get(
+            self.url("Structure-detail", self.laboratory), {"modules": "all"}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
 
@@ -936,7 +937,6 @@ class StructureViewsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_hidden_sub_structure(self):
-        self.client.default_modules = None  # this test checks the modules
         hidden = StructureFactory(
             organization=self.organization,
             people_group=PeopleGroupFactory(
@@ -957,7 +957,9 @@ class StructureViewsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual([c["id"] for c in response.json()["results"]], [self.team.id])
 
-        response = self.client.get(self.url("Structure-detail", self.laboratory))
+        response = self.client.get(
+            self.url("Structure-detail", self.laboratory), {"modules": "all"}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["modules"]["sub_structures"], 1)
 

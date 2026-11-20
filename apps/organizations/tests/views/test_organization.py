@@ -748,7 +748,6 @@ class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
         )
 
     def test_people_groups_hierarchy_params(self):
-        self.client.default_modules = None  # this test checks the modules
         organization = self.organization
         user = self.get_parameterized_test_user(TestRoles.SUPERADMIN)
         self.client.force_authenticate(user)
@@ -757,7 +756,7 @@ class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
             "Organization-people-groups-hierarchy",
             args=(organization.code,),
         )
-        response = self.client.get(url)
+        response = self.client.get(url, default_modules=False)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data["modules"], {})

@@ -868,7 +868,6 @@ class MiscUserTestCase(JwtAPITestCase):
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
     def test_notifications_count(self):
-        self.client.default_modules = None  # this test checks the modules
         project = ProjectFactory()
         user = UserFactory()
         NotificationFactory.create_batch(
@@ -877,7 +876,9 @@ class MiscUserTestCase(JwtAPITestCase):
         NotificationFactory(receiver=user, project=project, is_viewed=True)
         NotificationFactory(project=project)
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
+        response = self.client.get(
+            reverse("ProjectUser-detail", args=(user.id,)), {"modules": "all"}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["modules"]["notifications"], 5)
 

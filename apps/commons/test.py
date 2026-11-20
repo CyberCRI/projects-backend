@@ -55,20 +55,33 @@ class JwtClient(APIClient):
     This token will then be given in any subsequent request in the
     header `HTTP_AUTHORIZATION`.
 
-    By default, every request is sent with `?modules=none` so the responses
-    don't compute the `modules` counts (one heavy COUNT query per module).
-    Tests checking these counts can either pass the `modules` query parameter
-    themselves or set `client.default_modules = None` to send requests as is.
-    The modules are tested in `apps/modules/tests`.
+    Unless the `modules` query parameter is set explicitly, every request is
+    sent with `?modules=none` so the responses don't compute the `modules`
+    counts (one heavy COUNT query per module). Tests checking these counts must
+    pass the `modules` parameter (e.g. `modules=all`), or `default_modules=False`
+    to send a request without it (e.g. `client.get(url, default_modules=False)`)
+    and test the serializer's default modules. The modules are tested in
+    `apps/modules/tests`.
     """
 
-    default_modules: str | None = "none"
+    def request(self, default_modules: bool = True, **kwargs):
+        """
+        Add `modules=none` to the query string unless `modules` is already set.
 
-    def request(self, **kwargs):
+        | Call                                    | Query string sent  |
+        |-----------------------------------------|--------------------|
+        | `get(url)`                              | `modules=none`     |
+        | `get(url, {"a": 1})`                    | `a=1&modules=none` |
+        | `get(url, {"modules": "all"})`          | `modules=all`      |
+        | `get(url, default_modules=False)`       | (nothing)          |
+        | `post(url, {})`                         | `modules=none`     |
+        """
         query_string = kwargs.get("QUERY_STRING", "")
-        if self.default_modules and "modules" not in parse_qs(query_string):
+        if default_modules and "modules" not in parse_qs(
+            query_string, keep_blank_values=True
+        ):
             kwargs["QUERY_STRING"] = "&".join(
-                filter(None, [query_string, f"modules={self.default_modules}"])
+                filter(None, [query_string, "modules=none"])
             )
         return super().request(**kwargs)
 
