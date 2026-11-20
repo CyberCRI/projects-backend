@@ -30,7 +30,7 @@ STORAGES = {
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        "BACKEND": "apps.commons.cache.TestDummyCache",
     },
 }
 ENABLE_CACHE = False

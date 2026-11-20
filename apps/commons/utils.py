@@ -457,8 +457,11 @@ def task_lock(
 
     lock = cache.lock(
         key,
+        version=version,
         timeout=timeout,
+        sleep=sleep,
         blocking=blocking,
+        blocking_timeout=blocking_timeout,
     )
 
     @wraps(task_function)
