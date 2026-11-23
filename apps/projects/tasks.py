@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from typing import Iterable
 
@@ -6,7 +7,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
-from apps.commons.utils import clear_memory
+from apps.commons.utils import clear_memory, task_lock
 from apps.organizations.models import TemplateTab
 from apps.projects import utils
 from projects.celery import app
@@ -14,6 +15,7 @@ from projects.celery import app
 from .models import Project, ProjectScore
 
 HistoricalProject = apps.get_model("projects", "HistoricalProject")
+logger = logging.getLogger(__name__)
 
 
 @app.task(name="apps.projects.tasks.remove_old_projects")
@@ -65,8 +67,14 @@ def remove_old_project_versions():
 
 
 @app.task(name="apps.projects.tasks.sync_project_tabs")
+@task_lock
 def sync_project_tabs(projects_ids: Iterable[int], template_tabs_ids: Iterable[int]):
     """task to sync projects tabs to templates"""
+    logger.info(
+        "Run task `sync_project_tabs` for projects_ids=%s, and template_tabs_ids=%s",
+        projects_ids,
+        template_tabs_ids,
+    )
     projects = Project.objects.filter(pk__in=projects_ids)
     tabs = TemplateTab.objects.filter(pk__in=template_tabs_ids)
 

@@ -2,6 +2,7 @@ from typing import cast
 
 from django.conf import settings
 from django.core.cache import cache as django_cache
+from django.core.cache.backends.dummy import DummyCache
 from django.db import models
 from django_redis.cache import RedisCache
 from rest_framework.response import Response
@@ -92,3 +93,22 @@ def redis_cache_viewset_method(
         return wrapper
 
     return decorator
+
+
+class TestDummyCache(DummyCache):
+    """overide the DummyCache for test to add lock method (only in redis not in django cache interface)"""
+
+    def lock(self, *ar, **kw):
+        class DummyLock:
+            def aquire(self):
+                return True
+
+            def release(self): ...
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                pass
+
+        return DummyLock()
