@@ -1174,7 +1174,7 @@ class UserMemberProjectViewSet(
 
     def get_queryset(self) -> QuerySet:
         return (
-            self.user.modules_by_user(self.user, self.organization)
+            self.user.modules_by_user(self.request.user, self.organization)
             .projects()
             .distinct()
             .select_related("header_image")
@@ -1193,7 +1193,7 @@ class UserReviewerProjectViewSet(
 
     def get_queryset(self) -> QuerySet:
         return (
-            self.user.modules_by_user(self.user, self.organization)
+            self.user.modules_by_user(self.request.user, self.organization)
             .reviews_projects()
             .distinct()
             .select_related("header_image")
