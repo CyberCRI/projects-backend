@@ -140,7 +140,14 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         user = self.get_parameterized_test_user(role, instances=[self.member_project])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",)) + "?types=project"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "project"},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -162,9 +169,14 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=project"
-            + f"&organizations={self.organization_2.code}"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization_2.code,
+                    "opensearch",
+                ),
+                query={"types": "project"},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -186,9 +198,14 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=project"
-            + "&sdgs=2"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "project", "sdgs": 2},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -210,10 +227,16 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=project"
-            + "&languages=en"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "project", "languages": "en"},
+            )
         )
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
@@ -234,9 +257,14 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=project"
-            + f"&categories={self.category_2.id}"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "project", "categories": self.category_2.id},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -258,9 +286,14 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=project"
-            + f"&tags={self.tag_2.id}"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "project", "tags": self.tag_2.id},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
