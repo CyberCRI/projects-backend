@@ -48,7 +48,9 @@ class OrganizationModules(AbstractModules):
         return Structure.objects.filter(organization=self.instance)
 
     def users(self) -> BaseManager[ProjectUser]:
-        return ProjectUser.objects.filter(groups__organizations__in=(self.instance,))
+        return self.user.get_user_queryset().filter(
+            groups__organizations__in=(self.instance,)
+        )
 
     def researchers(self) -> BaseManager[Researcher]:
         return Researcher.objects.filter(user__in=self.users())
