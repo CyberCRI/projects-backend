@@ -1554,8 +1554,8 @@ msgid "A project must belong to at least one organization"
 msgstr "Projekt peab kuuluma vähemalt ühte organisatsiooni"
 
 #: apps/projects/exceptions.py:92
-msgid "Only a reviewer can change this project's status"
-msgstr "Ainult ülevaataja saab selle projekti staatust muuta"
+msgid "Only a reviewer can change this project's visibility"
+msgstr "Ainult ülevaataja saab selle projekti nähtavust muuta"
 
 #: apps/projects/exceptions.py:98
 msgid "You cannot empty the description of a project"

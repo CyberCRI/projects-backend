@@ -232,7 +232,7 @@ class UpdateProjectTestCase(JwtAPITestCase):
                 response,
                 {
                     "publication_status": [
-                        "Only a reviewer can change this project's status"
+                        "Only a reviewer can change this project's visibility"
                     ]
                 },
             )

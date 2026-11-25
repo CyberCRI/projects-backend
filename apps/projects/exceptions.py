@@ -89,7 +89,7 @@ class ProjectWithNoOrganizationError(ValidationError):
 
 class OnlyReviewerCanChangeStatusError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = _("Only a reviewer can change this project's status")
+    default_detail = _("Only a reviewer can change this project's visibility")
     default_code = "only_reviewer_can_change_status_error"
 
 

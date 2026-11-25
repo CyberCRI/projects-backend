@@ -1575,8 +1575,8 @@ msgid "A project must belong to at least one organization"
 msgstr "Un proyecto debe pertenecer al menos a una organización"
 
 #: apps/projects/exceptions.py:92
-msgid "Only a reviewer can change this project's status"
-msgstr "Solo un revisor puede cambiar el estado de este proyecto"
+msgid "Only a reviewer can change this project's visibility"
+msgstr "Solo un revisor puede cambiar la visibilidad de este proyecto"
 
 #: apps/projects/exceptions.py:98
 msgid "You cannot empty the description of a project"
