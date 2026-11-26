@@ -171,6 +171,8 @@ class SearchObjectFilter(filters.FilterSet):
         method="filter_only_group_parent_child"
     )
 
+    group_childs = filters.BooleanFilter(method="filters_group_childs")
+
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(
             Q(project__organizations__code__in=get_below_hierarchy_codes(value))
@@ -384,7 +386,21 @@ class SearchObjectFilter(filters.FilterSet):
             SearchObject.SearchObjectType.USER,
         ]
         return queryset.filter(
-            ~Q(people_group__parent__is_root=value) | Q(type__in=unaffected_types)
+            Q(people_group__parent__is_root=value) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filters_group_childs(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.USER,
+        ]
+        group = PeopleGroup.objects.slug_or_id(value).first()
+        if not group:
+            return queryset
+        subgroups = group.modules.subgroups()
+
+        return queryset.filter(
+            Q(people_group__in=subgroups) | Q(type__in=unaffected_types)
         ).distinct()
 
     class Meta:
