@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 
 from apps.commons.pagination import PageInfoLimitOffsetPagination
-from apps.commons.views import ListViewSet
+from apps.commons.views import ListViewSet, NestedOrganizationViewMixins
 
 from .filters import SearchObjectFilter
 from .interface import OpenSearchService
@@ -15,22 +15,23 @@ from .pagination import SearchPagination
 from .serializers import SearchObjectSerializer
 
 
-class SearchViewSet(ListViewSet):
+class SearchViewSet(NestedOrganizationViewMixins, ListViewSet):
     filterset_class = SearchObjectFilter
     serializer_class = SearchObjectSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ("type", "last_update")
 
     def get_queryset(self, order: bool = True) -> QuerySet[SearchObject]:
-        groups = self.request.user.get_people_group_queryset()
-        projects = self.request.user.get_project_queryset()
-        users = self.request.user.get_user_queryset()
+        oranization_modules = self.organization.modules_by_user(self.request.user)
+        groups = oranization_modules.groups().exclude(is_root=True)
+        projects = oranization_modules.projects()
+        users = oranization_modules.users()
+
         queryset = (
             SearchObject.objects.filter(
                 (
                     Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP)
                     & Q(people_group__in=groups)
-                    & Q(people_group__is_root=False)
                 )
                 | (
                     Q(type=SearchObject.SearchObjectType.PROJECT)
@@ -141,7 +142,7 @@ class SearchViewSet(ListViewSet):
         search_objects_ids = [hit.search_object_id for hit in response.hits]
 
         # remove search id not hits in opensearch
-        filtered_search_object = queryset.filter(
+        filtered_search_object = SearchObject.objects.filter(
             id__in=search_objects_ids
         ).select_related(
             "people_group__structure",

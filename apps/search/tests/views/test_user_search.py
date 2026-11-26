@@ -114,7 +114,14 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",)) + "?types=user"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "user"},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -136,9 +143,14 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=user"
-            + f"&organizations={self.organization_2.code}"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization_2.code,
+                    "opensearch",
+                ),
+                query={"types": "user"},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -159,7 +171,14 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",)) + "?types=user" + "&sdgs=2"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "user", "sdgs": 2},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -180,9 +199,14 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=user"
-            + f"&skills={self.skill_2.tag.id}"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "user", "skills": self.skill_2.tag.id},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -206,9 +230,14 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=user"
-            + "&can_mentor=true"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "user", "can_mentor": True},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -233,9 +262,14 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=user"
-            + "&needs_mentor=true"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "user", "needs_mentor": True},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -260,9 +294,17 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=user"
-            + f"&can_mentor_on={self.tag_1.id},{self.tag_2.id}"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={
+                    "types": "user",
+                    "can_mentor_on": f"{self.tag_1.id},{self.tag_2.id}",
+                },
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -287,9 +329,17 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=user"
-            + f"&needs_mentor_on={self.tag_1.id},{self.tag_2.id}"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={
+                    "types": "user",
+                    "needs_mentor_on": f"{self.tag_1.id},{self.tag_2.id}",
+                },
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]

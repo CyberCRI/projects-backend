@@ -187,12 +187,10 @@ class QueryOrganizationViewMixins(NestedOrganizationViewMixins):
         self, request: rest_framework.request.Request, *args, **kwargs
     ):
         # TODO(remi): replace this by NestedOrganizationMixins
-        current_org_pk = request.query_params.get("current_org_pk")
         filters = None
-        if current_org_pk:
+        if current_org_pk := request.query_params.get("current_org_pk"):
             filters = Q(pk=current_org_pk)
-        current_org_code = request.query_params.get("current_org")
-        if current_org_code:
+        elif current_org_code := request.query_params.get("current_org"):
             filters = Q(code=current_org_code)
 
         if filters is None:

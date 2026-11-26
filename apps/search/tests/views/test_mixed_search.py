@@ -117,8 +117,13 @@ class MixedSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             search_objects=self.search_objects, query="opensearch"
         )
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + f"?organizations={self.organization.code}"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -149,7 +154,7 @@ class MixedSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     def test_search_mixed_index_no_query(self):
         response = self.client.get(
-            reverse("Search-list") + f"?organizations={self.organization.code}"
+            reverse("Search-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
