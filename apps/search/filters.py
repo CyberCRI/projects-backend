@@ -171,7 +171,7 @@ class SearchObjectFilter(filters.FilterSet):
         method="filter_only_group_parent_child"
     )
 
-    group_childs = filters.BooleanFilter(method="filters_group_childs")
+    group_childs = filters.CharFilter(method="filters_group_childs")
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(

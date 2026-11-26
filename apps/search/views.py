@@ -23,7 +23,7 @@ class SearchViewSet(NestedOrganizationViewMixins, ListViewSet):
 
     def get_queryset(self, order: bool = True) -> QuerySet[SearchObject]:
         oranization_modules = self.organization.modules_by_user(self.request.user)
-        groups = oranization_modules.groups().exclude(is_root=False)
+        groups = oranization_modules.groups().exclude(is_root=True)
         projects = oranization_modules.projects()
         users = oranization_modules.users()
 
