@@ -28,9 +28,7 @@ class OrganizationModules(AbstractModules):
         )
 
     def groups(self) -> BaseManager[PeopleGroup]:
-        return self.user.get_people_group_queryset().filter(
-            organization__in=(self.instance,)
-        )
+        return self.user.get_people_group_queryset().filter(organization=self.instance)
 
     def announcements(self) -> BaseManager[Announcement]:
         return Announcement.objects.filter(project__in=self.projects())

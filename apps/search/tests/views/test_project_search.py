@@ -315,9 +315,14 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",))
-            + "?types=project"
-            + f"&members={self.public_project_2_member.id}"
+            reverse(
+                "Search-search",
+                args=(
+                    self.organization.code,
+                    "opensearch",
+                ),
+                query={"types": "project", "members": self.public_project_2_member.id},
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]

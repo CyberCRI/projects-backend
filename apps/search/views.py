@@ -27,10 +27,6 @@ class SearchViewSet(NestedOrganizationViewMixins, ListViewSet):
         projects = oranization_modules.projects()
         users = oranization_modules.users()
 
-        # no search, return only child on root parent
-        if not self.kwargs.get("search", ""):
-            groups = groups.filter(parent__is_root=True)
-
         queryset = (
             SearchObject.objects.filter(
                 (
@@ -146,7 +142,7 @@ class SearchViewSet(NestedOrganizationViewMixins, ListViewSet):
         search_objects_ids = [hit.search_object_id for hit in response.hits]
 
         # remove search id not hits in opensearch
-        filtered_search_object = queryset.filter(
+        filtered_search_object = SearchObject.objects.filter(
             id__in=search_objects_ids
         ).select_related(
             "people_group__structure",
